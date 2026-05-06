@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Profile Step Tree View -->
+    <record id="view_profile_step_tree" model="ir.ui.view">
+        <field name="name">profile.step.tree</field>
+        <field name="model">profile.step</field>
+        <field name="arch" type="xml">
+            <list string="Steps" decoration-success="state=='active'" decoration-muted="state=='inactive'">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="profile_id"/>
+                <field name="cost" widget="monetary"/>
+                <field name="duration_days"/>
+                <field name="is_mandatory"/>
+                <field name="state" widget="badge" decoration-success="state=='active'" decoration-danger="state=='inactive'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Profile Step Form View (Manager/Admin) -->
+    <record id="view_profile_step_form" model="ir.ui.view">
+        <field name="name">profile.step.form</field>
+        <field name="model">profile.step</field>
+        <field name="priority">1</field>
+        <field name="groups_id" eval="[(6, 0, [ref('isd_profile_management.group_profile_manager')])]"/>
+        <field name="arch" type="xml">
+            <form string="Step" create="true" edit="true">
+                <header>
+                    <button name="action_activate" string="Activate" type="object" 
+                            class="btn-primary" invisible="state == 'active'"/>
+                    <button name="action_deactivate" string="Deactivate" type="object" 
+                            invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,inactive"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Enter step name..." required="1"/></h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Basic Information">
+                            <field name="profile_id" required="1"/>
+                            <field name="sequence"/>
+                            <field name="is_mandatory"/>
+                        </group>
+                        <group string="Cost &amp; Duration">
+                            <field name="cost" widget="monetary" required="1"/>
+                            <field name="cost_vnd" readonly="1"/>
+                            <field name="duration_days"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Description" name="description">
+                            <group>
+                                <field name="description" widget="text" placeholder="Enter step description..." nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Instructions" name="instructions">
+                            <group>
+                                <field name="instructions" widget="html" placeholder="Enter detailed instructions..." nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Prerequisites" name="prerequisites">
+                            <group>
+                                <field name="profile_id" invisible="1" force_save="1"/>
+                                <field name="prerequisite_step_ids" widget="many2many_tags" 
+                                       domain="[('profile_id', '=', profile_id), ('id', '!=', id)]"
+                                       placeholder="Select prerequisite steps..." nolabel="1"/>
+                            </group>
+                            <div class="alert alert-info mt-3" role="alert">
+                                <strong>Note:</strong> Prerequisites are steps that must be completed before this step can be started.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Profile Step Search View -->
+    <record id="view_profile_step_search" model="ir.ui.view">
+        <field name="name">profile.step.search</field>
+        <field name="model">profile.step</field>
+        <field name="arch" type="xml">
+            <search string="Search Steps">
+                <field name="name" string="Step" filter_domain="[('name','ilike',self)]"/>
+                <field name="profile_id"/>
+                <separator/>
+                <filter string="Active" name="active" domain="[('state','=','active')]"/>
+                <filter string="Inactive" name="inactive" domain="[('state','=','inactive')]"/>
+                <filter string="Mandatory" name="mandatory" domain="[('is_mandatory','=',True)]"/>
+                <filter string="Optional" name="optional" domain="[('is_mandatory','=',False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Mandatory" name="group_mandatory" context="{'group_by':'is_mandatory'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Clean Student Step View (No Chatter) -->
+    <record id="view_profile_step_student_form" model="ir.ui.view">
+        <field name="name">profile.step.student.form</field>
+        <field name="model">profile.step</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form string="Service Details" create="false" edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2>Service Details &amp; Information</h2>
+                    </div>
+                    
+                    <group>
+                        <group string="Service Information">
+                            <field name="profile_id" readonly="1"/>
+                            <field name="cost" widget="monetary" readonly="1"/>
+                            <field name="cost_vnd" readonly="1"/>
+                            <field name="duration_days" readonly="1"/>
+                        </group>
+                        <group string="Details">
+                            <field name="sequence" readonly="1"/>
+                            <field name="is_mandatory" readonly="1"/>
+                            <field name="state" widget="badge" decoration-success="state=='active'" decoration-danger="state=='inactive'" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" readonly="1"/>
+                        </page>
+                        <page string="Instructions" name="instructions" invisible="instructions == False">
+                            <field name="instructions" readonly="1"/>
+                        </page>
+                        <page string="Prerequisites" name="prerequisites" invisible="not prerequisite_step_ids">
+                            <field name="prerequisite_step_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="cost" widget="monetary"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Clean Step View (Student) -->
+    <record id="action_profile_step_student" model="ir.actions.act_window">
+        <field name="name">Step Details</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">profile.step</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_profile_step_student_form"/>
+        <field name="target">new</field>
+        <field name="context">{'create': False, 'edit': False}</field>
+    </record>
+
+    <!-- Profile Step Action (Manager/Admin) -->
+    <record id="action_profile_step" model="ir.actions.act_window">
+        <field name="name">Profile Steps</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">profile.step</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_profile_step_tree"/>
+        <field name="groups_id" eval="[(6, 0, [ref('isd_profile_management.group_profile_manager')])]"/>
+        <field name="context">{'create': True, 'edit': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first profile step!
+            </p>
+            <p>
+                Steps define the individual tasks or services within a profile.
+            </p>
+        </field>
+    </record>
+
+    <!-- Specify list view for manager action -->
+    <record id="action_profile_step_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_profile_step_tree"/>
+        <field name="act_window_id" ref="action_profile_step"/>
+    </record>
+
+    <!-- Specify form view for manager action -->
+    <record id="action_profile_step_view_form" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_profile_step_form"/>
+        <field name="act_window_id" ref="action_profile_step"/>
+    </record>
+</odoo>

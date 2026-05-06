@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Profile Card Kanban View (Shopping Cart Style) -->
+    <record id="view_profile_card_kanban" model="ir.ui.view">
+        <field name="name">profile.management.card.kanban</field>
+        <field name="model">profile.management</field>
+        <field name="arch" type="xml">
+            <kanban create="false">
+                <field name="name"/>
+                <field name="description"/>
+                <field name="step_ids"/>
+                <field name="total_cost"/>
+                <field name="total_steps"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click" style="border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 8px;">
+                            <!-- Top border accent -->
+                            <div style="height: 3px; background: #007cba; border-radius: 8px 8px 0 0;"></div>
+                            
+                            <div class="oe_kanban_content" style="padding: 16px;">
+                                <div class="oe_kanban_details" style="margin-bottom: 12px;">
+                                    <div class="o_kanban_record_top">
+                                        <div class="o_kanban_record_headings">
+                                            <strong class="o_kanban_record_title" style="color: #212529; font-size: 16px;">
+                                                <field name="name"/>
+                                            </strong>
+                                            <div class="o_kanban_record_subtitle" style="color: #6c757d; font-size: 13px; margin-top: 4px;">
+                                                <field name="description"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Divider line -->
+                                <hr style="margin: 12px 0; border-top: 1px solid #e9ecef;"/>
+
+                                <div class="o_kanban_record_body">
+                                    <!-- Info blocks with background -->
+                                    <div class="row" style="margin-bottom: 12px;">
+                                        <div class="col-6">
+                                            <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 8px; text-align: center;">
+                                                <div style="color: #6c757d; font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Available</div>
+                                                <strong style="color: #495057; font-size: 14px;"><field name="total_steps"/> services</strong>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 8px; text-align: center;">
+                                                <div style="color: #6c757d; font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Starting from</div>
+                                                <strong style="color: #28a745; font-size: 14px;"><field name="total_cost_vnd"/></strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Pricing badges -->
+                                    <div class="row mt8">
+                                        <div class="col-6">
+                                            <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; padding: 6px 10px; text-align: center;">
+                                                <span style="color: #1976d2; font-weight: 600; font-size: 12px;">
+                                                    <field name="total_steps"/> Services
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div style="background: #e8f5e8; border: 1px solid #4caf50; border-radius: 8px; padding: 6px 10px; text-align: center;">
+                                                <span style="color: #2e7d32; font-weight: 600; font-size: 12px;">
+                                                    <field name="total_cost_vnd"/> Full Package
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Divider line -->
+                                <hr style="margin: 12px 0; border-top: 1px solid #e9ecef;"/>
+
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_right">
+                                        <button name="action_select_steps" type="object" class="btn btn-primary" style="border-radius: 6px; padding: 8px 16px;">
+                                            <i class="fa fa-shopping-cart mr-1"></i> Select Services
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+
+    <!-- Action for Profile Cards -->
+    <record id="action_profile_cards" model="ir.actions.act_window">
+        <field name="name">Service Packages</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">profile.management</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_profile_card_kanban"/>
+        <field name="domain">[]</field>
+        <field name="context">{'create': False, 'edit': False}</field>
+        <field name="help" type="html">
+            <p style="text-align: center; color: #64748b; font-size: 18px; margin: 40px 0 20px 0;">
+                <i class="fa fa-box-open" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px;"></i><br/>
+                No service packages available!
+            </p>
+            <p style="text-align: center; color: #64748b; font-size: 14px; margin-bottom: 20px;">
+                Service packages will be displayed here as beautiful cards with selectable steps and pricing.
+            </p>
+            <p style="text-align: center; color: #64748b; font-size: 14px;">
+                <strong>Note:</strong> If you expect to see packages here, please check:<br/>
+                • Go to <strong>Configuration → Package Configuration</strong> to create service packages<br/>
+                • Ensure packages have steps and are marked as 'Active'
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Clean Service Package Form View (No Chatter) -->
+    <record id="view_service_package_form" model="ir.ui.view">
+        <field name="name">service.package.form</field>
+        <field name="model">profile.management</field>
+        <field name="arch" type="xml">
+            <form string="Service Package" create="false" edit="false">
+                <sheet>
+                    <!-- Clean Package Header -->
+                    <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; position: relative;">
+                        <!-- Top accent bar -->
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: #007cba; border-radius: 8px 8px 0 0;"></div>
+                        
+                        <div style="display: flex; align-items: center;">
+                            <!-- <div style="background: #007cba; color: white; width: 50px; height: 50px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                                <i class="fa fa-box" style="font-size: 20px;"></i>
+                            </div> -->
+                            <div class="oe_title">
+                                <h1 style="color: #212529; margin: 0 0 4px 0; font-size: 24px; font-weight: 600;">
+                                    <field name="name" readonly="1"/>
+                                </h1>
+                                <p style="color: #6c757d; margin: 0; font-size: 14px;">
+                                    Service Package Details
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Package Info Cards -->
+                    <div class="row" style="margin-bottom: 20px;">
+                        <div class="col-6">
+                            <div style="background: #f8f9fa; border: 1px solid #28a745; border-radius: 8px; padding: 16px;">
+                                <h4 style="color: #155724; margin: 0 0 12px 0; font-weight: 600;">
+                                    <i class="fa fa-money-bill-alt mr-2"></i>Pricing Information
+                                </h4>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="color: #495057; font-weight: 500;">Total Steps:</span>
+                                    <field name="total_steps" readonly="1" style="font-weight: 600; color: #28a745; margin-left: 8px;"/>
+                                </div>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="color: #495057; font-weight: 500;">Total Cost:</span>
+                                    <field name="total_cost" widget="monetary" readonly="1" style="font-weight: 600; color: #28a745; margin-left: 8px;"/>
+                                </div>
+                                <div>
+                                    <span style="color: #495057; font-weight: 500;">Assigned Users:</span>
+                                    <field name="assigned_user_count" readonly="1" style="font-weight: 600; color: #28a745; margin-left: 8px;"/>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-6">
+                            <div style="background: #f8f9fa; border: 1px solid #ffc107; border-radius: 8px; padding: 16px;">
+                                <h4 style="color: #856404; margin: 0 0 12px 0; font-weight: 600;">
+                                    <i class="fa fa-chart-bar mr-2"></i>Package Status
+                                </h4>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="color: #495057; font-weight: 500;">Status:</span>
+                                    <field name="state" widget="badge" readonly="1" style="margin-left: 8px;"/>
+                                </div>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="color: #495057; font-weight: 500;">Created By:</span>
+                                    <field name="create_uid" readonly="1" style="font-weight: 500; color: #856404; margin-left: 8px;"/>
+                                </div>
+                                <div>
+                                    <span style="color: #495057; font-weight: 500;">Created Date:</span>
+                                    <field name="create_date" widget="date" readonly="1" style="font-weight: 500; color: #856404; margin-left: 8px;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <!-- Description Section -->
+                    <div style="background: #f8f9fa; border: 1px solid #007cba; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="color: #004085; margin: 0 0 12px 0; font-weight: 600;">
+                            <i class="fa fa-file-alt mr-2"></i>Package Description
+                        </h4>
+                        <field name="description" readonly="1" style="background: white; border: 1px solid #ced4da; border-radius: 4px; padding: 12px; font-size: 14px; line-height: 1.5; color: #495057;"/>
+                    </div>
+                    
+                    <!-- Available Steps Section -->
+                    <div style="background: #f8f9fa; border: 1px solid #6f42c1; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="color: #492776; margin: 0 0 12px 0; font-weight: 600;">
+                            <i class="fa fa-cogs mr-2"></i>Available Services/Steps
+                        </h4>
+                        <field name="step_ids" readonly="1">
+                            <list create="false" edit="false" delete="false" style="border: 1px solid #dee2e6; border-radius: 4px;">
+                                <field name="sequence"/>
+                                <field name="name" style="font-weight: 500;"/>
+                                <field name="cost" widget="monetary" style="font-weight: 600; color: #28a745;"/>
+                                <field name="duration_days"/>
+                                <field name="is_mandatory"/>
+                                <field name="state" widget="badge"/>
+                            </list>
+                        </field>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                        <button name="action_select_steps" type="object" class="btn btn-primary" style="border-radius: 6px; padding: 10px 20px;">
+                            <i class="fa fa-shopping-cart mr-1"></i> Select Services
+                        </button>
+                    </div>
+                </sheet>
+                <!-- NO CHATTER/ACTIVITY SECTION -->
+            </form>
+        </field>
+    </record>
+
+    <!-- Update the profile cards action to use clean form -->
+    <record id="action_profile_cards" model="ir.actions.act_window">
+        <field name="name">Service Packages</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">profile.management</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{'create': False, 'edit': False}</field>
+        <field name="help" type="html">
+            <div style="max-width: 800px; margin: 0 auto; padding: 40px; text-align: center;">
+                <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 16px; padding: 32px; margin-bottom: 32px;">
+                    <i class="fa fa-box-open" style="font-size: 64px; color: #0ea5e9; margin-bottom: 20px;"></i>
+                    <h2 style="color: #0c4a6e; margin: 0 0 16px 0; font-weight: 700;">No Service Packages Available</h2>
+                    <p style="color: #0369a1; font-size: 16px; margin: 0 0 24px 0;">Service packages are collections of services with pricing that students can select from.</p>
+                </div>
+                
+                <div style="display: flex; gap: 24px; margin-bottom: 32px;">
+                    <div style="flex: 1; background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%); border: 2px solid #22c55e; border-radius: 16px; padding: 24px;">
+                        <i class="fa fa-plus-circle" style="font-size: 32px; color: #22c55e; margin-bottom: 12px;"></i>
+                        <h3 style="color: #065f46; margin: 0 0 12px 0;">Create Packages</h3>
+                        <p style="color: #047857; font-size: 14px; margin: 0 0 16px 0;">Go to Configuration → Package Configuration to create new service packages</p>
+                        <a href="/odoo/action-440" style="background: #22c55e; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600;">Create Package</a>
+                    </div>
+                    
+                    <div style="flex: 1; background: linear-gradient(145deg, #fef3c7 0%, #fed7aa 100%); border: 2px solid #f59e0b; border-radius: 16px; padding: 24px;">
+                        <i class="fa fa-cogs" style="font-size: 32px; color: #f59e0b; margin-bottom: 12px;"></i>
+                        <h3 style="color: #92400e; margin: 0 0 12px 0;">Add Services</h3>
+                        <p style="color: #78350f; font-size: 14px; margin: 0 0 16px 0;">Create individual steps/services for your packages</p>
+                        <a href="/odoo/action-443" style="background: #f59e0b; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600;">Manage Steps</a>
+                    </div>
+                </div>
+                
+                <div style="background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #cbd5e1; border-radius: 12px; padding: 24px;">
+                    <h3 style="color: #374151; margin: 0 0 16px 0;"><i class="fa fa-info-circle"></i> How Service Packages Work</h3>
+                    <div style="display: flex; gap: 20px; text-align: left;">
+                        <div style="flex: 1;">
+                            <h4 style="color: #4b5563; margin: 0 0 8px 0;">📦 Create Packages</h4>
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">Create service packages like "IELTS Preparation" or "Visa Application"</p>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="color: #4b5563; margin: 0 0 8px 0;">🔧 Add Steps</h4>
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">Add individual services/steps with pricing to each package</p>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="color: #4b5563; margin: 0 0 8px 0;">🎯 Student Selection</h4>
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">Students can select packages and customize their service selection</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </field>
+    </record>
+
+    <!-- Specify which views to use -->
+    <record id="action_profile_cards_view_kanban" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_profile_card_kanban"/>
+        <field name="act_window_id" ref="action_profile_cards"/>
+    </record>
+    
+    <record id="action_profile_cards_view_form" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_service_package_form"/>
+        <field name="act_window_id" ref="action_profile_cards"/>
+    </record>
+</odoo>

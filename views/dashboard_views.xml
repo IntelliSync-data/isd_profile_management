@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard for Managers -->
+    <record id="view_profile_dashboard" model="ir.ui.view">
+        <field name="name">profile.dashboard</field>
+        <field name="model">user.profile</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <form string="Dashboard">
+                <sheet>
+                    <div>
+                        <p id="total_profiles">-</p>
+                    </div>
+                    <div>
+                        <p id="completed_profiles">-</p>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

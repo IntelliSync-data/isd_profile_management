@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_qr_code_checkout" model="ir.ui.view">
+        <field name="name">qr.popup.wizard.form</field>
+        <field name="model">qr.popup.wizard</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="Popup Form">
+                <field name="transaction_id" invisible="1"/>
+                <!-- Debug: visible transaction id for troubleshooting -->
+                <div class="alert alert-info" style="text-align: center; margin-bottom: 0.8rem;">
+                    <div class="o_form_label" style="font-weight: 600; display: inline-block; margin-right: .5rem;">Transaction ID:</div>
+                    <field name="transaction_id" readonly="1"/>
+                </div>
+                <!-- Use widget="image" with the URL -->
+                <div class="d-flex justify-content-center" style="text-align: center;">
+                    <field name="qr_image" widget="image" style="width: 100%; height: auto;"/>
+                </div>
+                <footer>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

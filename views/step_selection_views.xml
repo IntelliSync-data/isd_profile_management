@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Step Selection Form View -->
+    <record id="view_step_selection_form" model="ir.ui.view">
+        <field name="name">step.selection.form</field>
+        <field name="model">step.selection</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <form string="Select Your Steps">
+                <header>
+                    <button name="action_confirm_selection" string="Confirm Selection" type="object" class="btn btn-primary" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="profile_id" readonly="1"/></h1>
+                        <h2>User: <field name="user_id" readonly="1"/></h2>
+                    </div>
+                    
+                    <group>
+                        <group string="Summary">
+                            <field name="total_steps" readonly="1"/>
+                            <field name="total_cost" widget="monetary" readonly="1"/>
+                            <field name="total_cost_vnd" readonly="1"/>
+                        </group>
+                        <group string="Dates">
+                            <field name="create_date" readonly="1"/>
+                            <field name="confirm_date" readonly="1" invisible="confirm_date == False"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Selected Steps" name="select_steps">
+                            <field name="selected_step_ids" widget="many2many" nolabel="1" domain="[('profile_id', '=', profile_id)]">
+                                <list editable="bottom" create="false" delete="true">
+                                    <field name="name"/>
+                                    <field name="description"/>
+                                    <field name="duration_days"/>
+                                    <field name="cost" widget="monetary"/>
+                                    <field name="is_mandatory"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Available Steps" name="available_steps">
+                            <field name="available_step_ids" nolabel="1" readonly="1" domain="[('profile_id', '=', profile_id)]">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="description"/>
+                                    <field name="duration_days"/>
+                                    <field name="cost" widget="monetary"/>
+                                    <field name="is_mandatory"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Step Selection Tree View -->
+    <record id="view_step_selection_tree" model="ir.ui.view">
+        <field name="name">step.selection.tree</field>
+        <field name="model">step.selection</field>
+        <field name="arch" type="xml">
+            <list string="Step Selections">
+                <field name="user_id"/>
+                <field name="profile_id"/>
+                <field name="total_steps"/>
+                <field name="total_cost" widget="monetary"/>
+                <field name="state" widget="badge" decoration-info="state=='draft'" decoration-success="state=='confirmed'" decoration-warning="state=='quoted'"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Step Selection Action -->
+    <record id="action_step_selection" model="ir.actions.act_window">
+        <field name="name">Step Selections</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">step.selection</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p>
+                No step selections yet!
+            </p>
+            <p>
+                User step selections will appear here when users choose their desired services.
+            </p>
+        </field>
+    </record>
+</odoo>

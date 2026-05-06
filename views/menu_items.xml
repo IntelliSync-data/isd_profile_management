@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_profile_management_main" 
+              name="Profile Management" 
+              sequence="50" 
+              groups="base.group_user,isd_profile_management.group_profile_student_only,isd_profile_management.group_profile_manager"
+              web_icon="isd_profile_management,static/description/icon.png"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_configuration" 
+              name="Configuration" 
+              parent="menu_profile_management_main" 
+              sequence="10"
+              groups="isd_profile_management.group_profile_manager"/>
+    
+    <menuitem id="menu_profiles" 
+              name="Profiles" 
+              parent="menu_configuration" 
+              action="action_profile_management" 
+              sequence="10"/>
+    
+    <menuitem id="menu_steps" 
+              name="Steps" 
+              parent="menu_configuration" 
+              action="action_profile_step" 
+              sequence="20"/>
+    
+    <menuitem id="menu_all_payments" 
+              name="All Payments" 
+              parent="menu_configuration" 
+              action="action_profile_payment" 
+              sequence="30"/>
+    
+    <!-- Reports Menu -->
+    <menuitem id="menu_reports" 
+              name="Reports" 
+              parent="menu_profile_management_main" 
+              sequence="40"
+              groups="isd_profile_management.group_profile_manager"/>
+    
+    <!-- Manager Menu Items -->
+    <menuitem id="menu_manager_section"
+              name="Manager"
+              parent="menu_profile_management_main"
+              sequence="20"
+              groups="isd_profile_management.group_profile_manager"/>
+
+    <menuitem id="menu_manager_dashboard"
+              name="Dashboard"
+              parent="menu_manager_section"
+              action="action_profile_cards"
+              sequence="5"/>
+
+    <menuitem id="menu_manager_dashboard_new"
+              name="Manager Control Panel"
+              parent="menu_manager_section"
+              action="action_manager_dashboard_new"
+              sequence="6"/>
+    
+    <menuitem id="menu_user_profiles" 
+              name="User Profiles" 
+              parent="menu_manager_section" 
+              action="action_user_profile" 
+              sequence="10"/>
+    
+    <menuitem id="menu_payment_confirmations" 
+              name="Payment Confirmations" 
+              parent="menu_manager_section" 
+              action="action_profile_payment_manager" 
+              sequence="15"/>
+
+    <!-- Student Menu Items (Only for students) -->
+    <menuitem id="menu_student_section"
+              name="Student"
+              parent="menu_profile_management_main"
+              sequence="30"
+              groups="isd_profile_management.group_profile_student_only"/>
+
+    <menuitem id="menu_pm_settings"
+        name="PM Settings"
+        parent="menu_profile_management_main"
+        action="action_pm_settings_config"
+        sequence="40"/>
+
+    <menuitem id="menu_my_profiles"
+              name="My Profiles"
+              parent="menu_student_section"
+              action="action_my_profiles"
+              sequence="10"/>
+    
+    <menuitem id="menu_my_payments" 
+              name="My Payments" 
+              parent="menu_student_section" 
+              action="action_profile_payment" 
+              sequence="20"/>
+</odoo>

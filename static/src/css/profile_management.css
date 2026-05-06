@@ -1,0 +1,630 @@
+/* Profile Management Styles - Beautiful Modern UI */
+
+/* Global Styles */
+.profile_management_dashboard {
+    padding: 24px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Service Package Cards */
+.o_kanban_view .oe_kanban_card,
+.profile_service_card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.o_kanban_view .oe_kanban_card:before,
+.profile_service_card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.o_kanban_view .oe_kanban_card:hover,
+.profile_service_card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Step Cards */
+.profile_step_card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.profile_step_card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.profile_step_card.selected {
+    border-color: #3b82f6;
+    background: linear-gradient(145deg, #dbeafe 0%, #eff6ff 100%);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+}
+
+.profile_step_card.completed {
+    border-color: #10b981;
+    background: linear-gradient(145deg, #d1fae5 0%, #ecfdf5 100%);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+}
+
+.profile_step_card.in_progress {
+    border-color: #f59e0b;
+    background: linear-gradient(145deg, #fef3c7 0%, #fffbeb 100%);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15);
+}
+
+/* Beautiful Status Badges */
+.step_status_badge,
+.o_field_badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.step_status_badge:before,
+.o_field_badge:before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.step_status_badge.not_started,
+.o_field_badge[data-decoration-default] {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.step_status_badge.not_started:before {
+    background-color: #94a3b8;
+}
+
+.step_status_badge.in_progress,
+.o_field_badge[data-decoration-warning] {
+    background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
+    color: #92400e;
+    border: 1px solid #fbbf24;
+}
+
+.step_status_badge.in_progress:before {
+    background-color: #f59e0b;
+}
+
+.step_status_badge.completed,
+.o_field_badge[data-decoration-success] {
+    background: linear-gradient(135deg, #d1fae5 0%, #10b981 100%);
+    color: #065f46;
+    border: 1px solid #10b981;
+}
+
+.step_status_badge.completed:before {
+    background-color: #059669;
+}
+
+.step_status_badge.pending_approval,
+.o_field_badge[data-decoration-info] {
+    background: linear-gradient(135deg, #dbeafe 0%, #3b82f6 100%);
+    color: #1e40af;
+    border: 1px solid #3b82f6;
+}
+
+.step_status_badge.pending_approval:before {
+    background-color: #2563eb;
+}
+
+/* Payment Status Badges */
+.payment_status_badge {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.payment_status_badge.not_paid {
+    background: linear-gradient(135deg, #fecaca 0%, #ef4444 100%);
+    color: #7f1d1d;
+    border: 1px solid #ef4444;
+}
+
+.payment_status_badge.pending {
+    background: linear-gradient(135deg, #fed7aa 0%, #f97316 100%);
+    color: #9a3412;
+    border: 1px solid #f97316;
+}
+
+.payment_status_badge.paid {
+    background: linear-gradient(135deg, #bbf7d0 0%, #22c55e 100%);
+    color: #14532d;
+    border: 1px solid #22c55e;
+}
+
+/* Beautiful Progress Bar */
+.profile_progress_bar {
+    height: 12px;
+    background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 16px 0;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.profile_progress_fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+    border-radius: 20px;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile_progress_fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Beautiful Cost Summary */
+.cost_summary {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 20px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    position: relative;
+}
+
+.cost_summary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+.cost_item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #475569;
+}
+
+.cost_item:last-child {
+    margin-bottom: 0;
+}
+
+.cost_total {
+    border-top: 2px solid #e2e8f0;
+    padding-top: 16px;
+    margin-top: 16px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #1e293b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Payment Info Box */
+.payment_info_box {
+    background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #3b82f6;
+    border-radius: 16px;
+    padding: 24px;
+    margin: 20px 0;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+}
+
+.payment_info_box::before {
+    content: '💳';
+    position: absolute;
+    top: -12px;
+    left: 24px;
+    background: #3b82f6;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.payment_info_box h4 {
+    color: #1e40af;
+    margin-bottom: 16px;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* Instruction Box */
+.instruction_box {
+    background: linear-gradient(145deg, #fef3c7 0%, #fbbf24 100%);
+    border-left: 4px solid #f59e0b;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.1);
+    position: relative;
+}
+
+.instruction_box::before {
+    content: '💡';
+    position: absolute;
+    top: -8px;
+    left: 16px;
+    background: #f59e0b;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+/* Step Type Indicators */
+.mandatory_step {
+    border-left: 4px solid #ef4444;
+    position: relative;
+}
+
+.mandatory_step::before {
+    content: '★';
+    position: absolute;
+    top: 16px;
+    left: -12px;
+    background: #ef4444;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.optional_step {
+    border-left: 4px solid #22c55e;
+    position: relative;
+}
+
+.optional_step::before {
+    content: '○';
+    position: absolute;
+    top: 16px;
+    left: -12px;
+    background: #22c55e;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+/* Beautiful Buttons */
+.btn,
+.o_form_button,
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover,
+.o_form_button:hover,
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.btn:active,
+.o_form_button:active,
+button:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Form Enhancements */
+.o_form_view {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.o_group {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.o_notebook .nav-tabs {
+    border: none;
+    background: transparent;
+}
+
+.o_notebook .nav-link {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
+    color: #64748b;
+    font-weight: 600;
+    padding: 12px 20px;
+    margin-right: 4px;
+}
+
+.o_notebook .nav-link.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border-color: #3b82f6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .profile_management_dashboard {
+        padding: 16px;
+    }
+    
+    .o_kanban_view .oe_kanban_card,
+    .profile_service_card,
+    .profile_step_card {
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+    
+    .cost_summary,
+    .payment_info_box,
+    .instruction_box {
+        padding: 16px;
+        margin: 16px 0;
+    }
+    
+    .btn,
+    .o_form_button,
+    button {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
+
+/* Beautiful Timeline Progress */
+.timeline_step {
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+}
+
+.timeline_step::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.timeline_step.completed::before {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    transform: scale(1.2);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.timeline_step.in_progress::before {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    transform: scale(1.2);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    animation: pulse 2s infinite;
+}
+
+.timeline_step::after {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 28px;
+    width: 4px;
+    height: calc(100% - 16px);
+    background: linear-gradient(180deg, #e2e8f0 0%, #f1f5f9 100%);
+    border-radius: 2px;
+}
+
+.timeline_step:last-child::after {
+    display: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Loading Animation */
+.loading_shimmer {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Beautiful List Views */
+.o_list_view .o_list_table {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: none;
+}
+
+.o_list_view .o_list_table thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    padding: 16px;
+    border: none;
+}
+
+.o_list_view .o_list_table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.2s ease;
+}
+
+.o_list_view .o_list_table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Status Bar Enhancement */
+.o_form_statusbar {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.o_form_statusbar .o_statusbar_status {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    margin: 0 4px;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.3s ease;
+}
+
+.o_form_statusbar .o_statusbar_status.o_arrow_button_current {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+/* Input Field Enhancements */
+.o_input, .o_field_widget input, .o_field_widget select, .o_field_widget textarea {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.o_input:focus, .o_field_widget input:focus, .o_field_widget select:focus, .o_field_widget textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* Card Headers */
+.card-header, .o_form_view .oe_title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    padding: 20px 24px;
+    margin: -24px -24px 24px -24px;
+}
+
+.card-header h1, .card-header h2, .card-header h3,
+.o_form_view .oe_title h1, .o_form_view .oe_title h2 {
+    color: white;
+    margin: 0;
+    font-weight: 700;
+}

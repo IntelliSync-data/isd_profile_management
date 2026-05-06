@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Simple Step Selection Form View -->
+    <record id="view_step_selection_simple_form" model="ir.ui.view">
+        <field name="name">step.selection.simple.form</field>
+        <field name="model">step.selection</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="Select Your Steps">
+                <header>
+                    <button name="action_confirm_selection" string="Confirm Selection" type="object" class="btn btn-primary" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="profile_id" readonly="1"/></h1>
+                        <h2>Step Selection for <field name="user_id" options="{'no_create': True}"/></h2>
+                    </div>
+                    
+                    <group>
+                        <group string="Summary">
+                            <field name="total_steps" readonly="1"/>
+                            <field name="total_cost" readonly="1"/>
+                            <field name="create_date" readonly="1" widget="date"/>
+                        </group>
+                    </group>
+
+                    <group string="Notes">
+                        <field name="notes" widget="text" placeholder="Add notes about this profile assignment..." nolabel="1"/>
+                    </group>
+
+                    <separator string="Instructions"/>
+                    <div class="alert alert-info">
+                        <strong>How to Select Services:</strong>
+                        <ul>
+                            <li>Check boxes for services you want</li>
+                            <li>Total cost updates automatically</li>
+                            <li>Mandatory services required, Optional your choice</li>
+                        </ul>
+                    </div>
+
+                    <separator string="Available Services"/>
+                    <field name="profile_id" invisible="1" force_save="1"/>
+                    <field name="selected_step_ids" disabled="0" widget="many2many_checkboxes" nolabel="1" 
+                           domain="[('profile_id', '=', profile_id)]"
+                           readonly="0"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Step Selection Tree View -->
+    <record id="view_step_selection_tree" model="ir.ui.view">
+        <field name="name">step.selection.tree</field>
+        <field name="model">step.selection</field>
+        <field name="arch" type="xml">
+            <list string="Step Selections">
+                <field name="user_id"/>
+                <field name="profile_id"/>
+                <field name="total_steps"/>
+                <field name="total_cost" widget="monetary"/>
+                <field name="state" widget="badge" decoration-info="state=='draft'" decoration-success="state=='confirmed'" decoration-warning="state=='quoted'"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Step Selection Action -->
+    <record id="action_step_selection" model="ir.actions.act_window">
+        <field name="name">Step Selections</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">step.selection</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_step_selection_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No step selections yet!
+            </p>
+            <p>
+                User step selections will appear here when users choose their desired services.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Dedicated action for form view -->
+    <record id="action_step_selection_form" model="ir.actions.act_window">
+        <field name="name">Select Steps</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">step.selection</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_step_selection_simple_form"/>
+        <field name="target">current</field>
+    </record>
+</odoo>

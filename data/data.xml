@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sequence for Payment References -->
+        <record id="seq_profile_payment" model="ir.sequence">
+            <field name="name">Profile Payment</field>
+            <field name="code">profile.payment</field>
+            <field name="prefix">PAY</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Demo Data - Sample Profile -->
+        <record id="profile_visa_application" model="profile.management">
+            <field name="name">Visa Application Process</field>
+            <field name="description">Complete visa application process for international students</field>
+            <field name="state">active</field>
+        </record>
+
+        <!-- Demo Data - Sample Steps -->
+        <record id="step_document_preparation" model="profile.step">
+            <field name="name">Document Preparation</field>
+            <field name="description">Prepare all required documents for visa application</field>
+            <field name="profile_id" ref="profile_visa_application"/>
+            <field name="cost">100.00</field>
+            <field name="duration_days">7</field>
+            <field name="sequence">10</field>
+            <field name="is_mandatory">True</field>
+            <field name="state">active</field>
+            <field name="instructions"><![CDATA[
+                <h3>Document Preparation Instructions</h3>
+                <p>Please prepare the following documents:</p>
+                <ul>
+                    <li>Valid passport (minimum 6 months validity)</li>
+                    <li>Educational certificates</li>
+                    <li>Financial statements</li>
+                    <li>Letter of acceptance from institution</li>
+                    <li>Medical examination reports</li>
+                </ul>
+                <p><strong>Important:</strong> All documents must be translated to English if originally in another language.</p>
+            ]]></field>
+        </record>
+
+        <record id="step_ielts_exam" model="profile.step">
+            <field name="name">IELTS Examination</field>
+            <field name="description">Take IELTS examination for English proficiency</field>
+            <field name="profile_id" ref="profile_visa_application"/>
+            <field name="cost">250.00</field>
+            <field name="duration_days">30</field>
+            <field name="sequence">20</field>
+            <field name="is_mandatory">True</field>
+            <field name="state">active</field>
+            <field name="instructions"><![CDATA[
+                <h3>IELTS Examination</h3>
+                <p>Register and complete the IELTS examination:</p>
+                <ul>
+                    <li>Register at official IELTS testing center</li>
+                    <li>Prepare for all four modules: Reading, Writing, Listening, Speaking</li>
+                    <li>Achieve minimum band score of 6.5 overall</li>
+                    <li>Submit official test results</li>
+                </ul>
+                <p><strong>Note:</strong> Test results are valid for 2 years from the test date.</p>
+            ]]></field>
+        </record>
+
+        <record id="step_visa_application" model="profile.step">
+            <field name="name">Visa Application Submission</field>
+            <field name="description">Submit visa application to embassy/consulate</field>
+            <field name="profile_id" ref="profile_visa_application"/>
+            <field name="cost">300.00</field>
+            <field name="duration_days">14</field>
+            <field name="sequence">30</field>
+            <field name="is_mandatory">True</field>
+            <field name="state">active</field>
+            <field name="prerequisite_step_ids" eval="[(6, 0, [ref('step_document_preparation'), ref('step_ielts_exam')])]"/>
+            <field name="instructions"><![CDATA[
+                <h3>Visa Application Submission</h3>
+                <p>Complete the visa application process:</p>
+                <ul>
+                    <li>Fill out visa application form online</li>
+                    <li>Schedule appointment at embassy/consulate</li>
+                    <li>Submit all required documents</li>
+                    <li>Pay visa application fees</li>
+                    <li>Attend biometric appointment if required</li>
+                </ul>
+                <p><strong>Timeline:</strong> Processing usually takes 15-30 business days.</p>
+            ]]></field>
+        </record>
+
+        <record id="step_travel_insurance" model="profile.step">
+            <field name="name">Travel Insurance</field>
+            <field name="description">Purchase comprehensive travel and health insurance</field>
+            <field name="profile_id" ref="profile_visa_application"/>
+            <field name="cost">150.00</field>
+            <field name="duration_days">3</field>
+            <field name="sequence">40</field>
+            <field name="is_mandatory">False</field>
+            <field name="state">active</field>
+            <field name="instructions"><![CDATA[
+                <h3>Travel Insurance</h3>
+                <p>Purchase appropriate insurance coverage:</p>
+                <ul>
+                    <li>Health insurance coverage (minimum $100,000)</li>
+                    <li>Travel insurance for trip cancellation</li>
+                    <li>Emergency evacuation coverage</li>
+                    <li>Coverage valid for entire stay duration</li>
+                </ul>
+                <p><strong>Tip:</strong> Some countries require proof of insurance for visa approval.</p>
+            ]]></field>
+        </record>
+
+        <!-- Demo Data - Sample Profile for IELTS Preparation -->
+        <record id="profile_ielts_preparation" model="profile.management">
+            <field name="name">IELTS Preparation Course</field>
+            <field name="description">Comprehensive IELTS preparation program</field>
+            <field name="state">active</field>
+        </record>
+
+        <record id="step_ielts_assessment" model="profile.step">
+            <field name="name">Initial Assessment</field>
+            <field name="description">Assess current English level and identify improvement areas</field>
+            <field name="profile_id" ref="profile_ielts_preparation"/>
+            <field name="cost">50.00</field>
+            <field name="duration_days">1</field>
+            <field name="sequence">10</field>
+            <field name="is_mandatory">True</field>
+            <field name="state">active</field>
+        </record>
+
+        <record id="step_ielts_classes" model="profile.step">
+            <field name="name">IELTS Classes</field>
+            <field name="description">Attend intensive IELTS preparation classes</field>
+            <field name="profile_id" ref="profile_ielts_preparation"/>
+            <field name="cost">400.00</field>
+            <field name="duration_days">60</field>
+            <field name="sequence">20</field>
+            <field name="is_mandatory">True</field>
+            <field name="state">active</field>
+            <field name="prerequisite_step_ids" eval="[(6, 0, [ref('step_ielts_assessment')])]"/>
+        </record>
+
+        <record id="step_mock_tests" model="profile.step">
+            <field name="name">Mock Tests</field>
+            <field name="description">Complete practice tests under exam conditions</field>
+            <field name="profile_id" ref="profile_ielts_preparation"/>
+            <field name="cost">100.00</field>
+            <field name="duration_days">14</field>
+            <field name="sequence">30</field>
+            <field name="is_mandatory">True</field>
+            <field name="state">active</field>
+            <field name="prerequisite_step_ids" eval="[(6, 0, [ref('step_ielts_classes')])]"/>
+        </record>
+
+        <!-- Demo Users -->
+        <record id="demo_student_user" model="res.users">
+            <field name="name">Demo Student</field>
+            <field name="login">student@demo.com</field>
+            <field name="email">student@demo.com</field>
+            <field name="password">student123</field>
+            <field name="groups_id" eval="[(6, 0, [ref('isd_profile_management.group_profile_student_only')])]"/>
+            <field name="is_profile_student">True</field>
+        </record>
+
+        <record id="demo_manager_user" model="res.users">
+            <field name="name">Demo Manager</field>
+            <field name="login">manager@demo.com</field>
+            <field name="email">manager@demo.com</field>
+            <field name="password">manager123</field>
+            <field name="groups_id" eval="[(6, 0, [ref('isd_profile_management.group_profile_manager')])]"/>
+            <field name="is_profile_manager">True</field>
+        </record>
+
+
+        <!-- Demo User Profile Assignment -->
+        <record id="demo_user_profile_1" model="user.profile">
+            <field name="user_id" ref="demo_student_user"/>
+            <field name="profile_id" ref="profile_visa_application"/>
+            <field name="assigned_by" ref="demo_manager_user"/>
+        </record>
+
+        <record id="demo_user_profile_2" model="user.profile">
+            <field name="user_id" ref="demo_student_user"/>
+            <field name="profile_id" ref="profile_ielts_preparation"/>
+            <field name="assigned_by" ref="demo_manager_user"/>
+        </record>
+
+
+    </data>
+</odoo>

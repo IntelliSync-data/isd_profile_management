@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Profile Progress Report -->
+    <record id="action_profile_progress_report" model="ir.actions.report">
+        <field name="name">Profile Progress Report</field>
+        <field name="model">user.profile</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">isd_profile_management.profile_progress_report_template</field>
+        <field name="report_file">isd_profile_management.profile_progress_report_template</field>
+        <field name="binding_model_id" ref="model_user_profile"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Profile Progress Report Template -->
+    <template id="profile_progress_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="profile">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row">
+                            <div class="col-12">
+                                <h2>Profile Progress Report</h2>
+                                <p><strong>User:</strong> <span t-field="profile.user_id.name"/></p>
+                                <p><strong>Profile:</strong> <span t-field="profile.profile_id.name"/></p>
+                                <p><strong>Status:</strong> <span t-field="profile.state"/></p>
+                                <p><strong>Progress:</strong> <span t-field="profile.progress_percentage"/>%</p>
+                                <p><strong>Start Date:</strong> <span t-field="profile.start_date"/></p>
+                                <p><strong>Total Cost:</strong> <span t-field="profile.total_cost" t-options="{'widget': 'monetary'}"/></p>
+                                <p><strong>Paid Amount:</strong> <span t-field="profile.paid_amount" t-options="{'widget': 'monetary'}"/></p>
+                                <p><strong>Remaining:</strong> <span t-field="profile.remaining_amount" t-options="{'widget': 'monetary'}"/></p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h3>Steps Progress</h3>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Step</th>
+                                            <th>Status</th>
+                                            <th>Selected</th>
+                                            <th>Cost</th>
+                                            <th>Payment Status</th>
+                                            <th>Start Date</th>
+                                            <th>Completion Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="profile.user_step_ids" t-as="step">
+                                            <tr>
+                                                <td><span t-field="step.name"/></td>
+                                                <td><span t-field="step.state"/></td>
+                                                <td><span t-if="step.is_selected">✓</span></td>
+                                                <td><span t-field="step.cost" t-options="{'widget': 'monetary'}"/></td>
+                                                <td><span t-field="step.payment_status"/></td>
+                                                <td><span t-field="step.start_date"/></td>
+                                                <td><span t-field="step.completion_date"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Payment Report -->
+    <record id="action_payment_report" model="ir.actions.report">
+        <field name="name">Payment Report</field>
+        <field name="model">profile.payment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">isd_profile_management.payment_report_template</field>
+        <field name="report_file">isd_profile_management.payment_report_template</field>
+        <field name="binding_model_id" ref="model_profile_payment"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Payment Report Template -->
+    <template id="payment_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="payment">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row">
+                            <div class="col-12">
+                                <h2>Payment Receipt</h2>
+                                <p><strong>Payment Reference:</strong> <span t-field="payment.name"/></p>
+                                <p><strong>User:</strong> <span t-field="payment.user_id.name"/></p>
+                                <p><strong>Profile:</strong> <span t-field="payment.profile_id.name"/></p>
+                                <p><strong>Amount:</strong> <span t-field="payment.amount" t-options="{'widget': 'monetary'}"/></p>
+                                <p><strong>Payment Date:</strong> <span t-field="payment.payment_date"/></p>
+                                <p><strong>Status:</strong> <span t-field="payment.state"/></p>
+                                <p t-if="payment.confirmed_by"><strong>Confirmed By:</strong> <span t-field="payment.confirmed_by.name"/></p>
+                                <p t-if="payment.confirmed_date"><strong>Confirmed Date:</strong> <span t-field="payment.confirmed_date"/></p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h3>Steps Paid</h3>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Step Name</th>
+                                            <th>Cost</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="payment.step_ids" t-as="step">
+                                            <tr>
+                                                <td><span t-field="step.name"/></td>
+                                                <td><span t-field="step.cost" t-options="{'widget': 'monetary'}"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th>Total</th>
+                                            <th><span t-field="payment.amount" t-options="{'widget': 'monetary'}"/></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

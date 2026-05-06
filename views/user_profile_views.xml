@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- User Profile Tree View -->
+    <record id="view_user_profile_tree" model="ir.ui.view">
+        <field name="name">user.profile.tree</field>
+        <field name="model">user.profile</field>
+        <field name="arch" type="xml">
+            <list string="User Profiles" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='not_yet_paid'" decoration-primary="state=='paid'" decoration-muted="state=='new'">
+                <field name="user_id"/>
+                <field name="profile_id"/>
+                <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='paid'"/>
+                <field name="progress_percentage" widget="progressbar"/>
+                <field name="total_cost" widget="monetary"/>
+                <field name="paid_amount" widget="monetary"/>
+                <field name="remaining_amount" widget="monetary"/>
+                <field name="start_date"/>
+                <field name="assigned_by"/>
+                <field name="assigned_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- User Profile Form View -->
+    <record id="view_user_profile_form" model="ir.ui.view">
+        <field name="name">user.profile.form</field>
+        <field name="model">user.profile</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="User Profile">
+                <header>
+                    <button name="action_get_order" string="Get Order" type="object" 
+                            class="btn-primary" invisible="state != 'new'"
+                            groups="isd_profile_management.group_profile_student_only"/>
+                    <button name="action_vtcpay_checkout_payment" string="VTCPay" type="object" 
+                            class="btn-primary" invisible="state != 'not_yet_paid'"
+                            groups="isd_profile_management.group_profile_student_only"/>
+                    <button name="action_qr_checkout_payment" string="QR Code" type="object" 
+                            class="btn-primary" invisible="state != 'not_yet_paid'"
+                            groups="isd_profile_management.group_profile_student_only"/>
+                    <button name="action_paypal_checkout_payment" string="PayPal" type="object" 
+                            class="btn-primary" invisible="state != 'not_yet_paid'"
+                            groups="isd_profile_management.group_profile_student_only"/>
+                    <button name="action_mark_paid" string="Mark as Paid" type="object" 
+                            class="btn-success" invisible="state != 'not_yet_paid'"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <button name="action_start_profile" string="Start Progress" type="object" 
+                            class="btn-primary" invisible="state != 'paid'"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <button name="action_set_pending" string="Set Pending" type="object" 
+                            class="btn-warning" invisible="state not in ['paid', 'in_progress']"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <button name="action_resume_progress" string="Resume Progress" type="object" 
+                            class="btn-primary" invisible="state != 'pending'"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <button name="action_show_result_popup" string="Mark Complete" type="object" 
+                            class="btn-success" invisible="state not in ['in_progress', 'pending']"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <button name="action_cancel_profile" string="Cancel" type="object" 
+                            class="btn-danger" invisible="state in ['completed', 'cancelled']"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,not_yet_paid,paid,in_progress,pending,completed,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Profile Information">
+                            <field name="user_id" readonly="state != 'not_started'"/>
+                            <field name="profile_id" readonly="state != 'not_started'"/>
+                            <field name="state" widget="badge"/>
+                            <field name="progress_percentage" widget="progressbar"/>
+                        </group>
+                        <group string="Cost Information">
+                            <field name="total_cost" widget="monetary"/>
+                            <field name="paid_amount" widget="monetary"/>
+                            <field name="remaining_amount" widget="monetary"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Dates">
+                            <field name="assigned_by"/>
+                            <field name="assigned_date"/>
+                            <field name="start_date"/>
+                        </group>
+                        <group string="Completion">
+                            <field name="expected_completion_date"/>
+                            <field name="actual_completion_date"/>
+                        </group>
+                    </group>
+
+                    <group string="Manager Notes" groups="isd_profile_management.group_profile_manager">
+                        <field name="notes" widget="text" placeholder="Add notes about this profile assignment..." nolabel="1"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="My Steps" name="steps">
+                            <field name="user_step_ids">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="step_id" readonly="1"/>
+                                    <field name="cost" widget="monetary" readonly="1"/>
+                                    <field name="is_selected" readonly="1"/>
+                                    <field name="state" widget="badge" readonly="1"/>
+                                    <!-- <field name="result" widget="badge" readonly="1"/> -->
+                                    <field name="start_date" readonly="1"/>
+                                    <field name="completion_date" readonly="1"/>
+                                    <button name="action_start_step" string="Start" type="object"
+                                            invisible="state != 'not_started' or not is_selected"
+                                            groups="isd_profile_management.group_profile_manager"/>
+                                    <button name="action_complete_step" string="Complete" type="object"
+                                            invisible="state != 'in_progress'"
+                                            groups="isd_profile_management.group_profile_manager"/>
+                                    <button name="action_open_popup" string="Approve" type="object"
+                                            invisible="state != 'pending_approval'"
+                                            groups="isd_profile_management.group_profile_manager"/>
+                                    <button name="action_reject_completion" string="Reject" type="object"
+                                            invisible="state != 'pending_approval'"
+                                            groups="isd_profile_management.group_profile_manager"/>
+                                    <button name="action_show_result" string="Result" type="object"
+                                            invisible="state != 'completed'"
+                                            groups="isd_profile_management.group_profile_manager"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group string="Result Summary" expand="0">
+                        <field name="result" widget="text"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_step_result_popup" model="ir.ui.view">
+        <field name="name">user.step.form</field>
+        <field name="model">user.step</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="Popup Form">
+                <group>
+                    <field name="result"/>
+                </group>
+                <footer>
+                    <button string="Confirm" type="object" name="action_approve_completion" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_profile_result_popup" model="ir.ui.view">
+        <field name="name">user.profile.form</field>
+        <field name="model">user.profile</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="Popup Form">
+                <group>
+                    <field name="result"/>
+                </group>
+                <footer>
+                    <button string="Confirm" type="object" name="action_complete_profile" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- User Profile Kanban View -->
+    <record id="view_user_profile_kanban" model="ir.ui.view">
+        <field name="name">user.profile.kanban</field>
+        <field name="model">user.profile</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="user_id"/>
+                <field name="profile_id"/>
+                <field name="state"/>
+                <field name="progress_percentage"/>
+                <field name="total_cost"/>
+                <field name="remaining_amount"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div>
+                            <div>
+                                <div>
+                                    <div>
+                                        <strong>
+                                            <field name="user_id"/>
+                                        </strong>
+                                        <div>
+                                            <field name="profile_id"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>
+                                        <div>
+                                            <t t-esc="Math.round(record.progress_percentage.raw_value)"/>%
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>
+                                        <span>
+                                            Total: <field name="total_cost" widget="monetary"/>
+                                        </span>
+                                    </div>
+                                    <div t-if="record.remaining_amount.raw_value > 0">
+                                        <span>
+                                            Due: <field name="remaining_amount" widget="monetary"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- User Step Form View -->
+    <record id="view_user_step_form" model="ir.ui.view">
+        <field name="name">user.step.form</field>
+        <field name="model">user.step</field>
+        <field name="arch" type="xml">
+            <form string="User Step">
+                <sheet>
+                    <div role="alert" invisible="not is_selected">
+                        <i/> This step is selected for completion.
+                    </div>
+                    <div role="alert" invisible="is_selected or not is_mandatory">
+                        <i/> This is a mandatory step that must be selected.
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="user_profile_id"/>
+                            <field name="step_id"/>
+                            <field name="is_selected" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                            <field name="cost" widget="monetary"/>
+                            <field name="is_mandatory"/>
+                            <field name="payment_status" widget="badge"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group>
+                            <field name="start_date"/>
+                            <field name="deadline"/>
+                        </group>
+                        <group>
+                            <field name="completion_date"/>
+                            <field name="updated_by"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- User Profile Search View -->
+    <record id="view_user_profile_search" model="ir.ui.view">
+        <field name="name">user.profile.search</field>
+        <field name="model">user.profile</field>
+        <field name="arch" type="xml">
+            <search string="Search User Profiles">
+                <field name="user_id"/>
+                <field name="profile_id"/>
+                <separator/>
+                <filter string="New" name="new" domain="[('state','=','new')]"/>
+                <filter string="Not Yet Paid" name="not_yet_paid" domain="[('state','=','not_yet_paid')]"/>
+                <filter string="Paid" name="paid" domain="[('state','=','paid')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
+                <filter string="Pending" name="pending" domain="[('state','=','pending')]"/>
+                <filter string="Completed" name="completed" domain="[('state','=','completed')]"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state','=','cancelled')]"/>
+                <separator/>
+                <filter string="My Profiles" name="my_profiles" domain="[('user_id','=',uid)]"/>
+                <filter string="Payment Due" name="payment_due" domain="[('remaining_amount','>',0)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="User" name="group_user" context="{'group_by':'user_id'}"/>
+                    <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Assigned By" name="group_assigned_by" context="{'group_by':'assigned_by'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- User Profile Action -->
+    <record id="action_user_profile" model="ir.actions.act_window">
+        <field name="name">User Profiles</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">user.profile</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'default_assigned_by': uid}</field>
+        <field name="search_view_id" ref="view_user_profile_search"/>
+        <field name="help" type="html">
+            <p>
+                No profiles assigned yet!
+            </p>
+            <p>
+                Assign profiles to users to help them track their progress and complete their goals.
+            </p>
+        </field>
+    </record>
+
+    <!-- My Profiles Action for Students -->
+    <record id="action_my_profiles" model="ir.actions.act_window">
+        <field name="name">My Profiles</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">user.profile</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'default_user_id': uid, 'create': False}</field>
+        <field name="search_view_id" ref="view_user_profile_search"/>
+        <field name="help" type="html">
+            <p>
+                No profiles assigned to you yet!
+            </p>
+            <p>
+                Your assigned profiles will appear here. Contact your manager to get started.
+            </p>
+        </field>
+    </record>
+    
+</odoo>

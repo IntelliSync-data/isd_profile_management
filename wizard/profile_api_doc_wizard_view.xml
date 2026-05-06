@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_profile_api_documentation_wizard_form" model="ir.ui.view">
+        <field name="name">profile.api.documentation.wizard.form</field>
+        <field name="model">profile.api.documentation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="API Documentation">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="package_name" readonly="1"/>
+                        </h1>
+                        <h3 style="color: #7c7bad;">External API Integration Guide</h3>
+                    </div>
+
+                    <group>
+                        <field name="base_url" readonly="1"/>
+                    </group>
+
+                    <notebook>
+                        <page string="📦 API 1: Create Package" name="api_create">
+                            <field name="api_create_doc" widget="html" nolabel="1"/>
+                        </page>
+
+                        <page string="🔍 API 2: Check Payment" name="api_check">
+                            <field name="api_check_doc" widget="html" nolabel="1"/>
+                        </page>
+
+                        <page string="✅ API 3: Confirm Payment" name="api_confirm">
+                            <field name="api_confirm_doc" widget="html" nolabel="1"/>
+                        </page>
+
+                        <page string="📋 Integration Flow" name="integration_flow">
+                            <div style="font-family: sans-serif; padding: 20px;">
+                                <h3>Complete Integration Flow:</h3>
+                                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                                    <h4 style="color: #2c3e50;">Step 1: Create Package</h4>
+                                    <p>Call <code>POST /api/profile/create</code> with customer info</p>
+                                    <p>→ Response: <code>user_profile_id</code>, <code>transaction_id</code>, <code>qr_url</code>, <code>amount</code></p>
+
+                                    <h4 style="color: #2c3e50; margin-top: 20px;">Step 2: Display QR Code</h4>
+                                    <p>Show the QR code (<code>qr_url</code>) to customer for payment</p>
+                                    <p>Customer scans QR and pays via their banking app</p>
+
+                                    <h4 style="color: #2c3e50; margin-top: 20px;">Step 3: Check Payment Status (Polling)</h4>
+                                    <p>Periodically call <code>POST /api/profile/check-payment</code></p>
+                                    <p>→ Status: <code>processing</code> (not paid yet) or <code>confirmed</code> (paid)</p>
+                                    <p><strong>Recommended:</strong> Poll every 5 seconds until confirmed or timeout (5 minutes)</p>
+
+                                    <h4 style="color: #2c3e50; margin-top: 20px;">Alternative Step 3: Manual Confirmation</h4>
+                                    <p>If you verify payment yourself, call <code>POST /api/profile/confirm-payment</code></p>
+                                    <p><strong>Note:</strong> This does NOT check with bank, only marks as paid in system</p>
+                                </div>
+
+                                <h3 style="margin-top: 30px;">Error Handling:</h3>
+                                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                                    <p><strong>Always check <code>success</code> field in response</strong></p>
+                                    <ul>
+                                        <li>If <code>success: false</code>, check <code>error</code> and <code>error_code</code></li>
+                                        <li>Common errors: MISSING_PACKAGE_ID, PACKAGE_NOT_FOUND, PAYMENT_METHOD_NOT_FOUND</li>
+                                        <li>Handle timeouts and network errors gracefully</li>
+                                    </ul>
+                                </div>
+
+                                <h3 style="margin-top: 30px;">Security Notes:</h3>
+                                <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                                    <ul>
+                                        <li>✅ CORS is enabled for all origins (<code>cors='*'</code>)</li>
+                                        <li>✅ No authentication required (public API)</li>
+                                        <li>⚠️ Validate input on your side before calling API</li>
+                                        <li>⚠️ Use HTTPS in production environment</li>
+                                        <li>⚠️ Don't expose sensitive data in client-side code</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

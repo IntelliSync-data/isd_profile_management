@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Profile Payment Tree View -->
+    <record id="view_profile_payment_tree" model="ir.ui.view">
+        <field name="name">profile.payment.tree</field>
+        <field name="model">profile.payment</field>
+        <field name="arch" type="xml">
+            <list string="Payments" decoration-success="state=='confirmed'" decoration-info="state=='pending'" decoration-danger="state=='rejected'">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="profile_id"/>
+                <field name="amount" widget="monetary"/>
+                <field name="payment_date"/>
+                <field name="state" widget="badge" decoration-success="state=='confirmed'" decoration-info="state=='pending'" decoration-danger="state=='rejected'"/>
+                <field name="confirmed_by"/>
+                <field name="confirmed_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Profile Payment Form View -->
+    <record id="view_profile_payment_form" model="ir.ui.view">
+        <field name="name">profile.payment.form</field>
+        <field name="model">profile.payment</field>
+        <field name="arch" type="xml">
+            <form string="Payment">
+                <header>
+                    <button name="action_create_isd_payment" type="object" string="Generate QR Code"
+                            class="btn-primary" invisible="state != 'draft'" />
+                    <button name="action_check_payment_status" type="object" string="Check Payment Status"
+                            class="btn-success" invisible="state not in ['pending']" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,confirmed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id" readonly="state != 'draft'"/>
+                            <field name="user_profile_id" readonly="state != 'draft'" domain="[('user_id', '=', user_id)]"/>
+                            <field name="profile_id"/>
+                        </group>
+                        <group>
+                            <field name="amount" widget="monetary" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="payment_date" readonly="state != 'draft'"/>
+                            <field name="transaction_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- QR Code Section -->
+                    <group string="Payment QR Code" invisible="not qr_url">
+                        <field name="qr_url" widget="image" options="{'size': [300, 300]}"/>
+                        <field name="isd_transaction_id" invisible="1"/>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="bank_name" readonly="state not in ['draft', 'pending']"/>
+                            <field name="bank_account" readonly="state not in ['draft', 'pending']"/>
+                        </group>
+                        <group>
+                            <field name="reference_number" readonly="state not in ['draft', 'pending']"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="confirmed_by" readonly="1"/>
+                            <field name="confirmed_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="rejection_reason" readonly="1" invisible="state != 'rejected'"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Profile Payment Kanban View -->
+    <record id="view_profile_payment_kanban" model="ir.ui.view">
+        <field name="name">profile.payment.kanban</field>
+        <field name="model">profile.payment</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="amount"/>
+                <field name="payment_date"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div>
+                            <div>
+                                <div>
+                                    <div>
+                                        <strong>
+                                            <field name="name"/>
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>
+                                        <i/> <field name="user_id"/>
+                                    </div>
+                                    <div>
+                                        <i/> <field name="payment_date"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>
+                                        <span>
+                                            <field name="amount" widget="monetary"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Profile Payment Search View -->
+    <record id="view_profile_payment_search" model="ir.ui.view">
+        <field name="name">profile.payment.search</field>
+        <field name="model">profile.payment</field>
+        <field name="arch" type="xml">
+            <search string="Search Payments">
+                <field name="name" string="Payment" filter_domain="[('name','ilike',self)]"/>
+                <field name="user_id"/>
+                <field name="profile_id"/>
+                <separator/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Pending" name="pending" domain="[('state','=','pending')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
+                <filter string="Rejected" name="rejected" domain="[('state','=','rejected')]"/>
+                <separator/>
+                <filter string="My Payments" name="my_payments" domain="[('user_id','=',uid)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="User" name="group_user" context="{'group_by':'user_id'}"/>
+                    <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Payment Date" name="group_payment_date" context="{'group_by':'payment_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Profile Payment Action -->
+    <record id="action_profile_payment" model="ir.actions.act_window">
+        <field name="name">Payments</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">profile.payment</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_profile_payment_search"/>
+        <field name="help" type="html">
+            <p>
+                No payments found!
+            </p>
+            <p>
+                Payments are created when users select steps and submit payment for confirmation.
+            </p>
+        </field>
+    </record>
+
+    <!-- Profile Payment Action for Managers -->
+    <record id="action_profile_payment_manager" model="ir.actions.act_window">
+        <field name="name">Payment Confirmations</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">profile.payment</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state', '=', 'pending')]</field>
+        <field name="search_view_id" ref="view_profile_payment_search"/>
+        <field name="help" type="html">
+            <p>
+                No pending payments!
+            </p>
+            <p>
+                Payments requiring confirmation will appear here.
+            </p>
+        </field>
+    </record>
+</odoo>
