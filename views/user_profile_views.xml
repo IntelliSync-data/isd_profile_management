@@ -104,7 +104,7 @@
                                     <field name="cost" widget="monetary" readonly="1"/>
                                     <field name="is_selected" readonly="1"/>
                                     <field name="state" widget="badge" readonly="1"/>
-                                    <field name="start_datetime" readonly="1" column_invisible="not is_advanced"/>
+                                    <field name="start_datetime" readonly="1"/>
                                     <field name="completion_datetime" readonly="1"/>
                                     <!-- Advanced flow buttons -->
                                     <button name="action_start_step" string="Start" type="object"
