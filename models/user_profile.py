@@ -252,9 +252,9 @@ class UserProfile(models.Model):
 
     def action_mark_paid(self):
         """Manager marks the profile as paid"""
-        if self.state != 'not_yet_paid':
+        if self.state not in ['new', 'not_yet_paid']:
             raise ValidationError(
-                _("Can only mark profiles as paid when they are 'Not Yet Paid'."))
+                _("Can only mark profiles as paid when they are 'New' or 'Not Yet Paid'."))
 
         self.write({'state': 'paid'})
         self.message_post(

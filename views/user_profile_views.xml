@@ -40,8 +40,8 @@
                     <button name="action_paypal_checkout_payment" string="PayPal" type="object" 
                             class="btn-primary" invisible="state != 'not_yet_paid'"
                             groups="isd_profile_management.group_profile_student_only"/>
-                    <button name="action_mark_paid" string="Mark as Paid" type="object" 
-                            class="btn-success" invisible="state != 'not_yet_paid'"
+                    <button name="action_mark_paid" string="Mark as Paid" type="object"
+                            class="btn-success" invisible="state not in ['new', 'not_yet_paid']"
                             groups="isd_profile_management.group_profile_manager"/>
                     <button name="action_start_profile" string="Start Progress" type="object" 
                             class="btn-primary" invisible="state != 'paid'"
