@@ -99,25 +99,31 @@
                         <page string="My Steps" name="steps">
                             <field name="user_step_ids">
                                 <list editable="bottom" create="false" delete="false">
+                                    <field name="is_advanced" column_invisible="1"/>
                                     <field name="step_id" readonly="1"/>
                                     <field name="cost" widget="monetary" readonly="1"/>
                                     <field name="is_selected" readonly="1"/>
                                     <field name="state" widget="badge" readonly="1"/>
-                                    <!-- <field name="result" widget="badge" readonly="1"/> -->
-                                    <field name="start_date" readonly="1"/>
-                                    <field name="completion_date" readonly="1"/>
+                                    <field name="start_datetime" readonly="1" column_invisible="not is_advanced"/>
+                                    <field name="completion_datetime" readonly="1"/>
+                                    <!-- Advanced flow buttons -->
                                     <button name="action_start_step" string="Start" type="object"
-                                            invisible="state != 'not_started' or not is_selected"
+                                            invisible="state != 'not_started' or not is_selected or not is_advanced"
                                             groups="isd_profile_management.group_profile_manager"/>
                                     <button name="action_complete_step" string="Complete" type="object"
-                                            invisible="state != 'in_progress'"
+                                            invisible="state != 'in_progress' or not is_advanced"
                                             groups="isd_profile_management.group_profile_manager"/>
                                     <button name="action_open_popup" string="Approve" type="object"
-                                            invisible="state != 'pending_approval'"
+                                            invisible="state != 'pending_approval' or not is_advanced"
                                             groups="isd_profile_management.group_profile_manager"/>
                                     <button name="action_reject_completion" string="Reject" type="object"
-                                            invisible="state != 'pending_approval'"
+                                            invisible="state != 'pending_approval' or not is_advanced"
                                             groups="isd_profile_management.group_profile_manager"/>
+                                    <!-- Simple flow button -->
+                                    <button name="action_simple_approve" string="Approve" type="object"
+                                            invisible="state != 'not_started' or not is_selected or is_advanced"
+                                            groups="isd_profile_management.group_profile_manager"/>
+                                    <!-- Common button -->
                                     <button name="action_show_result" string="Result" type="object"
                                             invisible="state != 'completed'"
                                             groups="isd_profile_management.group_profile_manager"/>

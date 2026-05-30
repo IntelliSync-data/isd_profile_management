@@ -548,9 +548,12 @@ class UserStep(models.Model):
 
     # Progress
     progress_notes = fields.Text(string='Progress Notes')
-    start_date = fields.Date(string='Start Date')
+    start_datetime = fields.Datetime(string='Start Time')
     deadline = fields.Date(string='Deadline')
-    completion_date = fields.Date(string='Completion Date', readonly=True)
+    completion_datetime = fields.Datetime(string='Complete Time', readonly=True)
+
+    # Computed from profile
+    is_advanced = fields.Boolean(string='Advanced', related='user_profile_id.profile_id.is_advanced', store=True)
 
     # Manager Updates
     manager_notes = fields.Text(string='Manager Notes')
@@ -576,7 +579,7 @@ class UserStep(models.Model):
 
         self.write({
             'state': 'in_progress',
-            'start_date': fields.Date.today(),
+            'start_datetime': fields.Datetime.now(),
         })
         self.message_post(body=_("Step started"))
 
@@ -617,10 +620,10 @@ class UserStep(models.Model):
         }
 
     def action_complete_step(self):
-        """Mark step as completed (requires manager approval)"""
+        """Mark step as completed (requires manager approval) — Advanced flow only"""
         self.write({
             'state': 'pending_approval',
-            'completion_date': fields.Date.today(),
+            'completion_datetime': fields.Datetime.now(),
         })
         self.message_post(body=_("Step completion submitted for approval"))
 
@@ -633,14 +636,17 @@ class UserStep(models.Model):
         }
 
     def action_approve_completion(self):
-        """Manager approves step completion"""
+        """Manager approves step completion — used by both Advanced (via popup) and Simple flow (via popup)"""
         self.write({
             'state': 'completed',
+            'completion_datetime': fields.Datetime.now(),
             'updated_by': self.env.user.id,
-            "result": self.result,
+            'result': self.result,
         })
         self.message_post(
             body=_("Step completion approved by %s") % self.env.user.name)
+
+        self._check_auto_complete_profile()
 
         return {
             'type': 'ir.actions.client',
@@ -648,7 +654,7 @@ class UserStep(models.Model):
         }
 
     def action_reject_completion(self):
-        """Manager rejects step completion"""
+        """Manager rejects step completion — Advanced flow only"""
         self.write({
             'state': 'in_progress',
             'updated_by': self.env.user.id,
@@ -660,6 +666,37 @@ class UserStep(models.Model):
             'type': 'ir.actions.client',
             'tag': 'reload',
         }
+
+    def action_simple_approve(self):
+        """Open approve popup for Simple flow (not_started → popup note → completed)"""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Kết quả',
+            'res_model': 'user.step',
+            'view_mode': 'form',
+            'views': [(self.env.ref('isd_profile_management.view_step_result_popup').id, 'form')],
+            'res_id': self.id,
+            'target': 'new',
+            'context': {
+                'result': self.result,
+                'form_view_initial_mode': 'edit',
+            }
+        }
+
+    def _check_auto_complete_profile(self):
+        """Auto complete user.profile if is_auto_complete is enabled and all selected steps are completed"""
+        profile = self.user_profile_id
+        if not profile or not profile.profile_id.is_auto_complete:
+            return
+        if profile.state == 'completed':
+            return
+        selected_steps = profile.user_step_ids.filtered('is_selected')
+        if selected_steps and all(s.state == 'completed' for s in selected_steps):
+            profile.write({
+                'state': 'completed',
+                'actual_completion_date': fields.Date.today(),
+            })
+            profile.message_post(body=_("Profile auto-completed: all steps approved"))
 
     def _notify_manager_completion(self):
         """Notify manager about step completion"""

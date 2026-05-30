@@ -54,6 +54,8 @@
                         </group>
                         <group>
                             <field name="total_cost" widget="monetary"/>
+                            <field name="is_advanced"/>
+                            <field name="is_auto_complete"/>
                             <field name="create_uid"/>
                             <field name="create_date"/>
                         </group>

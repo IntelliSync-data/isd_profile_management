@@ -23,6 +23,10 @@ class ProfileManagement(models.Model):
     total_cost = fields.Float(string='Total Cost', compute='_compute_total_cost', store=True)
     total_cost_vnd = fields.Char(string='Total Cost VND', compute='_compute_total_cost_vnd', store=True)
     
+    # Options
+    is_advanced = fields.Boolean(string='Advanced', default=False, help="Enable advanced step flow (Start → Complete → Approve)")
+    is_auto_complete = fields.Boolean(string='Auto Complete', default=False, help="Automatically mark profile as completed when all selected steps are approved")
+
     # Users
     user_profile_ids = fields.One2many('user.profile', 'profile_id', string='User Profiles')
     assigned_user_count = fields.Integer(string='Assigned Users', compute='_compute_user_counts', store=True)
