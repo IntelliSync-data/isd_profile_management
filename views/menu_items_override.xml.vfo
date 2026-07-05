@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Menu overrides -->
     <record id="menu_profile_management_main" model="ir.ui.menu">
         <field name="name">Service Management</field>
     </record>
@@ -14,5 +15,91 @@
     </record>
     <record id="menu_my_profiles" model="ir.ui.menu">
         <field name="name">My Services</field>
+    </record>
+
+    <!-- Action name overrides -->
+    <record id="action_profile_management" model="ir.actions.act_window">
+        <field name="name">Service Configuration</field>
+    </record>
+    <record id="action_user_profile" model="ir.actions.act_window">
+        <field name="name">Orders</field>
+    </record>
+    <record id="action_my_profiles" model="ir.actions.act_window">
+        <field name="name">My Services</field>
+    </record>
+    <record id="action_profile_step" model="ir.actions.act_window">
+        <field name="name">Service Steps</field>
+    </record>
+
+    <!-- View overrides: User Profile form (Profile Information, Manager Notes, placeholder) -->
+    <record id="view_user_profile_form_vfo" model="ir.ui.view">
+        <field name="name">user.profile.form.vfo</field>
+        <field name="model">user.profile</field>
+        <field name="inherit_id" ref="view_user_profile_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@string='Profile Information']" position="attributes">
+                <attribute name="string">Order Information</attribute>
+            </xpath>
+            <xpath expr="//group[@string='Manager Notes']" position="attributes">
+                <attribute name="string">Manager Notes</attribute>
+            </xpath>
+            <xpath expr="//field[@name='notes']" position="attributes">
+                <attribute name="placeholder">Add notes about this order...</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- View overrides: User Profile list title -->
+    <record id="view_user_profile_tree_vfo" model="ir.ui.view">
+        <field name="name">user.profile.tree.vfo</field>
+        <field name="model">user.profile</field>
+        <field name="inherit_id" ref="view_user_profile_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="string">Orders</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- View overrides: Profile Management form (Profile Name, Profile description, Package Configuration) -->
+    <record id="view_profile_management_form_vfo" model="ir.ui.view">
+        <field name="name">profile.management.form.vfo</field>
+        <field name="model">profile.management</field>
+        <field name="inherit_id" ref="view_profile_management_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="string">Service Configuration</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name'][@placeholder='Profile Name...']" position="attributes">
+                <attribute name="placeholder">Service Name...</attribute>
+            </xpath>
+            <xpath expr="//field[@name='description'][@placeholder='Profile description...']" position="attributes">
+                <attribute name="placeholder">Service description...</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- View overrides: Step list (Profile column label) -->
+    <record id="view_profile_step_tree_vfo" model="ir.ui.view">
+        <field name="name">profile.step.tree.vfo</field>
+        <field name="model">profile.step</field>
+        <field name="inherit_id" ref="view_profile_step_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='profile_id']" position="attributes">
+                <attribute name="string">Service</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- View overrides: Step form (Profile field label) -->
+    <record id="view_profile_step_form_vfo" model="ir.ui.view">
+        <field name="name">profile.step.form.vfo</field>
+        <field name="model">profile.step</field>
+        <field name="inherit_id" ref="view_profile_step_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='profile_id'][@required='1']" position="attributes">
+                <attribute name="string">Service</attribute>
+            </xpath>
+        </field>
     </record>
 </odoo>
