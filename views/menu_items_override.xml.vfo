@@ -40,7 +40,7 @@
             <xpath expr="//sheet/group[1]/group[1]" position="replace">
                 <group string="Order Information">
                     <field name="user_id" readonly="state != 'not_started'"/>
-                    <field name="profile_id" readonly="state != 'not_started'"/>
+                    <field name="profile_id" string="Service" readonly="state != 'not_started'"/>
                     <field name="state" widget="badge"/>
                     <field name="progress_percentage" widget="progressbar"/>
                 </group>
