@@ -37,7 +37,7 @@
         <field name="model">user.profile</field>
         <field name="inherit_id" ref="view_user_profile_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@string='Profile Information']" position="replace">
+            <xpath expr="//sheet/group[1]/group[1]" position="replace">
                 <group string="Order Information">
                     <field name="user_id" readonly="state != 'not_started'"/>
                     <field name="profile_id" readonly="state != 'not_started'"/>
