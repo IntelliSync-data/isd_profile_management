@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="menu_profile_management_main" model="ir.ui.menu">
+        <field name="name">Service Management</field>
+    </record>
+    <record id="menu_profiles" model="ir.ui.menu">
+        <field name="name">Services</field>
+    </record>
+    <record id="menu_user_profiles" model="ir.ui.menu">
+        <field name="name">Orders</field>
+    </record>
+    <record id="menu_student_section" model="ir.ui.menu">
+        <field name="name">User</field>
+    </record>
+    <record id="menu_my_profiles" model="ir.ui.menu">
+        <field name="name">My Services</field>
+    </record>
+</odoo>

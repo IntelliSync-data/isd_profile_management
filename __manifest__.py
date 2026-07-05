@@ -40,6 +40,7 @@
         'views/step_selection_simple.xml',
         'views/pm_config_views.xml',
         'views/menu_items.xml',
+        'views/menu_items_override.xml',
         'wizard/payment_rejection_wizard_view.xml',
         'wizard/step_selection_wizard_view.xml',
         'wizard/qr_popup_wizard_view.xml',
