@@ -30,14 +30,17 @@ jobs:
             git fetch origin && git reset --hard origin/vfo
           fi
           
-          # Apply branch-specific override file
+          # Apply branch-specific override files
           cp ~/addons-system/isd_profile_management/views/menu_items_override.xml.vfo \
              ~/addons-system/isd_profile_management/views/menu_items_override.xml
+          cp ~/addons-system/isd_profile_management/__manifest__.py.vfo \
+             ~/addons-system/isd_profile_management/__manifest__.py
 
           # Sync isd_profile_management directory with rsync (including deletions)
           sudo mkdir -p /opt/custom-addons/isd_profile_management
           sudo rsync -av --delete \
             --exclude='views/menu_items_override.xml.*' \
+            --exclude='__manifest__.py.*' \
             ~/addons-system/isd_profile_management/ /opt/custom-addons/isd_profile_management/
 
     - name: Update isd_profile_management Module
