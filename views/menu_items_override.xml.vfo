@@ -37,11 +37,13 @@
         <field name="model">user.profile</field>
         <field name="inherit_id" ref="view_user_profile_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@string='Profile Information']" position="attributes">
-                <attribute name="string">Order Information</attribute>
-            </xpath>
-            <xpath expr="//group[@string='Manager Notes']" position="attributes">
-                <attribute name="string">Manager Notes</attribute>
+            <xpath expr="//group[@string='Profile Information']" position="replace">
+                <group string="Order Information">
+                    <field name="user_id" readonly="state != 'not_started'"/>
+                    <field name="profile_id" readonly="state != 'not_started'"/>
+                    <field name="state" widget="badge"/>
+                    <field name="progress_percentage" widget="progressbar"/>
+                </group>
             </xpath>
             <xpath expr="//field[@name='notes']" position="attributes">
                 <attribute name="placeholder">Add notes about this order...</attribute>
@@ -55,25 +57,33 @@
         <field name="model">user.profile</field>
         <field name="inherit_id" ref="view_user_profile_tree"/>
         <field name="arch" type="xml">
-            <xpath expr="//list" position="attributes">
-                <attribute name="string">Orders</attribute>
+            <xpath expr="//list" position="replace">
+                <list string="Orders" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='not_yet_paid'" decoration-primary="state=='paid'" decoration-muted="state=='new'">
+                    <field name="user_id"/>
+                    <field name="profile_id"/>
+                    <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='paid'"/>
+                    <field name="progress_percentage" widget="progressbar"/>
+                    <field name="total_cost" widget="monetary"/>
+                    <field name="paid_amount" widget="monetary"/>
+                    <field name="remaining_amount" widget="monetary"/>
+                    <field name="start_date"/>
+                    <field name="assigned_by"/>
+                    <field name="assigned_date"/>
+                </list>
             </xpath>
         </field>
     </record>
 
-    <!-- View overrides: Profile Management form (Profile Name, Profile description, Package Configuration) -->
+    <!-- View overrides: Profile Management form (Profile Name, Profile description) -->
     <record id="view_profile_management_form_vfo" model="ir.ui.view">
         <field name="name">profile.management.form.vfo</field>
         <field name="model">profile.management</field>
         <field name="inherit_id" ref="view_profile_management_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//form" position="attributes">
-                <attribute name="string">Service Configuration</attribute>
-            </xpath>
-            <xpath expr="//field[@name='name'][@placeholder='Profile Name...']" position="attributes">
+            <xpath expr="//field[@name='name']" position="attributes">
                 <attribute name="placeholder">Service Name...</attribute>
             </xpath>
-            <xpath expr="//field[@name='description'][@placeholder='Profile description...']" position="attributes">
+            <xpath expr="//field[@name='description']" position="attributes">
                 <attribute name="placeholder">Service description...</attribute>
             </xpath>
         </field>
