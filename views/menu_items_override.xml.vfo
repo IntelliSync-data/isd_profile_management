@@ -89,27 +89,4 @@
         </field>
     </record>
 
-    <!-- View overrides: Step list (Profile column label) -->
-    <record id="view_profile_step_tree_vfo" model="ir.ui.view">
-        <field name="name">profile.step.tree.vfo</field>
-        <field name="model">profile.step</field>
-        <field name="inherit_id" ref="view_profile_step_tree"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='profile_id']" position="attributes">
-                <attribute name="string">Service</attribute>
-            </xpath>
-        </field>
-    </record>
-
-    <!-- View overrides: Step form (Profile field label) -->
-    <record id="view_profile_step_form_vfo" model="ir.ui.view">
-        <field name="name">profile.step.form.vfo</field>
-        <field name="model">profile.step</field>
-        <field name="inherit_id" ref="view_profile_step_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='profile_id'][@required='1']" position="attributes">
-                <attribute name="string">Service</attribute>
-            </xpath>
-        </field>
-    </record>
 </odoo>
