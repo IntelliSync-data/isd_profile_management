@@ -27,7 +27,7 @@ class ProfileStep(models.Model):
         ('draft', 'Draft'),
         ('active', 'Active'),
         ('inactive', 'Inactive'),
-    ], string='Status', default='draft', tracking=True)
+    ], string='Status', default='active', tracking=True)
     
     # result
     result = fields.Text(string='Result', help="Result or outcome of this step", default="", required=False)
