@@ -102,7 +102,7 @@
                 <field name="description"/>
                 <field name="total_steps"/>
                 <field name="total_cost"/>
-                <field name="total_cost_vnd"/>
+                <field name="total_cost_display"/>
                 <field name="assigned_user_count"/>
                 <field name="state"/>
                 <field name="create_date"/>
@@ -153,7 +153,7 @@
                                     <div class="col-4 text-center" style="padding-left: 4px; padding-right: 4px;">
                                         <div style="background: linear-gradient(135deg, #28a745, #20c997); border-radius: 10px; padding: 10px; box-shadow: 0 2px 6px rgba(40, 167, 69, 0.2); height: 60px; display: flex; flex-direction: column; justify-content: center;">
                                             <div style="font-size: 16px; font-weight: bold; color: white; line-height: 1.2;">
-                                                <field name="total_cost_vnd"/>
+                                                <field name="total_cost_display"/>
                                             </div>
                                             <div style="font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 500;">Cost</div>
                                         </div>

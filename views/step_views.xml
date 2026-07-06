@@ -43,7 +43,7 @@
                         </group>
                         <group string="Cost &amp; Duration">
                             <field name="cost" widget="monetary" required="1"/>
-                            <field name="cost_vnd" readonly="1"/>
+                            <field name="cost_display" readonly="1"/>
                             <field name="duration_days"/>
                         </group>
                     </group>
@@ -111,7 +111,7 @@
                     <group>
                         <group string="Service Information">
                             <field name="cost" widget="monetary" readonly="1"/>
-                            <field name="cost_vnd" readonly="1"/>
+                            <field name="cost_display" readonly="1"/>
                             <field name="duration_days" readonly="1"/>
                         </group>
                         <group string="Details">

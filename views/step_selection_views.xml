@@ -21,7 +21,7 @@
                         <group string="Summary">
                             <field name="total_steps" readonly="1"/>
                             <field name="total_cost" widget="monetary" readonly="1"/>
-                            <field name="total_cost_vnd" readonly="1"/>
+                            <field name="total_cost_display" readonly="1"/>
                         </group>
                         <group string="Dates">
                             <field name="create_date" readonly="1"/>

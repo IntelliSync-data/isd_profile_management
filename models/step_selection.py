@@ -29,7 +29,7 @@ class StepSelection(models.Model):
     
     # Calculated Fields
     total_cost = fields.Float(string='Total Cost', compute='_compute_totals', store=True)
-    total_cost_vnd = fields.Char(string='Total Cost VND', compute='_compute_total_cost_vnd', store=True)
+    total_cost_display = fields.Char(string='Total Cost', compute='_compute_total_cost_display', store=True)
     total_steps = fields.Integer(string='Total Steps Selected', compute='_compute_totals', store=True)
     
     # Profile Management
@@ -65,9 +65,9 @@ class StepSelection(models.Model):
             record.total_cost = sum(record.selected_step_ids.mapped('cost'))
     
     @api.depends('selected_step_ids.cost')
-    def _compute_total_cost_vnd(self):
+    def _compute_total_cost_display(self):
         for record in self:
-            record.total_cost_vnd = self._format_vnd_currency(record.total_cost)
+            record.total_cost_display = self._format_currency(record.total_cost)
     
     @api.depends('profile_id')
     def _compute_available_steps(self):
@@ -113,46 +113,45 @@ class StepSelection(models.Model):
                 }
             }
     
-    def _format_vnd_currency(self, amount):
-        """Format Vietnamese currency according to requirements"""
+    def _format_currency(self, amount):
+        currency = self.env['ir.config_parameter'].sudo().get_param('isd_profile_management.pm_currency', 'vnd')
+        if currency == 'usd':
+            if not amount:
+                return '$0.00'
+            return f'${amount:.2f}'
+
         if not amount:
             return '0đ'
-        
+
         amount = int(amount)
-        
+
         if amount >= 1000000:
-            # Millions
             millions = amount // 1000000
             remainder = amount % 1000000
-            
+
             if remainder == 0:
                 return f'{millions}Mđ'
             elif remainder % 1000 == 0:
-                # Show as X.XXXKđ format
                 thousands = remainder // 1000
                 if thousands < 100:
                     return f'{millions}.{thousands:03d}Kđ'
                 else:
                     return f'{millions}.{thousands}Kđ'
             else:
-                # Show full amount with thousands separator
                 total_thousands = amount // 1000
                 if total_thousands >= 1000:
                     return f'{total_thousands:,}Kđ'.replace(',', '.')
                 else:
                     return f'{total_thousands}Kđ'
         elif amount >= 1000:
-            # Thousands
             thousands = amount // 1000
             remainder = amount % 1000
-            
+
             if remainder == 0:
                 return f'{thousands}Kđ'
             else:
-                # Less than 1000K, show full amount
                 return f'{amount}đ'
         else:
-            # Less than 1000
             return f'{amount}đ'
     
     def action_confirm_selection(self):
@@ -238,7 +237,7 @@ class StepSelection(models.Model):
             'tag': 'display_notification',
             'params': {
                 'title': _('Order Generated'),
-                'message': _('Your order has been generated! Total: %s for %s steps.') % (self.total_cost_vnd, self.total_steps),
+                'message': _('Your order has been generated! Total: %s for %s steps.') % (self.total_cost_display, self.total_steps),
                 'type': 'success',
             }
         }

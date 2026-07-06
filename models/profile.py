@@ -22,7 +22,7 @@ class ProfileManagement(models.Model):
     total_steps = fields.Integer(string='Total Steps', compute='_compute_step_counts', store=True)
     package_cost = fields.Float(string='Package Cost', default=0.0, tracking=True)
     total_cost = fields.Float(string='Total Cost', compute='_compute_total_cost', store=True)
-    total_cost_vnd = fields.Char(string='Total Cost VND', compute='_compute_total_cost_vnd', store=True)
+    total_cost_display = fields.Char(string='Total Cost', compute='_compute_total_cost_display', store=True)
     
     # Options
     is_advanced = fields.Boolean(string='Advanced', default=False, help="Enable advanced step flow (Start → Complete → Approve)")
@@ -47,9 +47,9 @@ class ProfileManagement(models.Model):
             record.total_cost = sum(record.step_ids.mapped('cost')) + record.package_cost
     
     @api.depends('total_cost')
-    def _compute_total_cost_vnd(self):
+    def _compute_total_cost_display(self):
         for record in self:
-            record.total_cost_vnd = self._format_vnd_currency(record.total_cost)
+            record.total_cost_display = self._format_currency(record.total_cost)
     
     @api.depends('user_profile_ids')
     def _compute_user_counts(self):
@@ -222,49 +222,43 @@ class ProfileManagement(models.Model):
             'target': 'new',
         }
 
-    def _format_vnd_currency(self, amount):
-        """Format Vietnamese currency according to requirements:
-        1000 vnd = 1Kđ
-        1000000 = 1Mđ
-        1300000 = 1.300Kđ
-        1299000 = 1299Kđ
-        """
+    def _format_currency(self, amount):
+        currency = self.env['ir.config_parameter'].sudo().get_param('isd_profile_management.pm_currency', 'vnd')
+        if currency == 'usd':
+            if not amount:
+                return '$0.00'
+            return f'${amount:.2f}'
+
         if not amount:
             return '0đ'
-        
+
         amount = int(amount)
-        
+
         if amount >= 1000000:
-            # Millions
             millions = amount // 1000000
             remainder = amount % 1000000
-            
+
             if remainder == 0:
                 return f'{millions}Mđ'
             elif remainder % 1000 == 0:
-                # Show as X.XXXKđ format
                 thousands = remainder // 1000
                 if thousands < 100:
                     return f'{millions}.{thousands:03d}Kđ'
                 else:
                     return f'{millions}.{thousands}Kđ'
             else:
-                # Show full amount with thousands separator
                 total_thousands = amount // 1000
                 if total_thousands >= 1000:
                     return f'{total_thousands:,}Kđ'.replace(',', '.')
                 else:
                     return f'{total_thousands}Kđ'
         elif amount >= 1000:
-            # Thousands
             thousands = amount // 1000
             remainder = amount % 1000
-            
+
             if remainder == 0:
                 return f'{thousands}Kđ'
             else:
-                # Less than 1000K, show full amount
                 return f'{amount}đ'
         else:
-            # Less than 1000
             return f'{amount}đ'

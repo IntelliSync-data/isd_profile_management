@@ -731,7 +731,7 @@ class UserStep(models.Model):
             return
 
         # Calculate total cost
-        total_cost = sum(step.step_id.cost_vnd for step in self.user_step_ids if step.is_selected)
+        total_cost = sum(step.step_id.cost for step in self.user_step_ids if step.is_selected)
 
         # Prepare email data
         email_data = {
