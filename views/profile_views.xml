@@ -53,6 +53,7 @@
                             <field name="description" placeholder="Profile description..."/>
                         </group>
                         <group>
+                            <field name="package_cost" widget="monetary"/>
                             <field name="total_cost" widget="monetary"/>
                             <field name="is_advanced"/>
                             <field name="is_auto_complete"/>

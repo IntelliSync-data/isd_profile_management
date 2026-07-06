@@ -20,6 +20,7 @@ class ProfileManagement(models.Model):
     # Steps
     step_ids = fields.One2many('profile.step', 'profile_id', string='Steps')
     total_steps = fields.Integer(string='Total Steps', compute='_compute_step_counts', store=True)
+    package_cost = fields.Float(string='Package Cost', default=0.0, tracking=True)
     total_cost = fields.Float(string='Total Cost', compute='_compute_total_cost', store=True)
     total_cost_vnd = fields.Char(string='Total Cost VND', compute='_compute_total_cost_vnd', store=True)
     
@@ -40,10 +41,10 @@ class ProfileManagement(models.Model):
         for record in self:
             record.total_steps = len(record.step_ids)
     
-    @api.depends('step_ids.cost')
+    @api.depends('step_ids.cost', 'package_cost')
     def _compute_total_cost(self):
         for record in self:
-            record.total_cost = sum(record.step_ids.mapped('cost'))
+            record.total_cost = sum(record.step_ids.mapped('cost')) + record.package_cost
     
     @api.depends('total_cost')
     def _compute_total_cost_vnd(self):
