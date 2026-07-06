@@ -18,7 +18,7 @@ class ProfileManagement(models.Model):
     ], string='Status', default='draft', tracking=True)
     
     # Steps
-    step_ids = fields.One2many('profile.step', 'profile_id', string='Steps')
+    step_ids = fields.Many2many('profile.step', 'profile_management_step_rel', 'profile_id', 'step_id', string='Steps')
     total_steps = fields.Integer(string='Total Steps', compute='_compute_step_counts', store=True)
     package_cost = fields.Float(string='Package Cost', default=0.0, tracking=True)
     total_cost = fields.Float(string='Total Cost', compute='_compute_total_cost', store=True)
@@ -84,8 +84,7 @@ class ProfileManagement(models.Model):
             'name': _('Profile Steps'),
             'res_model': 'profile.step',
             'view_mode': 'list,form',
-            'domain': [('profile_id', '=', self.id)],
-            'context': {'default_profile_id': self.id},
+            'domain': [('id', 'in', self.step_ids.ids)],
         }
     
     # Manager Dashboard Actions
@@ -97,7 +96,6 @@ class ProfileManagement(models.Model):
             'res_model': 'profile.step',
             'view_mode': 'form',
             'target': 'new',
-            'context': {'default_profile_id': False},
         }
     
     def action_view_all_steps(self):

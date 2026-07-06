@@ -75,7 +75,6 @@ class StepSelection(models.Model):
         for record in self:
             if record.profile_id:
                 record.available_step_ids = self.env['profile.step'].search([
-                    ('profile_id', '=', record.profile_id.id),
                     ('state', '=', 'active')
                 ])
             else:
@@ -91,7 +90,6 @@ class StepSelection(models.Model):
                 defaults['profile_id'] = profile_id
                 # Auto-select all available steps by default
                 available_steps = self.env['profile.step'].search([
-                    ('profile_id', '=', profile_id),
                     ('state', '=', 'active')
                 ])
                 defaults['selected_step_ids'] = [(6, 0, available_steps.ids)]
@@ -103,15 +101,13 @@ class StepSelection(models.Model):
         if self.profile_id:
             # Auto-select all available steps
             available_steps = self.env['profile.step'].search([
-                ('profile_id', '=', self.profile_id.id),
                 ('state', '=', 'active')
             ])
             self.selected_step_ids = [(6, 0, available_steps.ids)]
-            
+
             return {
                 'domain': {
                     'selected_step_ids': [
-                        ('profile_id', '=', self.profile_id.id),
                         ('state', '=', 'active')
                     ]
                 }

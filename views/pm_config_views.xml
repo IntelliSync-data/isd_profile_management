@@ -193,6 +193,20 @@
                         </div>
                     </div>
 
+                    <div class="app_settings_block" data-string="General" string="General" data-key="general" groups="base.group_user">
+                        <h2>General</h2>
+                        <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_currency"/>
+                                    <div class="text-muted">Currency symbol used for payment display</div>
+                                    <field name="pm_currency" class="mt-2"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="app_settings_block" data-string="Email Templates" string="Email Templates" data-key="email_templates" groups="base.group_user">
                         <h2>Email Notification Templates</h2>
                         <div class="alert alert-info" role="alert">

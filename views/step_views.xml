@@ -8,7 +8,6 @@
             <list string="Steps" decoration-success="state=='active'" decoration-muted="state=='inactive'">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="profile_id"/>
                 <field name="cost" widget="monetary"/>
                 <field name="duration_days"/>
                 <field name="is_mandatory"/>
@@ -39,7 +38,6 @@
                     
                     <group>
                         <group string="Basic Information">
-                            <field name="profile_id" required="1"/>
                             <field name="sequence"/>
                             <field name="is_mandatory"/>
                         </group>
@@ -63,9 +61,8 @@
                         </page>
                         <page string="Prerequisites" name="prerequisites">
                             <group>
-                                <field name="profile_id" invisible="1" force_save="1"/>
-                                <field name="prerequisite_step_ids" widget="many2many_tags" 
-                                       domain="[('profile_id', '=', profile_id), ('id', '!=', id)]"
+                                <field name="prerequisite_step_ids" widget="many2many_tags"
+                                       domain="[('id', '!=', id)]"
                                        placeholder="Select prerequisite steps..." nolabel="1"/>
                             </group>
                             <div class="alert alert-info mt-3" role="alert">
@@ -85,14 +82,12 @@
         <field name="arch" type="xml">
             <search string="Search Steps">
                 <field name="name" string="Step" filter_domain="[('name','ilike',self)]"/>
-                <field name="profile_id"/>
                 <separator/>
                 <filter string="Active" name="active" domain="[('state','=','active')]"/>
                 <filter string="Inactive" name="inactive" domain="[('state','=','inactive')]"/>
                 <filter string="Mandatory" name="mandatory" domain="[('is_mandatory','=',True)]"/>
                 <filter string="Optional" name="optional" domain="[('is_mandatory','=',False)]"/>
                 <group expand="0" string="Group By">
-                    <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
                     <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
                     <filter string="Mandatory" name="group_mandatory" context="{'group_by':'is_mandatory'}"/>
                 </group>
@@ -115,7 +110,6 @@
                     
                     <group>
                         <group string="Service Information">
-                            <field name="profile_id" readonly="1"/>
                             <field name="cost" widget="monetary" readonly="1"/>
                             <field name="cost_vnd" readonly="1"/>
                             <field name="duration_days" readonly="1"/>

@@ -13,9 +13,6 @@ class ProfileStep(models.Model):
     description = fields.Text(string='Description')
     sequence = fields.Integer(string='Sequence', default=10)
     
-    # Profile
-    profile_id = fields.Many2one('profile.management', string='Profile', required=True, ondelete='cascade')
-    
     # Cost and Details
     cost = fields.Float(string='Cost', required=True, tracking=True)
     cost_vnd = fields.Char(string='Cost VND', compute='_compute_cost_vnd', store=True)

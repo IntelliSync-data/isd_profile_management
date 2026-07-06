@@ -90,6 +90,14 @@ class ResConfigSettings(models.TransientModel):
         default=26_300
     )
 
+    # Currency Configuration
+    pm_currency = fields.Selection(
+        [('vnd', 'VND (đ)'), ('usd', 'USD ($)')],
+        string='Currency',
+        config_parameter='isd_profile_management.pm_currency',
+        default='vnd',
+    )
+
     # Email Template Configuration
     pm_email_order_template_id = fields.Many2one(
         'marketing.template',
