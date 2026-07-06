@@ -23,7 +23,6 @@
         <record id="step_document_preparation" model="profile.step">
             <field name="name">Document Preparation</field>
             <field name="description">Prepare all required documents for visa application</field>
-            <field name="profile_id" ref="profile_visa_application"/>
             <field name="cost">100.00</field>
             <field name="duration_days">7</field>
             <field name="sequence">10</field>
@@ -46,7 +45,6 @@
         <record id="step_ielts_exam" model="profile.step">
             <field name="name">IELTS Examination</field>
             <field name="description">Take IELTS examination for English proficiency</field>
-            <field name="profile_id" ref="profile_visa_application"/>
             <field name="cost">250.00</field>
             <field name="duration_days">30</field>
             <field name="sequence">20</field>
@@ -68,7 +66,6 @@
         <record id="step_visa_application" model="profile.step">
             <field name="name">Visa Application Submission</field>
             <field name="description">Submit visa application to embassy/consulate</field>
-            <field name="profile_id" ref="profile_visa_application"/>
             <field name="cost">300.00</field>
             <field name="duration_days">14</field>
             <field name="sequence">30</field>
@@ -92,7 +89,6 @@
         <record id="step_travel_insurance" model="profile.step">
             <field name="name">Travel Insurance</field>
             <field name="description">Purchase comprehensive travel and health insurance</field>
-            <field name="profile_id" ref="profile_visa_application"/>
             <field name="cost">150.00</field>
             <field name="duration_days">3</field>
             <field name="sequence">40</field>
@@ -111,6 +107,11 @@
             ]]></field>
         </record>
 
+        <!-- Link steps to visa application profile -->
+        <record id="profile_visa_application" model="profile.management">
+            <field name="step_ids" eval="[(6, 0, [ref('step_document_preparation'), ref('step_ielts_exam'), ref('step_visa_application'), ref('step_travel_insurance')])]"/>
+        </record>
+
         <!-- Demo Data - Sample Profile for IELTS Preparation -->
         <record id="profile_ielts_preparation" model="profile.management">
             <field name="name">IELTS Preparation Course</field>
@@ -123,7 +124,6 @@
         <record id="step_ielts_assessment" model="profile.step">
             <field name="name">Initial Assessment</field>
             <field name="description">Assess current English level and identify improvement areas</field>
-            <field name="profile_id" ref="profile_ielts_preparation"/>
             <field name="cost">50.00</field>
             <field name="duration_days">1</field>
             <field name="sequence">10</field>
@@ -134,7 +134,6 @@
         <record id="step_ielts_classes" model="profile.step">
             <field name="name">IELTS Classes</field>
             <field name="description">Attend intensive IELTS preparation classes</field>
-            <field name="profile_id" ref="profile_ielts_preparation"/>
             <field name="cost">400.00</field>
             <field name="duration_days">60</field>
             <field name="sequence">20</field>
@@ -146,13 +145,17 @@
         <record id="step_mock_tests" model="profile.step">
             <field name="name">Mock Tests</field>
             <field name="description">Complete practice tests under exam conditions</field>
-            <field name="profile_id" ref="profile_ielts_preparation"/>
             <field name="cost">100.00</field>
             <field name="duration_days">14</field>
             <field name="sequence">30</field>
             <field name="is_mandatory">True</field>
             <field name="state">active</field>
             <field name="prerequisite_step_ids" eval="[(6, 0, [ref('step_ielts_classes')])]"/>
+        </record>
+
+        <!-- Link steps to IELTS preparation profile -->
+        <record id="profile_ielts_preparation" model="profile.management">
+            <field name="step_ids" eval="[(6, 0, [ref('step_ielts_assessment'), ref('step_ielts_classes'), ref('step_mock_tests')])]"/>
         </record>
 
         <!-- Demo Users -->
