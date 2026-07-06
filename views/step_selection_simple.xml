@@ -40,9 +40,8 @@
                     </div>
 
                     <separator string="Available Services"/>
-                    <field name="profile_id" invisible="1" force_save="1"/>
-                    <field name="selected_step_ids" disabled="0" widget="many2many_checkboxes" nolabel="1" 
-                           domain="[('profile_id', '=', profile_id)]"
+                    <field name="selected_step_ids" disabled="0" widget="many2many_checkboxes" nolabel="1"
+                           domain="[('state', '=', 'active')]"
                            readonly="0"/>
                 </sheet>
             </form>

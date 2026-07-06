@@ -10,7 +10,7 @@
                     <field name="user_id" invisible="1"/>
                 </group>
                 <separator string="Available Services - Check What You Need"/>
-                <field name="selected_step_ids" widget="many2many_checkboxes" nolabel="1" domain="[('profile_id', '=', profile_id)]"/>
+                <field name="selected_step_ids" widget="many2many_checkboxes" nolabel="1" domain="[('state', '=', 'active')]"/>
                 <footer>
                     <button name="action_confirm" string="Confirm Selection" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>

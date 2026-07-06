@@ -10,7 +10,7 @@ class StepSelectionWizard(models.TransientModel):
     selected_step_ids = fields.Many2many(
         'profile.step',
         string='Select Steps',
-        domain="[('profile_id', '=', profile_id), ('state', '=', 'active')]"
+        domain="[('state', '=', 'active')]"
     )
     
     def action_confirm(self):

@@ -31,7 +31,7 @@
 
                     <notebook>
                         <page string="Selected Steps" name="select_steps">
-                            <field name="selected_step_ids" widget="many2many" nolabel="1" domain="[('profile_id', '=', profile_id)]">
+                            <field name="selected_step_ids" widget="many2many" nolabel="1" domain="[('state', '=', 'active')]">
                                 <list editable="bottom" create="false" delete="true">
                                     <field name="name"/>
                                     <field name="description"/>
@@ -43,7 +43,7 @@
                             </field>
                         </page>
                         <page string="Available Steps" name="available_steps">
-                            <field name="available_step_ids" nolabel="1" readonly="1" domain="[('profile_id', '=', profile_id)]">
+                            <field name="available_step_ids" nolabel="1" readonly="1" domain="[('state', '=', 'active')]">
                                 <list create="false" edit="false" delete="false">
                                     <field name="name"/>
                                     <field name="description"/>
