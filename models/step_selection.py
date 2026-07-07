@@ -296,14 +296,13 @@ class ProfileManagement(models.Model):
             })
             selection_id = selection.id
         
-        # Return action to redirect to URL like window.location.href
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        url = f"{base_url}/web#id={selection_id}&model=step.selection&view_type=form"
-        
         return {
-            'type': 'ir.actions.act_url',
-            'url': url,
-            'target': 'self',
+            'type': 'ir.actions.act_window',
+            'name': _('Select Services'),
+            'res_model': 'step.selection',
+            'view_mode': 'form',
+            'res_id': selection_id,
+            'target': 'current',
         }
     
     def action_view_selections(self):
