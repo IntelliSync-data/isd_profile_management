@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_payment_method_select_wizard_form" model="ir.ui.view">
+        <field name="name">payment.method.select.wizard.form</field>
+        <field name="model">payment.method.select.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Select Payment Method">
+                <field name="user_profile_id" invisible="1"/>
+                <field name="available_method_ids" invisible="1"/>
+                <group>
+                    <field name="payment_method_id"
+                           widget="payment_method_picker"
+                           options="{'no_create': True, 'no_open': True}"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Proceed to Payment" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

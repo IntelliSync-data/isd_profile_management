@@ -2,17 +2,10 @@
 
 import json
 import logging
-import os
-from ..models.services.payment_service import PAYPAL_PROVIDER, VTC_PAY_PROVIDER, ConfirmPGPaymentResDto
-from odoo import http, fields
+from odoo import http
 from odoo.http import request
-from concurrent.futures import ThreadPoolExecutor
-import time
-from ..models.user_profile import ConfirmPGPaymentReqDto, PaymentService, PaymentServiceFactory
 
 _logger = logging.getLogger(__name__)
-
-# Dynamic base URL configuration - no more hard-coding
 
 
 class PaymentController(http.Controller):
@@ -20,25 +13,28 @@ class PaymentController(http.Controller):
     @http.route('/isd_profile_management/payment/ipn', type='http', auth='public', methods=['GET'], csrf=False)
     def ipn_receiver(self, **kwargs):
         """
-        Universal IPN endpoint to receive any HTTP method and store all request data
-        Responds with HTTP 200 OK status
+        IPN endpoint for redirect-based payment providers (VTCPay, PayPal).
+        Verifies the payment via the isd_payment REST API and confirms the profile payment.
         """
 
-        # Get query parameters - always separate from body
+        # Get query parameters
         query_params = dict()
         if request.httprequest.args:
             query_params = dict(request.httprequest.args)
 
         if not query_params:
             raise ValueError("No query parameters found in IPN request")
-        
-        merchant: str = query_params.get('merchant', '').lower() or VTC_PAY_PROVIDER
 
-        transaction_id: str = ""
-        if merchant == VTC_PAY_PROVIDER:
-            transaction_id = query_params["reference_number"]
-        elif merchant == PAYPAL_PROVIDER:
-            transaction_id = query_params["token"]
+        # Determine transaction_id from query params
+        # VTCPay sends reference_number; PayPal sends token
+        transaction_id: str = (
+            query_params.get("reference_number")
+            or query_params.get("token")
+            or ""
+        )
+
+        if not transaction_id:
+            raise ValueError("Could not determine transaction_id from IPN query parameters")
 
         payment_record = request.env['profile.payment'].sudo().search(
             [('transaction_id', '=', transaction_id)], limit=1)
@@ -46,33 +42,25 @@ class PaymentController(http.Controller):
             raise ValueError(
                 f"No payment record found for transaction_id: {transaction_id}")
 
-        # Process the payment record (e.g., update status, log, etc.)
-        payment_service: PaymentService = PaymentServiceFactory.create(
-            provider=merchant, env=request.env)
+        # Delegate verification and confirmation to action_check_payment_status
+        # which calls the isd_payment REST API
+        result = payment_record.action_check_payment_status()
 
-        confirm_dto = ConfirmPGPaymentReqDto(amount=payment_record.amount)
-        if merchant == VTC_PAY_PROVIDER:
-            confirm_dto.payment_parameters = "&".join(
-                [f"{k}={v}" for k, v in query_params.items()])
-        res_dto = payment_service.confirm_payment(transaction_id, confirm_dto)
-        
-        if res_dto.status != str(ConfirmPGPaymentResDto.Status.ACTIVE):
+        if result.get('status') != 'confirmed':
             raise ValueError(
-                f"Payment not confirmed for transaction_id: {transaction_id}, status: {res_dto.status}")
-        
-        payment_record.write({
-            'state': 'confirmed',
-        })
-        user_profile = payment_record.user_profile_id
-        if user_profile:
-            user_profile.write({'state': 'paid'})
+                f"Payment not confirmed for transaction_id: {transaction_id}, "
+                f"status: {result.get('status')}, message: {result.get('message')}"
+            )
 
+        user_profile = payment_record.user_profile_id
         metadata = payment_record.metadata or {}
         action_id = metadata.get("action_id")
 
-        # Return HTTP 200 OK status (no text content)
-        # lesson_url = os.getenv("BASE_URL", "")
-        return request.redirect("/web#action={}&model=user.profile&view_type=form&id={}".format(action_id, user_profile.id))
+        return request.redirect(
+            "/web#action={}&model=user.profile&view_type=form&id={}".format(
+                action_id, user_profile.id if user_profile else ""
+            )
+        )
 
     @http.route('/isd_profile_management/payment/ipn', type='http', auth='public', methods=['OPTIONS'], csrf=False)
     def ipn_options(self, **kwargs):
@@ -125,9 +113,6 @@ class PaymentController(http.Controller):
             return request.make_response(json.dumps(resp), headers=[('Content-Type', 'application/json')])
 
         try:
-            # Determine provider if stored in metadata, otherwise fallback to sepay
-            provider = None
-            # Use new ISD Payment integration
             result = payment.sudo().action_check_payment_status()
 
             status = result.get('status', 'processing')

@@ -1,0 +1,65 @@
+.pm_method_cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 8px 0;
+}
+
+.pm_method_card {
+    width: 140px;
+    min-height: 160px;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 8px;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.pm_method_card:hover {
+    border-color: #875a7b;
+    box-shadow: 0 4px 12px rgba(135, 90, 123, 0.15);
+    transform: translateY(-2px);
+}
+
+.pm_method_card.selected {
+    border-color: #875a7b;
+    background: #f9f0ff;
+    box-shadow: 0 4px 16px rgba(135, 90, 123, 0.25);
+}
+
+.pm_method_card .pm_card_image {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.pm_method_card .pm_card_icon {
+    font-size: 48px;
+    color: #875a7b;
+    margin-bottom: 10px;
+}
+
+.pm_method_card .pm_card_name {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    color: #333;
+    word-break: break-word;
+}
+
+.pm_method_card.selected .pm_card_name {
+    color: #875a7b;
+}
+
+.pm_method_cards_empty {
+    color: #888;
+    padding: 16px;
+    font-style: italic;
+}

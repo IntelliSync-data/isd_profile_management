@@ -31,13 +31,7 @@
                     <button name="action_get_order" string="Get Order" type="object" 
                             class="btn-primary" invisible="state != 'new'"
                             groups="isd_profile_management.group_profile_student_only"/>
-                    <button name="action_vtcpay_checkout_payment" string="VTCPay" type="object" 
-                            class="btn-primary" invisible="state != 'not_yet_paid'"
-                            groups="isd_profile_management.group_profile_student_only"/>
-                    <button name="action_qr_checkout_payment" string="QR Code" type="object" 
-                            class="btn-primary" invisible="state != 'not_yet_paid'"
-                            groups="isd_profile_management.group_profile_student_only"/>
-                    <button name="action_paypal_checkout_payment" string="PayPal" type="object" 
+                    <button name="action_open_checkout_wizard" string="Checkout" type="object"
                             class="btn-primary" invisible="state != 'not_yet_paid'"
                             groups="isd_profile_management.group_profile_student_only"/>
                     <button name="action_mark_paid" string="Mark as Paid" type="object"

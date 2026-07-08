@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import requests as http_requests
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
@@ -73,6 +74,12 @@ class ProfilePayment(models.Model):
     rejection_reason = fields.Text(string='Rejection Reason')
     
     metadata = fields.Json(string='Metadata', help="Additional metadata for the payment")
+
+    payment_method_id = fields.Many2one(
+        'isd_payment.method',
+        string='Payment Method',
+        help='Payment method used for this payment'
+    )
     
     @api.model_create_multi
     def create(self, vals_list):
@@ -245,24 +252,42 @@ class ProfilePayment(models.Model):
     # ==========================================
 
     def action_create_isd_payment(self):
-        """Create payment transaction via ISD Payment module"""
+        """Create payment transaction via ISD Payment module.
+
+        Reads the first active payment method from pm_payment_method_ids config param,
+        then delegates to action_create_isd_payment_with_method.
+        """
         self.ensure_one()
 
-        # Get payment method from config
-        payment_method_id = int(self.env['ir.config_parameter'].sudo().get_param(
-            'isd_profile_management.pm_payment_method_id', 0
-        ))
+        # Get payment method IDs from config
+        param = self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_payment_method_ids', default=''
+        )
+        ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
 
-        if not payment_method_id:
-            raise ValidationError(_("Please configure Payment Method in Settings first."))
+        if not ids:
+            raise ValidationError(_("Please configure Payment Methods in Settings first."))
 
-        payment_method = self.env['isd_payment.method'].browse(payment_method_id)
+        payment_method = self.env['isd_payment.method'].browse(ids[0])
         if not payment_method.exists():
             raise ValidationError(_("Configured Payment Method not found."))
 
-        # Generate transaction ID
+        return self.action_create_isd_payment_with_method(payment_method)
+
+    def action_create_isd_payment_with_method(self, payment_method):
+        """Create payment transaction via ISD Payment module using a specific method record.
+
+        Args:
+            payment_method: isd_payment.method record
+
+        Returns:
+            dict with transaction_id, qr_url, amount
+        """
+        self.ensure_one()
+
+        # Generate transaction ID using the method's prefix
         transaction_id = self.env['isd_payment.transaction'].generate_transaction_id(
-            payment_method.sepay_prefix_transaction_id
+            payment_method.prefix
         )
 
         # Get request info
@@ -276,7 +301,7 @@ class ProfilePayment(models.Model):
             'amount': self.amount,
             'description': f"Profile Payment {self.name} - User: {self.user_id.name}",
             'qr_url': payment_method.generate_qr_url(transaction_id, self.amount),
-            'bank_account': payment_method.sepay_acc_number,
+            'bank_account': payment_method.provider_account_id,
             'bank_code': payment_method.sepay_acc_bank,
             'status': 'pending',
             'request_origin': request_origin,
@@ -287,6 +312,7 @@ class ProfilePayment(models.Model):
         self.write({
             'isd_transaction_id': isd_transaction.id,
             'transaction_id': transaction_id,
+            'payment_method_id': payment_method.id,
             'state': 'pending'
         })
 
@@ -299,60 +325,62 @@ class ProfilePayment(models.Model):
         }
 
     def action_check_payment_status(self):
-        """Check payment status from ISD Payment transaction"""
+        """Check payment status by calling the isd_payment REST API confirm endpoint."""
         self.ensure_one()
 
-        if not self.isd_transaction_id:
-            raise ValidationError(_("No ISD Payment transaction linked."))
+        if not self.payment_method_id:
+            raise ValidationError(_("No payment method linked to this payment."))
 
-        # Check if already confirmed
-        if self.isd_transaction_id.status == 'confirmed':
-            # Auto-confirm profile payment
-            if self.state != 'confirmed':
-                self.action_confirm()
+        transaction_id = (
+            self.isd_transaction_id.transaction_id
+            if self.isd_transaction_id
+            else self.transaction_id
+        )
+        if not transaction_id:
+            raise ValidationError(_("No transaction ID found for this payment."))
+
+        # Check fast path: already confirmed locally
+        if self.state == 'confirmed':
             return {
                 'status': 'confirmed',
-                'message': _('Payment already confirmed')
+                'message': _('Payment already confirmed'),
             }
 
-        # Check if expired
-        if self.isd_transaction_id.is_expired:
-            self.isd_transaction_id.mark_as_expired()
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        try:
+            response = http_requests.post(
+                f"{base_url}/api/payment/{self.payment_method_id.id}/confirm",
+                json={"transaction_id": transaction_id, "amount": self.amount},
+                timeout=30,
+            )
+            response.raise_for_status()
+        except http_requests.exceptions.RequestException as e:
             return {
-                'status': 'expired',
-                'message': _('Payment has expired')
+                'status': 'processing',
+                'message': str(e),
             }
 
-        # Call check payment from ISD Payment
-        payment_method = self.isd_transaction_id.payment_method_id
-
-        # Import controller helper
-        from odoo.addons.isd_payment.controllers.main import IsdPaymentController
-        controller = IsdPaymentController()
-
-        result = controller._check_sepay_transaction(
-            payment_method,
-            self.isd_transaction_id.transaction_id,
-            int(self.amount),
-            prefix=payment_method.sepay_prefix_transaction_id
+        result = response.json()
+        status = result.get('status') or (
+            'confirmed' if result.get('success') and result.get('data') else 'processing'
         )
 
-        if result.get('found'):
-            # Mark ISD transaction as confirmed
-            self.isd_transaction_id.mark_as_confirmed(result.get('data'))
-
-            # Auto-confirm profile payment
+        if status == 'confirmed':
             if self.state != 'confirmed':
                 self.action_confirm()
-
             return {
                 'status': 'confirmed',
-                'message': _('Payment confirmed successfully')
+                'message': _('Payment confirmed successfully'),
+            }
+        elif status == 'expired':
+            return {
+                'status': 'expired',
+                'message': _('Payment has expired'),
             }
         else:
             return {
                 'status': 'processing',
-                'message': result.get('message', _('Payment not found yet'))
+                'message': result.get('message', _('Payment not yet confirmed')),
             }
 
     def action_create_isd_payment_external(self, payment_method):
@@ -366,9 +394,9 @@ class ProfilePayment(models.Model):
         """
         self.ensure_one()
 
-        # Generate transaction ID
+        # Generate transaction ID using the method's prefix
         transaction_id = self.env['isd_payment.transaction'].generate_transaction_id(
-            payment_method.sepay_prefix_transaction_id
+            payment_method.prefix
         )
 
         # Get request info from context
@@ -382,7 +410,7 @@ class ProfilePayment(models.Model):
             'amount': self.amount,
             'description': f"External Profile Payment {self.name} - User: {self.user_id.name}",
             'qr_url': payment_method.generate_qr_url(transaction_id, self.amount),
-            'bank_account': payment_method.sepay_acc_number,
+            'bank_account': payment_method.provider_account_id,
             'bank_code': payment_method.sepay_acc_bank,
             'status': 'pending',
             'request_origin': request_origin,
@@ -393,6 +421,7 @@ class ProfilePayment(models.Model):
         self.write({
             'isd_transaction_id': isd_transaction.id,
             'transaction_id': transaction_id,
+            'payment_method_id': payment_method.id,
             'state': 'pending'
         })
 

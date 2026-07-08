@@ -19,6 +19,7 @@ access_step_selection_public,step.selection.public,isd_profile_management.model_
 access_step_selection_wizard_student_only,step.selection.wizard.student_only,isd_profile_management.model_step_selection_wizard,isd_profile_management.group_profile_student_only,1,1,1,1
 access_qr_popup_wizard,qr.popup.wizard,model_qr_popup_wizard,base.group_user,1,1,1,1
 access_profile_api_doc_wizard_manager,profile.api.documentation.wizard.manager,model_profile_api_documentation_wizard,isd_profile_management.group_profile_manager,1,1,1,1
+access_payment_method_select_wizard,payment.method.select.wizard,isd_profile_management.model_payment_method_select_wizard,base.group_user,1,1,1,1
 access_profile_management_public,profile.management.public,isd_profile_management.model_profile_management,base.group_public,1,0,0,0
 access_user_profile_public,user.profile.public,isd_profile_management.model_user_profile,base.group_public,1,1,1,0
 access_profile_payment_public,profile.payment.public,isd_profile_management.model_profile_payment,base.group_public,1,1,1,0

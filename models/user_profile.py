@@ -1,31 +1,12 @@
 # -*- coding: utf-8 -*-
-import json
-import logging
-import os
-import pytz
-from urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter
-import requests
-from typing import List
-from typing import Any, Optional
-from typing import Any, Dict, List
-from enum import Enum
-from typing import Optional
-from datetime import datetime, timedelta
-from dataclasses import dataclass
-import hashlib
-from typing import Dict, Optional
-import urllib
-import urllib.parse
-import uuid
 import base64
-from PIL import Image
 import io
+import logging
+import requests as http_requests
+from PIL import Image
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 from odoo.http import request
-
-from .services.payment_service import PAYPAL_PROVIDER, VTC_PAY_PROVIDER, PaymentService, PaymentServiceFactory, ConfirmPGPaymentReqDto
 
 _logger = logging.getLogger(__name__)
 
@@ -316,18 +297,21 @@ class UserProfile(models.Model):
             }
         }
 
-    def action_vtcpay_checkout_payment(self):
-        """Proceed to checkout payment"""
+    def action_checkout_payment(self, payment_method_id):
+        """Unified checkout action that calls isd_payment REST API to create a payment.
 
+        Args:
+            payment_method_id (int): ID of the isd_payment.method record to use.
+
+        Returns:
+            Odoo action dict — either act_url (redirect) or act_window (QR wizard).
+        """
         if self.state != 'not_yet_paid':
             raise ValidationError(
                 _("Payment can only be made when profile is 'Not Yet Paid'."))
-        current_path = request.httprequest.path
-        action_id = request.env.ref(
+
+        action_id = self.env.ref(
             'isd_profile_management.action_my_profiles').id
-        # params = self.env.context.get('params', {})
-        # action = params["action"]
-        # res_id = params["resId"]
 
         selected_steps = self.user_step_ids.filtered(
             lambda s: s.is_selected and s.payment_status in ['pending', 'not_paid'])
@@ -337,142 +321,118 @@ class UserProfile(models.Model):
 
         total_amount = sum(selected_steps.mapped('cost'))
 
-        ipn_url: str = os.getenv("BASE_URL", "") + \
-            "/isd_profile_management/payment/ipn"
-        payment_service: PaymentService = PaymentServiceFactory.create(
-            provider=VTC_PAY_PROVIDER, env=self.env)
-        payment_response = payment_service.create_payment(
-            amount=total_amount, currency="vnd", ipn_url=ipn_url)
+        payment_method = self.env['isd_payment.method'].browse(payment_method_id)
+        if not payment_method.exists():
+            raise ValidationError(_("Payment method not found."))
 
-        self.env['profile.payment'].create({
-            'user_profile_id': self.id,
-            'user_id': self.user_id.id,  # type: ignore
-            'amount': total_amount,
-            'step_ids': [(6, 0, selected_steps.ids)],
-            'state': 'pending',
-            'transaction_id': payment_response.transaction_id,
-            'metadata': {"action_id": action_id},
-        })
-
-        redirect_url = payment_response.redirect_url
-
-        return {
-            'type': 'ir.actions.act_url',
-            'url': redirect_url,
-            'target': 'new',
-        }
-        
-    def action_paypal_checkout_payment(self):
-        """Proceed to checkout payment"""
-
-        if self.state != 'not_yet_paid':
-            raise ValidationError(
-                _("Payment can only be made when profile is 'Not Yet Paid'."))
-        current_path = request.httprequest.path
-        action_id = request.env.ref(
-            'isd_profile_management.action_my_profiles').id
-        # params = self.env.context.get('params', {})
-        # action = params["action"]
-        # res_id = params["resId"]
-
-        selected_steps = self.user_step_ids.filtered(
-            lambda s: s.is_selected and s.payment_status in ['pending', 'not_paid'])
-
-        if not selected_steps:
-            raise ValidationError(_("No steps selected for payment."))
-
-        total_amount = sum(selected_steps.mapped('cost'))
-
-        ipn_url: str = os.getenv("BASE_URL", "") + \
-            "/isd_profile_management/payment/ipn?merchant=paypal"
-        payment_service: PaymentService = PaymentServiceFactory.create(
-            provider=PAYPAL_PROVIDER, env=self.env)
-        payment_response = payment_service.create_payment(
-            amount=total_amount, currency="usd", ipn_url=ipn_url)
-
-        self.env['profile.payment'].create({
-            'user_profile_id': self.id,
-            'user_id': self.user_id.id,  # type: ignore
-            'amount': total_amount,
-            'step_ids': [(6, 0, selected_steps.ids)],
-            'state': 'pending',
-            'transaction_id': payment_response.transaction_id,
-            'metadata': {"action_id": action_id},
-        })
-
-        redirect_url = payment_response.redirect_url
-
-        return {
-            'type': 'ir.actions.act_url',
-            'url': redirect_url,
-            'target': 'new',
-        }
-
-    def action_qr_checkout_payment(self):
-        """Proceed to checkout payment"""
-
-        if self.state != 'not_yet_paid':
-            raise ValidationError(
-                _("Payment can only be made when profile is 'Not Yet Paid'."))
-        current_path = request.httprequest.path
-        action_id = request.env.ref(
-            'isd_profile_management.action_my_profiles').id
-        # params = self.env.context.get('params', {})
-        # action = params["action"]
-        # res_id = params["resId"]
-
-        selected_steps = self.user_step_ids.filtered(
-            lambda s: s.is_selected and s.payment_status in ['pending', 'not_paid'])
-
-        if not selected_steps:
-            raise ValidationError(_("No steps selected for payment."))
-
-        total_amount = sum(selected_steps.mapped('cost'))
-
-        # Create profile payment record
-        profile_payment = self.env['profile.payment'].create({
-            'user_profile_id': self.id,
-            'user_id': self.user_id.id,  # type: ignore
-            'amount': total_amount,
-            'step_ids': [(6, 0, selected_steps.ids)],
-            'state': 'draft',
-            'metadata': {"action_id": action_id},
-        })
-
-        # Generate QR code via isd_payment integration
-        payment_response = profile_payment.action_create_isd_payment()
-        qr_url: str = payment_response.get('qr_url', '')
-
+        # Call isd_payment REST API to create the payment
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         try:
-            response = requests.get(qr_url, timeout=10)
-            response.raise_for_status()  # Raise an exception for bad status codes
-            # Open the image from the response content
-            img = Image.open(io.BytesIO(response.content))
-            # Resize the image
-            resized_img = img.resize((400, 400))
-            # Save the resized image to a buffer
-            buffer = io.BytesIO()
-            resized_img.save(buffer, format='PNG')
-            # Encode the buffer content in base64 (as string for Binary field)
-            qr_image = base64.b64encode(buffer.getvalue()).decode('ascii')
-        except requests.exceptions.RequestException as e:
-            # Handle exceptions (e.g., network issues, invalid URL)
+            response = http_requests.post(
+                f"{base_url}/api/payment/{payment_method_id}/create",
+                json={
+                    "amount": total_amount,
+                    "description": f"Profile Payment - {self.name}",
+                },
+                timeout=30,
+            )
+            response.raise_for_status()
+        except http_requests.exceptions.RequestException as e:
             raise ValidationError(
-                _("Could not retrieve QR code. Please try again later. Error: %s") % e)
+                _("Could not reach payment service. Please try again later. Error: %s") % e)
 
-        wizard = self.env['qr.popup.wizard'].create({
-            'qr_image': qr_image,
-            'transaction_id': payment_response.get('transaction_id', ''),
+        result = response.json()
+        if not result.get('success'):
+            raise ValidationError(result.get('error', _('Payment creation failed')))
+
+        data = result['data']
+        transaction_id = data['transaction_id']
+        qr_url = data.get('qr_url')
+        redirect_url = data.get('redirect_url')
+
+        # Link to isd_payment.transaction record created by the API
+        isd_tx = self.env['isd_payment.transaction'].sudo().search(
+            [('transaction_id', '=', transaction_id)], limit=1)
+
+        if qr_url:
+            # QR-based flow (e.g. SePay) — create profile payment in draft state
+            profile_payment = self.env['profile.payment'].create({
+                'user_profile_id': self.id,
+                'user_id': self.user_id.id,
+                'amount': total_amount,
+                'step_ids': [(6, 0, selected_steps.ids)],
+                'state': 'draft',
+                'transaction_id': transaction_id,
+                'payment_method_id': payment_method.id,
+                'isd_transaction_id': isd_tx.id if isd_tx else False,
+                'metadata': {"action_id": action_id},
+            })
+
+            try:
+                img_response = http_requests.get(qr_url, timeout=10)
+                img_response.raise_for_status()
+                img = Image.open(io.BytesIO(img_response.content))
+                resized_img = img.resize((400, 400))
+                buffer = io.BytesIO()
+                resized_img.save(buffer, format='PNG')
+                qr_image = base64.b64encode(buffer.getvalue()).decode('ascii')
+            except http_requests.exceptions.RequestException as e:
+                raise ValidationError(
+                    _("Could not retrieve QR code. Please try again later. Error: %s") % e)
+
+            wizard = self.env['qr.popup.wizard'].create({
+                'qr_image': qr_image,
+                'transaction_id': transaction_id,
+            })
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'QR Checkout',
+                'res_model': 'qr.popup.wizard',
+                'view_mode': 'form',
+                'view_id': self.env.ref('isd_profile_management.view_qr_code_checkout').id,
+                'res_id': wizard.id,
+                'target': 'new',
+                'context': {'form_view_initial_mode': 'edit'},
+            }
+
+        elif redirect_url:
+            # Redirect-based flow (e.g. VTCPay, PayPal)
+            self.env['profile.payment'].create({
+                'user_profile_id': self.id,
+                'user_id': self.user_id.id,
+                'amount': total_amount,
+                'step_ids': [(6, 0, selected_steps.ids)],
+                'state': 'pending',
+                'transaction_id': transaction_id,
+                'payment_method_id': payment_method.id,
+                'isd_transaction_id': isd_tx.id if isd_tx else False,
+                'metadata': {"action_id": action_id},
+            })
+
+            return {
+                'type': 'ir.actions.act_url',
+                'url': redirect_url,
+                'target': 'new',
+            }
+
+        else:
+            raise ValidationError(_("Payment service returned no QR or redirect URL."))
+
+    def action_open_checkout_wizard(self):
+        """Open wizard to select payment method and proceed to checkout."""
+        self.ensure_one()
+        if self.state != 'not_yet_paid':
+            raise ValidationError(_("Payment can only be made when profile is 'Not Yet Paid'."))
+        wizard = self.env['payment.method.select.wizard'].create({
+            'user_profile_id': self.id,
         })
         return {
             'type': 'ir.actions.act_window',
-            'name': 'QR Checkout',
-            'res_model': 'qr.popup.wizard',
+            'name': _('Select Payment Method'),
+            'res_model': 'payment.method.select.wizard',
             'view_mode': 'form',
-            'view_id': self.env.ref('isd_profile_management.view_qr_code_checkout').id,
             'res_id': wizard.id,
             'target': 'new',
-            'context': {'form_view_initial_mode': 'edit'},
         }
 
     def action_make_payment(self):
