@@ -18,11 +18,11 @@
                                 <div class="o_setting_left_pane">
                                 </div>
                                 <div class="o_setting_right_pane">
-                                    <label for="pm_payment_method_id"/>
+                                    <label for="pm_payment_method_ids"/>
                                     <div class="text-muted">
-                                        Select payment method configured in ISD Payment module
+                                        Select payment methods configured in ISD Payment module
                                     </div>
-                                    <field name="pm_payment_method_id" class="mt-2"/>
+                                    <field name="pm_payment_method_ids" widget="many2many_tags" class="mt-2"/>
                                 </div>
                             </div>
                         </div>

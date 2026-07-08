@@ -1,15 +1,31 @@
-from odoo import models, fields
+from odoo import models, fields, api
 
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
     # ISD Payment Integration
-    pm_payment_method_id = fields.Many2one(
+    pm_payment_method_ids = fields.Many2many(
         'isd_payment.method',
-        string='Payment Method',
-        config_parameter='isd_profile_management.pm_payment_method_id',
-        help='Select payment method from ISD Payment module'
+        string='Payment Methods',
+        help='Select payment methods from ISD Payment module'
     )
+
+    def get_values(self):
+        res = super().get_values()
+        param = self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_payment_method_ids', default=''
+        )
+        ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
+        res['pm_payment_method_ids'] = [(6, 0, ids)]
+        return res
+
+    def set_values(self):
+        super().set_values()
+        ids = self.pm_payment_method_ids.ids
+        self.env['ir.config_parameter'].sudo().set_param(
+            'isd_profile_management.pm_payment_method_ids',
+            ','.join(str(i) for i in ids)
+        )
 
     # Legacy SePay fields (deprecated - use pm_payment_method_id instead)
     pm_sepay_host = fields.Char(
