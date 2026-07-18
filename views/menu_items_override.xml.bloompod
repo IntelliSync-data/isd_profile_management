@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu overrides -->
+    <record id="menu_profile_management_main" model="ir.ui.menu">
+        <field name="name">Order Management</field>
+    </record>
+    <record id="menu_profiles" model="ir.ui.menu">
+        <field name="name">Products</field>
+    </record>
+    <record id="menu_user_profiles" model="ir.ui.menu">
+        <field name="name">Orders</field>
+    </record>
+    <record id="menu_student_section" model="ir.ui.menu">
+        <field name="name">User</field>
+    </record>
+    <record id="menu_my_profiles" model="ir.ui.menu">
+        <field name="name">My Orders</field>
+    </record>
+
+    <!-- Action name overrides -->
+    <record id="action_profile_management" model="ir.actions.act_window">
+        <field name="name">Product Configuration</field>
+    </record>
+    <record id="action_user_profile" model="ir.actions.act_window">
+        <field name="name">Orders</field>
+    </record>
+    <record id="action_my_profiles" model="ir.actions.act_window">
+        <field name="name">My Orders</field>
+    </record>
+    <record id="action_profile_step" model="ir.actions.act_window">
+        <field name="name">Fulfillment Steps</field>
+    </record>
+
+    <!-- View overrides: User Profile form (Profile Information, Manager Notes, placeholder) -->
+    <record id="view_user_profile_form_vfo" model="ir.ui.view">
+        <field name="name">user.profile.form.vfo</field>
+        <field name="model">user.profile</field>
+        <field name="inherit_id" ref="view_user_profile_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]/group[1]" position="replace">
+                <group string="Order Information">
+                    <field name="user_id" readonly="state != 'not_started'"/>
+                    <field name="profile_id" string="Product" readonly="state != 'not_started'"/>
+                    <field name="state" widget="badge"/>
+                    <field name="progress_percentage" widget="progressbar"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='notes']" position="attributes">
+                <attribute name="placeholder">Add notes about this order...</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- View overrides: User Profile list title -->
+    <record id="view_user_profile_tree_vfo" model="ir.ui.view">
+        <field name="name">user.profile.tree.vfo</field>
+        <field name="model">user.profile</field>
+        <field name="inherit_id" ref="view_user_profile_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="replace">
+                <list string="Orders" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='not_yet_paid'" decoration-primary="state=='paid'" decoration-muted="state=='new'">
+                    <field name="user_id"/>
+                    <field name="profile_id"/>
+                    <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='paid'"/>
+                    <field name="progress_percentage" widget="progressbar"/>
+                    <field name="total_cost" widget="monetary"/>
+                    <field name="paid_amount" widget="monetary"/>
+                    <field name="remaining_amount" widget="monetary"/>
+                    <field name="start_date"/>
+                    <field name="assigned_by"/>
+                    <field name="assigned_date"/>
+                </list>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- View overrides: Profile Management form (Profile Name, Profile description) -->
+    <record id="view_profile_management_form_vfo" model="ir.ui.view">
+        <field name="name">profile.management.form.vfo</field>
+        <field name="model">profile.management</field>
+        <field name="inherit_id" ref="view_profile_management_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="placeholder">Product Name...</attribute>
+            </xpath>
+            <xpath expr="//field[@name='description']" position="attributes">
+                <attribute name="placeholder">Product description...</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
