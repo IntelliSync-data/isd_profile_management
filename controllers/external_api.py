@@ -151,8 +151,10 @@ class ExternalProfileAPIController(http.Controller):
             # Flush to database to ensure user_step records exist
             request.env.cr.flush()
 
-            # Calculate total cost
+            # Calculate total cost: sum of step costs, fallback to package cost
             total_amount = sum(active_steps.mapped('cost'))
+            if total_amount <= 0:
+                total_amount = package.package_cost or package.total_cost or 0
 
             # Validate total amount
             if total_amount <= 0:
