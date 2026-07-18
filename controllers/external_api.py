@@ -124,10 +124,7 @@ class ExternalProfileAPIController(http.Controller):
                 })
 
             # Get all active steps from package
-            active_steps = request.env['profile.step'].sudo().search([
-                ('profile_id', '=', package.id),
-                ('state', '=', 'active')
-            ])
+            active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
 
             # Validate package has steps
             if not active_steps:
