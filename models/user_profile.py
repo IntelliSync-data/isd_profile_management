@@ -461,6 +461,75 @@ class UserProfile(models.Model):
             'target': 'current',
         }
 
+    def _send_order_confirmation_email(self):
+        """Send order confirmation email using configured template"""
+        self.ensure_one()
+
+        # Get email template from config
+        template_id = int(self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_email_order_template_id', 0
+        ))
+
+        if not template_id:
+            _logger.warning("No order confirmation email template configured")
+            return
+
+        template = self.env['marketing.template'].browse(template_id)
+        if not template.exists():
+            _logger.warning("Configured order confirmation email template not found")
+            return
+
+        # Calculate total cost
+        total_cost = sum(step.step_id.cost for step in self.user_step_ids if step.is_selected)
+
+        # Prepare email data
+        email_data = {
+            'object': {
+                'name': self.name,
+                'user_id': {
+                    'name': self.user_id.name,
+                    'email': self.user_id.email,
+                },
+                'profile_id': {
+                    'name': self.profile_id.name,
+                },
+                'total_cost': f"{total_cost:,.0f} VND",
+                'state': self.state,
+                'assigned_date': fields.Datetime.to_string(self.assigned_date) if self.assigned_date else '',
+            },
+            'company': {
+                'name': self.env.company.name,
+                'email': self.env.company.email or 'info@company.com',
+            },
+            'user': {
+                'name': self.env.user.name,
+            }
+        }
+
+        # Render template
+        try:
+            email_body = template.render_template(email_data)
+            email_subject = template.render_subject(email_data)
+
+            # Send email
+            mail_values = {
+                'subject': email_subject,
+                'body_html': email_body,
+                'email_to': self.user_id.email,
+                'email_from': self.env.company.email or 'noreply@company.com',
+            }
+
+            mail = self.env['mail.mail'].sudo().create(mail_values)
+            mail.send()
+
+            # Increment template usage
+            template.increment_usage()
+
+            _logger.info(f"Order confirmation email sent to {self.user_id.email} for profile {self.name}")
+
+        except Exception as e:
+            _logger.error(f"Failed to send order confirmation email: {str(e)}")
+
 
 class UserStep(models.Model):
     _name = 'user.step'
@@ -671,74 +740,5 @@ class UserStep(models.Model):
                 note=_('Step "%s" completed by %s needs approval.') % (
                     self.name, self.user_id.name)
             )
-
-    def _send_order_confirmation_email(self):
-        """Send order confirmation email using configured template"""
-        self.ensure_one()
-
-        # Get email template from config
-        template_id = int(self.env['ir.config_parameter'].sudo().get_param(
-            'isd_profile_management.pm_email_order_template_id', 0
-        ))
-
-        if not template_id:
-            _logger.warning("No order confirmation email template configured")
-            return
-
-        template = self.env['marketing.template'].browse(template_id)
-        if not template.exists():
-            _logger.warning("Configured order confirmation email template not found")
-            return
-
-        # Calculate total cost
-        total_cost = sum(step.step_id.cost for step in self.user_step_ids if step.is_selected)
-
-        # Prepare email data
-        email_data = {
-            'object': {
-                'name': self.name,
-                'user_id': {
-                    'name': self.user_id.name,
-                    'email': self.user_id.email,
-                },
-                'profile_id': {
-                    'name': self.profile_id.name,
-                },
-                'total_cost': f"{total_cost:,.0f} VND",
-                'state': self.state,
-                'assigned_date': fields.Datetime.to_string(self.assigned_date) if self.assigned_date else '',
-            },
-            'company': {
-                'name': self.env.company.name,
-                'email': self.env.company.email or 'info@company.com',
-            },
-            'user': {
-                'name': self.env.user.name,
-            }
-        }
-
-        # Render template
-        try:
-            email_body = template.render_template(email_data)
-            email_subject = template.render_subject(email_data)
-
-            # Send email
-            mail_values = {
-                'subject': email_subject,
-                'body_html': email_body,
-                'email_to': self.user_id.email,
-                'email_from': self.env.company.email or 'noreply@company.com',
-            }
-
-            mail = self.env['mail.mail'].sudo().create(mail_values)
-            mail.send()
-
-            # Increment template usage
-            template.increment_usage()
-
-            _logger.info(f"Order confirmation email sent to {self.user_id.email} for profile {self.name}")
-
-        except Exception as e:
-            _logger.error(f"Failed to send order confirmation email: {str(e)}")
 
 # External Service Integrations and Utilities
