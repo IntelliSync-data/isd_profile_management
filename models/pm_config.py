@@ -39,7 +39,7 @@ class ResConfigSettings(models.TransientModel):
     pm_email_order_template_id = fields.Many2one(
         'marketing.template',
         string='Order Confirmation Email Template',
-        domain=[('template_type', '=', 'email'), ('module_reference', '=', 'isd_profile_management')],
+        domain=[('template_type', '=', 'email')],
         config_parameter='isd_profile_management.pm_email_order_template_id',
         help='Email template sent when a new order (package purchase) is created'
     )
@@ -47,7 +47,7 @@ class ResConfigSettings(models.TransientModel):
     pm_email_payment_template_id = fields.Many2one(
         'marketing.template',
         string='Payment Confirmation Email Template',
-        domain=[('template_type', '=', 'email'), ('module_reference', '=', 'isd_profile_management')],
+        domain=[('template_type', '=', 'email')],
         config_parameter='isd_profile_management.pm_email_payment_template_id',
         help='Email template sent when payment is confirmed'
     )
