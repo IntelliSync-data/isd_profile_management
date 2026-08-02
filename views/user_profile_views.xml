@@ -72,11 +72,15 @@
                             <field name="progress_percentage" widget="progressbar"/>
                         </group>
                         <group string="Cost Information">
+                            <field name="payment_status"
+                                   widget="radio"
+                                   groups="isd_profile_management.group_profile_manager"/>
                             <field name="payment_status" widget="badge"
                                    decoration-danger="payment_status == 'not_yet_paid'"
                                    decoration-warning="payment_status == 'half_paid'"
                                    decoration-success="payment_status == 'paid'"
-                                   decoration-info="payment_status == 'returned'"/>
+                                   decoration-info="payment_status == 'returned'"
+                                   groups="isd_profile_management.group_profile_student_only"/>
                             <field name="total_cost" widget="monetary"/>
                             <field name="paid_amount" widget="monetary"/>
                             <field name="remaining_amount" widget="monetary"/>

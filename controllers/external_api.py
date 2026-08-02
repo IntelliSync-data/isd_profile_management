@@ -103,26 +103,15 @@ class ExternalProfileAPIController(http.Controller):
                     'groups_id': [(6, 0, [request.env.ref('base.group_portal').id])]
                 })
 
-            # Check if user already has a profile for this package
-            existing_profile = request.env['user.profile'].sudo().search([
-                ('user_id', '=', user.id),
-                ('profile_id', '=', package.id)
-            ], limit=1)
-
-            if existing_profile:
-                user_profile = existing_profile
-                # Delete existing steps to replace with new ones
-                existing_profile.user_step_ids.unlink()
-            else:
-                # Create new user profile with all steps from package
-                user_profile = request.env['user.profile'].sudo().with_context(skip_create_steps=True).create({
-                    'user_id': user.id,
-                    'profile_id': package.id,
-                    'state': 'new',
-                    'assigned_date': fields.Datetime.now(),
-                    'assigned_by': user.id,
-                    'notes': notes,
-                })
+            # Always create a new user profile (each purchase is a separate order)
+            user_profile = request.env['user.profile'].sudo().with_context(skip_create_steps=True).create({
+                'user_id': user.id,
+                'profile_id': package.id,
+                'state': 'new',
+                'assigned_date': fields.Datetime.now(),
+                'assigned_by': user.id,
+                'notes': notes,
+            })
 
             # Get all active steps from package
             active_steps = package.step_ids.filtered(lambda s: s.state == 'active')

@@ -101,20 +101,32 @@ class UserProfile(models.Model):
             else:
                 record.progress_percentage = 0.0
 
-    @api.depends('user_step_ids.is_selected', 'user_step_ids.cost', 'profile_id.package_cost')
+    @api.depends('user_step_ids.is_selected', 'user_step_ids.cost', 'profile_id.package_cost', 'payment_status')
     def _compute_costs(self):
         for record in self:
             selected_steps = record.user_step_ids.filtered('is_selected')
             package_cost = record.profile_id.package_cost if record.profile_id else 0.0
             record.total_cost = sum(selected_steps.mapped('cost')) + package_cost
 
-            # paid_amount from confirmed profile payments
+            # paid_amount: combine payment records + payment_status override
+            # First, get actual paid from confirmed payments
             confirmed_payments = self.env['profile.payment'].search([
                 ('user_profile_id', '=', record.id),
                 ('state', '=', 'confirmed'),
             ])
-            record.paid_amount = sum(confirmed_payments.mapped('amount'))
+            from_payments = sum(confirmed_payments.mapped('amount'))
 
+            # Then, get expected amount from payment_status
+            if record.payment_status == 'paid':
+                from_status = record.total_cost
+            elif record.payment_status == 'half_paid':
+                from_status = record.total_cost / 2
+            else:
+                # not_yet_paid or returned
+                from_status = 0.0
+
+            # Use the higher value: real payments or manager override
+            record.paid_amount = max(from_payments, from_status)
             record.remaining_amount = record.total_cost - record.paid_amount
 
     @api.depends('user_step_ids.is_selected')
