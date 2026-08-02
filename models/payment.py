@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import requests as http_requests
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
@@ -330,19 +329,11 @@ class ProfilePayment(models.Model):
         }
 
     def action_check_payment_status(self):
-        """Check payment status by calling the isd_payment REST API confirm endpoint."""
+        """Check payment status by directly querying isd_payment transaction and provider."""
         self.ensure_one()
 
         if not self.payment_method_id:
             raise ValidationError(_("No payment method linked to this payment."))
-
-        transaction_id = (
-            self.isd_transaction_id.transaction_id
-            if self.isd_transaction_id
-            else self.transaction_id
-        )
-        if not transaction_id:
-            raise ValidationError(_("No transaction ID found for this payment."))
 
         # Check fast path: already confirmed locally
         if self.state == 'confirmed':
@@ -351,36 +342,78 @@ class ProfilePayment(models.Model):
                 'message': _('Payment already confirmed'),
             }
 
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        try:
-            response = http_requests.post(
-                f"{base_url}/api/payment/{self.payment_method_id.id}/confirm",
-                json={"transaction_id": transaction_id, "amount": self.amount},
-                timeout=30,
-            )
-            response.raise_for_status()
-        except http_requests.exceptions.RequestException as e:
+        # Get the isd_payment transaction
+        isd_tx = self.isd_transaction_id
+        if not isd_tx:
+            # Try to find by transaction_id
+            isd_tx = self.env['isd_payment.transaction'].sudo().search([
+                ('transaction_id', '=', self.transaction_id),
+                ('payment_method_id', '=', self.payment_method_id.id),
+            ], limit=1)
+
+        if not isd_tx:
             return {
                 'status': 'processing',
-                'message': str(e),
+                'message': _('Transaction not found in payment system'),
             }
 
-        result = response.json()
-        status = result.get('status') or (
-            'confirmed' if result.get('success') and result.get('data') else 'processing'
-        )
-
-        if status == 'confirmed':
+        # Already confirmed in isd_payment
+        if isd_tx.status == 'confirmed':
             if self.state != 'confirmed':
                 self.action_confirm()
             return {
                 'status': 'confirmed',
                 'message': _('Payment confirmed successfully'),
             }
-        elif status == 'expired':
+
+        # Check if expired
+        if isd_tx.is_expired:
+            isd_tx.mark_as_expired()
             return {
                 'status': 'expired',
                 'message': _('Payment has expired'),
+            }
+
+        # Mark as processing
+        isd_tx.mark_as_processing()
+
+        payment_method = self.payment_method_id
+        transaction_id = isd_tx.transaction_id
+        amount = int(self.amount)
+
+        # Check with payment provider directly
+        from odoo.addons.isd_payment.controllers.main import IsdPaymentController
+        controller = IsdPaymentController()
+
+        if payment_method.payment_provider == 'sepay':
+            result = controller._check_sepay_transaction(
+                payment_method, transaction_id, amount, prefix=payment_method.prefix
+            )
+        elif payment_method.payment_provider == 'vtcpay':
+            result = controller._check_vtcpay_transaction(
+                payment_method, transaction_id, amount
+            )
+        elif payment_method.payment_provider == 'paypal':
+            paypal_order_id = isd_tx.paypal_order_id or transaction_id
+            result = controller._check_paypal_transaction(payment_method, paypal_order_id)
+        elif payment_method.payment_provider == 'acbpay':
+            # ACB uses webhooks, just check DB status
+            return {
+                'status': 'processing',
+                'message': _('Waiting for payment confirmation from ACB'),
+            }
+        else:
+            result = controller._check_sepay_transaction(
+                payment_method, transaction_id, amount, prefix=payment_method.prefix
+            )
+
+        if result.get('found'):
+            isd_tx.mark_as_confirmed(result.get('data'))
+            if self.state != 'confirmed':
+                self.action_confirm()
+            return {
+                'status': 'confirmed',
+                'message': _('Payment confirmed successfully'),
             }
         else:
             return {
