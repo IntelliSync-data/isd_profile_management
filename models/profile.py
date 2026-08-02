@@ -165,7 +165,7 @@ class ProfileManagement(models.Model):
             'name': _('Student Progress'),
             'res_model': 'user.profile',
             'view_mode': 'kanban,list',
-            'domain': [('state', 'in', ['in_progress', 'paid'])],
+            'domain': [('state', '=', 'in_progress')],
         }
     
     def action_package_report(self):

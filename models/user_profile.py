@@ -25,16 +25,22 @@ class UserProfile(models.Model):
     profile_id = fields.Many2one(
         'profile.management', string='Profile', required=True, tracking=True)
 
-    # Status
+    # Stage
     state = fields.Selection([
         ('new', 'New'),
-        ('not_yet_paid', 'Not Yet Paid'),
-        ('paid', 'Paid'),
         ('in_progress', 'In Progress'),
         ('pending', 'Pending'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-    ], string='Status', default='new', tracking=True)
+    ], string='Stage', default='new', tracking=True)
+
+    # Payment Status
+    payment_status = fields.Selection([
+        ('not_yet_paid', 'Not Yet Paid'),
+        ('half_paid', 'Half Paid'),
+        ('paid', 'Paid'),
+        ('returned', 'Returned'),
+    ], string='Payment Status', default='not_yet_paid', tracking=True)
 
     # Progress
     progress_percentage = fields.Float(
@@ -95,15 +101,19 @@ class UserProfile(models.Model):
             else:
                 record.progress_percentage = 0.0
 
-    @api.depends('user_step_ids.is_selected', 'user_step_ids.cost', 'user_step_ids.payment_status')
+    @api.depends('user_step_ids.is_selected', 'user_step_ids.cost', 'profile_id.package_cost')
     def _compute_costs(self):
         for record in self:
             selected_steps = record.user_step_ids.filtered('is_selected')
-            record.total_cost = sum(selected_steps.mapped('cost'))
+            package_cost = record.profile_id.package_cost if record.profile_id else 0.0
+            record.total_cost = sum(selected_steps.mapped('cost')) + package_cost
 
-            paid_steps = selected_steps.filtered(
-                lambda s: s.payment_status == 'paid')
-            record.paid_amount = sum(paid_steps.mapped('cost'))
+            # paid_amount from confirmed profile payments
+            confirmed_payments = self.env['profile.payment'].search([
+                ('user_profile_id', '=', record.id),
+                ('state', '=', 'confirmed'),
+            ])
+            record.paid_amount = sum(confirmed_payments.mapped('amount'))
 
             record.remaining_amount = record.total_cost - record.paid_amount
 
@@ -143,6 +153,15 @@ class UserProfile(models.Model):
             'type': 'ir.actions.client',
             'tag': 'reload',
         }
+
+    def _auto_start_if_new(self):
+        """Auto transition from new to in_progress when a step is approved"""
+        if self.state == 'new':
+            self.write({
+                'state': 'in_progress',
+                'start_date': self.start_date or fields.Date.today(),
+            })
+            self.message_post(body=_("Profile auto-started: first step approved"))
 
     def action_show_result_popup(self):
         mandatory_steps = self.user_step_ids.filtered(
@@ -217,29 +236,22 @@ class UserProfile(models.Model):
             'context': {'default_user_profile_id': self.id, 'default_user_id': self.user_id.id},
         }
 
-    def action_get_order(self):
-        """Get order for the profile - changes status to Not Yet Paid"""
-        if self.state != 'new':
-            raise ValidationError(
-                _("Order can only be requested for new profiles."))
-
-        self.write({'state': 'not_yet_paid'})
-        self.message_post(body=_("Order requested by %s") % self.env.user.name)
+    def action_mark_paid(self):
+        """Manager marks the payment status as paid"""
+        self.write({'payment_status': 'paid'})
+        self.message_post(
+            body=_("Payment marked as paid by %s") % self.env.user.name)
 
         return {
             'type': 'ir.actions.client',
             'tag': 'reload',
         }
 
-    def action_mark_paid(self):
-        """Manager marks the profile as paid"""
-        if self.state not in ['new', 'not_yet_paid']:
-            raise ValidationError(
-                _("Can only mark profiles as paid when they are 'New' or 'Not Yet Paid'."))
-
-        self.write({'state': 'paid'})
+    def action_mark_returned(self):
+        """Manager marks the payment status as returned"""
+        self.write({'payment_status': 'returned'})
         self.message_post(
-            body=_("Payment confirmed by manager %s") % self.env.user.name)
+            body=_("Payment marked as returned by %s") % self.env.user.name)
 
         return {
             'type': 'ir.actions.client',
@@ -248,9 +260,9 @@ class UserProfile(models.Model):
 
     def action_set_pending(self):
         """Manager sets profile to pending status"""
-        if self.state not in ['paid', 'in_progress']:
+        if self.state != 'in_progress':
             raise ValidationError(
-                _("Can only set status to pending from paid or in_progress states."))
+                _("Can only set status to pending from in progress state."))
 
         self.write({'state': 'pending'})
         self.message_post(
@@ -278,7 +290,7 @@ class UserProfile(models.Model):
 
     def action_get_quote(self):
         """Generate an order for the profile"""
-        if self.state not in ['confirmed', 'in_progress']:
+        if self.state != 'in_progress':
             raise ValidationError(
                 _("Please confirm the profile first before getting an order."))
 
@@ -297,29 +309,42 @@ class UserProfile(models.Model):
             }
         }
 
-    def action_checkout_payment(self, payment_method_id):
+    def action_checkout_payment(self, payment_method_id, half_payment=False):
         """Unified checkout action that calls isd_payment REST API to create a payment.
 
         Args:
             payment_method_id (int): ID of the isd_payment.method record to use.
+            half_payment (bool): If True, pay 50% of the remaining amount.
 
         Returns:
             Odoo action dict — either act_url (redirect) or act_window (QR wizard).
         """
-        if self.state != 'not_yet_paid':
+        if self.payment_status == 'paid':
             raise ValidationError(
-                _("Payment can only be made when profile is 'Not Yet Paid'."))
+                _("This profile is already fully paid."))
 
         action_id = self.env.ref(
             'isd_profile_management.action_my_profiles').id
 
-        selected_steps = self.user_step_ids.filtered(
-            lambda s: s.is_selected and s.payment_status in ['pending', 'not_paid'])
+        selected_steps = self.user_step_ids.filtered('is_selected')
 
         if not selected_steps:
             raise ValidationError(_("No steps selected for payment."))
 
-        total_amount = sum(selected_steps.mapped('cost'))
+        # Calculate remaining amount
+        package_cost = self.profile_id.package_cost if self.profile_id else 0.0
+        full_amount = sum(selected_steps.mapped('cost')) + package_cost
+        confirmed_payments = self.env['profile.payment'].search([
+            ('user_profile_id', '=', self.id),
+            ('state', '=', 'confirmed'),
+        ])
+        already_paid = sum(confirmed_payments.mapped('amount'))
+        remaining = full_amount - already_paid
+
+        if remaining <= 0:
+            raise ValidationError(_("No remaining amount to pay."))
+
+        total_amount = remaining / 2 if half_payment else remaining
 
         payment_method = self.env['isd_payment.method'].browse(payment_method_id)
         if not payment_method.exists():
@@ -421,8 +446,8 @@ class UserProfile(models.Model):
     def action_open_checkout_wizard(self):
         """Open wizard to select payment method and proceed to checkout."""
         self.ensure_one()
-        if self.state != 'not_yet_paid':
-            raise ValidationError(_("Payment can only be made when profile is 'Not Yet Paid'."))
+        if self.payment_status == 'paid':
+            raise ValidationError(_("This profile is already fully paid."))
         wizard = self.env['payment.method.select.wizard'].create({
             'user_profile_id': self.id,
         })
@@ -437,13 +462,14 @@ class UserProfile(models.Model):
 
     def action_make_payment(self):
         """Create a new payment"""
-        selected_steps = self.user_step_ids.filtered(
-            lambda s: s.is_selected and s.payment_status in ['pending', 'not_paid'])
+        selected_steps = self.user_step_ids.filtered('is_selected')
 
         if not selected_steps:
             raise ValidationError(_("No steps selected for payment."))
 
-        total_amount = sum(selected_steps.mapped('cost'))
+        total_amount = self.remaining_amount
+        if total_amount <= 0:
+            raise ValidationError(_("No remaining amount to pay."))
 
         payment = self.env['profile.payment'].create({
             'user_profile_id': self.id,
@@ -674,6 +700,9 @@ class UserStep(models.Model):
         })
         self.message_post(
             body=_("Step completion approved by %s") % self.env.user.name)
+
+        # Auto start profile if still in 'new' state
+        self.user_profile_id._auto_start_if_new()
 
         self._check_auto_complete_profile()
 

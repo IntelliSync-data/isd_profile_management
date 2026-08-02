@@ -59,7 +59,8 @@ Content-Type: application/json</pre>
         "package_id": {wizard.package_id.id},
         "email": "customer@example.com",
         "notes": "Nguyen Van A, 0123456789, Ho Chi Minh City",
-        "payment_method_id": 1
+        "payment_method_id": 1,
+        "half_payment": false
     }}
 }}</pre>
 
@@ -74,6 +75,7 @@ Content-Type: application/json</pre>
         <li><strong>email</strong> (required): Customer email</li>
         <li><strong>notes</strong> (optional): Additional customer information (name, phone, address, etc.)</li>
         <li><strong>payment_method_id</strong> (required): Payment method ID from ISD Payment module</li>
+        <li><strong>half_payment</strong> (optional, default: false): If <code>true</code>, only pay 50% of the total amount. Payment status will be set to <code>half_paid</code>. Call this API again to pay the remaining 50%.</li>
     </ul>
 
     <h4>Success Response (200 OK):</h4>
@@ -100,7 +102,7 @@ Content-Type: application/json</pre>
     }}
 }}</pre>
 
-    <h4>Example cURL:</h4>
+    <h4>Example cURL (Full Payment):</h4>
     <pre style="background-color: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 3px;">
 curl -X POST '{wizard.base_url}/api/profile/create' \\
   -H 'Content-Type: application/json' \\
@@ -113,6 +115,31 @@ curl -X POST '{wizard.base_url}/api/profile/create' \\
       "payment_method_id": 1
     }}
   }}'</pre>
+
+    <h4>Example cURL (Half Payment - 50%):</h4>
+    <pre style="background-color: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 3px;">
+curl -X POST '{wizard.base_url}/api/profile/create' \\
+  -H 'Content-Type: application/json' \\
+  -d '{{
+    "jsonrpc": "2.0",
+    "params": {{
+      "package_id": {wizard.package_id.id},
+      "email": "customer@example.com",
+      "notes": "Customer Name, Phone, Address",
+      "payment_method_id": 1,
+      "half_payment": true
+    }}
+  }}'</pre>
+
+    <h4 style="color: #3498db;">Payment Status Flow:</h4>
+    <div style="background-color: #d1ecf1; padding: 10px; border-left: 3px solid #3498db; margin-top: 10px;">
+        <ul style="margin: 0;">
+            <li><strong>Not Yet Paid</strong> - Initial status when profile is created</li>
+            <li><strong>Half Paid</strong> - After first 50% payment is confirmed (half_payment = true)</li>
+            <li><strong>Paid</strong> - After full payment is confirmed (or remaining 50% is paid)</li>
+            <li><strong>Returned</strong> - When payment is refunded by manager</li>
+        </ul>
+    </div>
 </div>
 '''
 
@@ -190,7 +217,11 @@ curl -X POST '{wizard.base_url}/api/profile/check-payment' \\
     <h4 style="color: #3498db;">ℹ️ Note:</h4>
     <div style="background-color: #d1ecf1; padding: 10px; border-left: 3px solid #3498db; margin-top: 10px;">
         This API will check the payment status with the payment gateway (SePay) automatically.
-        <br/>If payment is found and confirmed, it will update the package status to "paid".
+        <br/>If payment is found and confirmed, it will update the payment status accordingly:
+        <ul>
+            <li><code>not_yet_paid</code> → <code>half_paid</code> (if half payment was used)</li>
+            <li><code>not_yet_paid</code> or <code>half_paid</code> → <code>paid</code> (if fully paid)</li>
+        </ul>
     </div>
 </div>
 '''

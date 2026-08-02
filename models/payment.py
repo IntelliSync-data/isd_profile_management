@@ -120,15 +120,20 @@ class ProfilePayment(models.Model):
             'confirmed_date': fields.Datetime.now(),
         })
         
-        # Update user steps to paid status
-        if self.step_ids:
-            self.step_ids.write({'payment_status': 'paid'})
-        
-        # Update user profile status to paid if all steps are paid
+        # Update user profile payment_status based on total paid vs total cost
         if self.user_profile_id:
-            unpaid_steps = self.user_profile_id.user_step_ids.filtered(lambda s: s.is_selected and s.payment_status != 'paid')
-            if not unpaid_steps:
-                self.user_profile_id.write({'state': 'paid'})
+            profile = self.user_profile_id
+            confirmed_payments = self.env['profile.payment'].search([
+                ('user_profile_id', '=', profile.id),
+                ('state', '=', 'confirmed'),
+            ])
+            total_paid = sum(confirmed_payments.mapped('amount'))
+            total_cost = profile.total_cost
+
+            if total_cost > 0 and total_paid >= total_cost:
+                profile.write({'payment_status': 'paid'})
+            elif total_paid > 0:
+                profile.write({'payment_status': 'half_paid'})
         
         self.message_post(body=_("Payment confirmed by %s") % self.env.user.name)
 

@@ -5,10 +5,15 @@
         <field name="name">user.profile.tree</field>
         <field name="model">user.profile</field>
         <field name="arch" type="xml">
-            <list string="User Profiles" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='not_yet_paid'" decoration-primary="state=='paid'" decoration-muted="state=='new'">
+            <list string="User Profiles" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-muted="state=='new'">
                 <field name="user_id"/>
                 <field name="profile_id"/>
-                <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='paid'"/>
+                <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='pending'"/>
+                <field name="payment_status" widget="badge"
+                       decoration-danger="payment_status == 'not_yet_paid'"
+                       decoration-warning="payment_status == 'half_paid'"
+                       decoration-success="payment_status == 'paid'"
+                       decoration-info="payment_status == 'returned'"/>
                 <field name="progress_percentage" widget="progressbar"/>
                 <field name="total_cost" widget="monetary"/>
                 <field name="paid_amount" widget="monetary"/>
@@ -28,31 +33,31 @@
         <field name="arch" type="xml">
             <form string="User Profile">
                 <header>
-                    <button name="action_get_order" string="Get Order" type="object" 
-                            class="btn-primary" invisible="state != 'new'"
-                            groups="isd_profile_management.group_profile_student_only"/>
                     <button name="action_open_checkout_wizard" string="Checkout" type="object"
-                            class="btn-primary" invisible="state != 'not_yet_paid'"
+                            class="btn-primary" invisible="payment_status == 'paid'"
                             groups="isd_profile_management.group_profile_student_only"/>
-                    <button name="action_mark_paid" string="Mark as Paid" type="object"
-                            class="btn-success" invisible="state not in ['new', 'not_yet_paid']"
+                    <button name="action_start_profile" string="Start Progress" type="object"
+                            class="btn-primary" invisible="state != 'new'"
                             groups="isd_profile_management.group_profile_manager"/>
-                    <button name="action_start_profile" string="Start Progress" type="object" 
-                            class="btn-primary" invisible="state != 'paid'"
+                    <button name="action_set_pending" string="Set Pending" type="object"
+                            class="btn-warning" invisible="state != 'in_progress'"
                             groups="isd_profile_management.group_profile_manager"/>
-                    <button name="action_set_pending" string="Set Pending" type="object" 
-                            class="btn-warning" invisible="state not in ['paid', 'in_progress']"
-                            groups="isd_profile_management.group_profile_manager"/>
-                    <button name="action_resume_progress" string="Resume Progress" type="object" 
+                    <button name="action_resume_progress" string="Resume Progress" type="object"
                             class="btn-primary" invisible="state != 'pending'"
                             groups="isd_profile_management.group_profile_manager"/>
-                    <button name="action_show_result_popup" string="Mark Complete" type="object" 
+                    <button name="action_show_result_popup" string="Mark Complete" type="object"
                             class="btn-success" invisible="state not in ['in_progress', 'pending']"
                             groups="isd_profile_management.group_profile_manager"/>
-                    <button name="action_cancel_profile" string="Cancel" type="object" 
+                    <button name="action_mark_paid" string="Mark as Paid" type="object"
+                            class="btn-success" invisible="payment_status == 'paid'"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <button name="action_mark_returned" string="Mark Returned" type="object"
+                            class="btn-warning" invisible="payment_status not in ['half_paid', 'paid']"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <button name="action_cancel_profile" string="Cancel" type="object"
                             class="btn-danger" invisible="state in ['completed', 'cancelled']"
                             groups="isd_profile_management.group_profile_manager"/>
-                    <field name="state" widget="statusbar" statusbar_visible="new,not_yet_paid,paid,in_progress,pending,completed,cancelled"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,in_progress,pending,completed,cancelled"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -67,6 +72,11 @@
                             <field name="progress_percentage" widget="progressbar"/>
                         </group>
                         <group string="Cost Information">
+                            <field name="payment_status" widget="badge"
+                                   decoration-danger="payment_status == 'not_yet_paid'"
+                                   decoration-warning="payment_status == 'half_paid'"
+                                   decoration-success="payment_status == 'paid'"
+                                   decoration-info="payment_status == 'returned'"/>
                             <field name="total_cost" widget="monetary"/>
                             <field name="paid_amount" widget="monetary"/>
                             <field name="remaining_amount" widget="monetary"/>
@@ -274,19 +284,23 @@
                 <field name="profile_id"/>
                 <separator/>
                 <filter string="New" name="new" domain="[('state','=','new')]"/>
-                <filter string="Not Yet Paid" name="not_yet_paid" domain="[('state','=','not_yet_paid')]"/>
-                <filter string="Paid" name="paid" domain="[('state','=','paid')]"/>
                 <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
                 <filter string="Pending" name="pending" domain="[('state','=','pending')]"/>
                 <filter string="Completed" name="completed" domain="[('state','=','completed')]"/>
                 <filter string="Cancelled" name="cancelled" domain="[('state','=','cancelled')]"/>
+                <separator/>
+                <filter string="Not Yet Paid" name="not_yet_paid" domain="[('payment_status','=','not_yet_paid')]"/>
+                <filter string="Half Paid" name="half_paid" domain="[('payment_status','=','half_paid')]"/>
+                <filter string="Paid" name="paid" domain="[('payment_status','=','paid')]"/>
+                <filter string="Returned" name="returned" domain="[('payment_status','=','returned')]"/>
                 <separator/>
                 <filter string="My Profiles" name="my_profiles" domain="[('user_id','=',uid)]"/>
                 <filter string="Payment Due" name="payment_due" domain="[('remaining_amount','>',0)]"/>
                 <group expand="0" string="Group By">
                     <filter string="User" name="group_user" context="{'group_by':'user_id'}"/>
                     <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
-                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Stage" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Payment Status" name="group_payment_status" context="{'group_by':'payment_status'}"/>
                     <filter string="Assigned By" name="group_assigned_by" context="{'group_by':'assigned_by'}"/>
                 </group>
             </search>

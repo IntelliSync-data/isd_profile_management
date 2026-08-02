@@ -42,6 +42,7 @@ class ExternalProfileAPIController(http.Controller):
             email = kwargs.get('email')
             notes = kwargs.get('notes', '')
             payment_method_id = kwargs.get('payment_method_id')
+            half_payment = kwargs.get('half_payment', False)
 
             # Validate input
             if not package_id:
@@ -151,10 +152,10 @@ class ExternalProfileAPIController(http.Controller):
             # Flush to database to ensure user_step records exist
             request.env.cr.flush()
 
-            # Calculate total cost: sum of step costs, fallback to package cost
-            total_amount = sum(active_steps.mapped('cost'))
+            # Calculate total cost: sum of step costs + package cost
+            total_amount = sum(active_steps.mapped('cost')) + (package.package_cost or 0)
             if total_amount <= 0:
-                total_amount = package.package_cost or package.total_cost or 0
+                total_amount = package.total_cost or 0
 
             # Validate total amount
             if total_amount <= 0:
@@ -163,6 +164,10 @@ class ExternalProfileAPIController(http.Controller):
                     'error': 'Package has no cost or all steps are free',
                     'error_code': 'INVALID_AMOUNT'
                 }
+
+            # Half payment: pay 50%
+            if half_payment:
+                total_amount = total_amount / 2
 
             # Create profile payment (link to user_step records that were just created)
             profile_payment = request.env['profile.payment'].sudo().create({
@@ -178,8 +183,7 @@ class ExternalProfileAPIController(http.Controller):
                 payment_method_id=payment_method_id
             ).action_create_isd_payment_external(payment_method)
 
-            # Update user profile state
-            user_profile.write({'state': 'not_yet_paid'})
+            # Profile stays in 'new' state, payment_status remains 'not_yet_paid'
 
             # Send order confirmation email
             user_profile._send_order_confirmation_email()
