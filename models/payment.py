@@ -187,7 +187,7 @@ class ProfilePayment(models.Model):
             )
 
     def _send_payment_confirmation_email(self):
-        """Send payment confirmation email using configured template"""
+        """Send payment confirmation email using configured marketing template"""
         self.ensure_one()
 
         # Get email template from config
@@ -204,50 +204,23 @@ class ProfilePayment(models.Model):
             _logger.warning("Configured payment confirmation email template not found")
             return
 
-        # Prepare email data
-        email_data = {
-            'object': {
-                'name': self.name,
-                'user_id': {
-                    'name': self.user_id.name,
-                    'email': self.user_id.email,
-                },
-                'amount': f"{self.amount:,.0f} VND",
-                'transaction_id': self.transaction_id or '',
-                'qr_url': self.qr_url or '',
-                'state': self.state,
-                'payment_date': fields.Datetime.to_string(fields.Datetime.now()),
-            },
-            'company': {
-                'name': self.env.company.name,
-                'email': self.env.company.email or 'info@company.com',
-            },
-            'user': {
-                'name': self.env.user.name,
-            }
+        # Build flat variables from payment data
+        variables = {
+            'payment_name': self.name or '',
+            'user_name': self.user_id.name or '',
+            'user_email': self.user_id.email or '',
+            'amount': f"{self.amount:,.0f} VND",
+            'transaction_id': self.transaction_id or '',
+            'qr_url': self.qr_url or '',
+            'state': self.state or '',
+            'payment_date': fields.Datetime.to_string(fields.Datetime.now()),
+            'package_name': self.user_profile_id.profile_id.name if self.user_profile_id else '',
+            'profile_name': self.user_profile_id.name if self.user_profile_id else '',
         }
 
-        # Render template
         try:
-            email_body = template.render_template(email_data)
-            email_subject = template.render_subject(email_data)
-
-            # Send email
-            mail_values = {
-                'subject': email_subject,
-                'body_html': email_body,
-                'email_to': self.user_id.email,
-                'email_from': self.env.company.email or 'noreply@company.com',
-            }
-
-            mail = self.env['mail.mail'].sudo().create(mail_values)
-            mail.send()
-
-            # Increment template usage
-            template.increment_usage()
-
+            template.send_email_via_api(self.user_id.email, variables)
             _logger.info(f"Payment confirmation email sent to {self.user_id.email} for payment {self.name}")
-
         except Exception as e:
             _logger.error(f"Failed to send payment confirmation email: {str(e)}")
 

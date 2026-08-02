@@ -58,6 +58,19 @@
                                         Email sent to customer when a new package order is created
                                     </div>
                                     <field name="pm_email_order_template_id" class="mt-2"/>
+                                    <div class="alert alert-secondary mt-2 small" role="alert">
+                                        <strong>Available variables for template Variable Keys:</strong><br/>
+                                        <code>user_name</code> - Customer name<br/>
+                                        <code>user_email</code> - Customer email<br/>
+                                        <code>package_name</code> - Package name<br/>
+                                        <code>profile_name</code> - Profile assignment name<br/>
+                                        <code>total_cost</code> - Total cost (formatted, e.g. 4,000 VND)<br/>
+                                        <code>paid_amount</code> - Amount already paid<br/>
+                                        <code>remaining_amount</code> - Remaining amount<br/>
+                                        <code>state</code> - Profile stage (new, in_progress, ...)<br/>
+                                        <code>payment_status</code> - Payment status (not_yet_paid, half_paid, paid, returned)<br/>
+                                        <code>assigned_date</code> - Assignment date
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-6 o_setting_box">
@@ -69,6 +82,19 @@
                                         Email sent to customer when payment is confirmed
                                     </div>
                                     <field name="pm_email_payment_template_id" class="mt-2"/>
+                                    <div class="alert alert-secondary mt-2 small" role="alert">
+                                        <strong>Available variables for template Variable Keys:</strong><br/>
+                                        <code>user_name</code> - Customer name<br/>
+                                        <code>user_email</code> - Customer email<br/>
+                                        <code>payment_name</code> - Payment reference (e.g. PAY00001)<br/>
+                                        <code>amount</code> - Payment amount (formatted, e.g. 2,000 VND)<br/>
+                                        <code>transaction_id</code> - Transaction ID<br/>
+                                        <code>qr_url</code> - QR code URL<br/>
+                                        <code>state</code> - Payment state (draft, pending, confirmed, ...)<br/>
+                                        <code>payment_date</code> - Payment date<br/>
+                                        <code>package_name</code> - Package name<br/>
+                                        <code>profile_name</code> - Profile assignment name
+                                    </div>
                                 </div>
                             </div>
                         </div>
