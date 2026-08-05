@@ -184,13 +184,20 @@ class ExternalProfileAPIController(http.Controller):
                 subtype_xmlid='mail.mt_note'  # Internal note subtype
             )
 
-            return {
+            result = {
                 'success': True,
                 'user_profile_id': user_profile.id,
                 'transaction_id': payment_response.get('transaction_id'),
-                'qr_url': payment_response.get('qr_url'),
                 'amount': total_amount,
             }
+            # Include provider-specific response fields
+            if payment_response.get('redirect_url'):
+                result['redirect_url'] = payment_response['redirect_url']
+            if payment_response.get('amount_usd'):
+                result['amount_usd'] = payment_response['amount_usd']
+            if payment_response.get('qr_url'):
+                result['qr_url'] = payment_response['qr_url']
+            return result
 
         except Exception as e:
             _logger.exception("Error creating profile package via external API")

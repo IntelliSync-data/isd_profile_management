@@ -401,45 +401,83 @@ class ProfilePayment(models.Model):
             payment_method: isd_payment.method record
 
         Returns:
-            dict with transaction_id, qr_url, amount
+            dict with transaction_id, qr_url/redirect_url, amount
         """
         self.ensure_one()
 
-        # Generate transaction ID using the method's prefix
-        transaction_id = self.env['isd_payment.transaction'].generate_transaction_id(
-            payment_method.prefix
-        )
-
-        # Get request info from context
+        provider = payment_method.payment_provider
         request_origin = self.env.context.get('request_origin', 'External API')
         request_ip = self.env.context.get('request_ip', '')
 
-        # Create ISD Payment transaction
-        isd_transaction = self.env['isd_payment.transaction'].create({
-            'payment_method_id': payment_method.id,
-            'transaction_id': transaction_id,
-            'amount': self.amount,
-            'description': f"External Profile Payment {self.name} - User: {self.user_id.name}",
-            'qr_url': payment_method.generate_qr_url(transaction_id, self.amount),
-            'bank_account': payment_method.provider_account_id,
-            'bank_code': payment_method.sepay_acc_bank,
-            'status': 'pending',
-            'request_origin': request_origin,
-            'request_ip': request_ip,
-        })
+        if provider == 'paypal':
+            # PayPal: create order via PayPal API
+            from odoo.addons.isd_payment.controllers.main import IsdPaymentController
+            controller = IsdPaymentController()
+            paypal_result = controller._create_paypal_payment(payment_method, self.amount)
 
-        # Link to profile payment
-        self.write({
-            'isd_transaction_id': isd_transaction.id,
-            'transaction_id': transaction_id,
-            'payment_method_id': payment_method.id,
-            'state': 'pending'
-        })
+            if not paypal_result.get('found'):
+                raise ValidationError(paypal_result.get('message', 'PayPal error'))
 
-        self.message_post(body=_("External payment QR code generated. Transaction ID: %s") % transaction_id)
+            order_id = paypal_result['order_id']
+            isd_transaction = self.env['isd_payment.transaction'].create({
+                'payment_method_id': payment_method.id,
+                'transaction_id': order_id,
+                'amount': self.amount,
+                'amount_usd': paypal_result.get('amount_usd', 0),
+                'description': f"External Profile Payment {self.name} - User: {self.user_id.name}",
+                'paypal_order_id': order_id,
+                'paypal_redirect_url': paypal_result.get('redirect_url'),
+                'status': 'pending',
+                'request_origin': request_origin,
+                'request_ip': request_ip,
+            })
 
-        return {
-            'transaction_id': transaction_id,
-            'qr_url': isd_transaction.qr_url,
-            'amount': self.amount,
-        }
+            self.write({
+                'isd_transaction_id': isd_transaction.id,
+                'transaction_id': order_id,
+                'payment_method_id': payment_method.id,
+                'state': 'pending'
+            })
+
+            self.message_post(body=_("PayPal payment created. Order ID: %s") % order_id)
+
+            return {
+                'transaction_id': order_id,
+                'redirect_url': paypal_result.get('redirect_url'),
+                'amount': self.amount,
+                'amount_usd': paypal_result.get('amount_usd', 0),
+            }
+
+        else:
+            # SePay / VTCPay / ACBPay: generate QR URL
+            transaction_id = self.env['isd_payment.transaction'].generate_transaction_id(
+                payment_method.prefix
+            )
+
+            isd_transaction = self.env['isd_payment.transaction'].create({
+                'payment_method_id': payment_method.id,
+                'transaction_id': transaction_id,
+                'amount': self.amount,
+                'description': f"External Profile Payment {self.name} - User: {self.user_id.name}",
+                'qr_url': payment_method.generate_qr_url(transaction_id, self.amount),
+                'bank_account': payment_method.provider_account_id,
+                'bank_code': payment_method.sepay_acc_bank,
+                'status': 'pending',
+                'request_origin': request_origin,
+                'request_ip': request_ip,
+            })
+
+            self.write({
+                'isd_transaction_id': isd_transaction.id,
+                'transaction_id': transaction_id,
+                'payment_method_id': payment_method.id,
+                'state': 'pending'
+            })
+
+            self.message_post(body=_("External payment QR code generated. Transaction ID: %s") % transaction_id)
+
+            return {
+                'transaction_id': transaction_id,
+                'qr_url': isd_transaction.qr_url,
+                'amount': self.amount,
+            }
