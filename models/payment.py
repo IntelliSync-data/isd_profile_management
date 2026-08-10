@@ -455,7 +455,7 @@ class ProfilePayment(models.Model):
             from odoo.addons.isd_payment.controllers.main import IsdPaymentController
             controller = IsdPaymentController()
             paypal_result = controller._create_paypal_payment(
-                payment_method, charge_amount, currency='USD', already_converted=True
+                payment_method, charge_amount, already_converted=True
             )
 
             if not paypal_result.get('found'):
