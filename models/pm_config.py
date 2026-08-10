@@ -34,6 +34,12 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='isd_profile_management.pm_currency',
         default='vnd',
     )
+    pm_exchange_rate = fields.Float(
+        string='Exchange Rate (1 USD = ? VND)',
+        config_parameter='isd_profile_management.pm_exchange_rate',
+        default=25000.0,
+        help='Exchange rate used to convert between USD and VND when payment provider currency differs from package currency',
+    )
 
     # Email Template Configuration
     pm_email_order_template_id = fields.Many2one(

@@ -394,6 +394,44 @@ class ProfilePayment(models.Model):
                 'message': result.get('message', _('Payment not yet confirmed')),
             }
 
+    def _convert_payment_amount(self, provider):
+        """Convert amount based on package currency and payment provider.
+
+        Currency is the currency of the package price (from settings).
+        - USD + PayPal → no conversion
+        - USD + SePay/QR → convert USD to VND (amount * exchange_rate)
+        - VND + PayPal → convert VND to USD (amount / exchange_rate)
+        - VND + SePay/QR → no conversion
+
+        Returns:
+            dict with 'charge_amount' (amount to charge provider),
+                       'amount_usd' (USD amount or 0),
+                       'amount_vnd' (VND amount or 0)
+        """
+        ICP = self.env['ir.config_parameter'].sudo()
+        currency = ICP.get_param('isd_profile_management.pm_currency', 'vnd')
+        exchange_rate = float(ICP.get_param('isd_profile_management.pm_exchange_rate', '25000'))
+
+        if exchange_rate <= 0:
+            exchange_rate = 25000.0
+
+        is_paypal = provider == 'paypal'
+
+        if currency == 'usd' and is_paypal:
+            # Package in USD, PayPal accepts USD → no conversion
+            return {'charge_amount': self.amount, 'amount_usd': self.amount, 'amount_vnd': 0}
+        elif currency == 'usd' and not is_paypal:
+            # Package in USD, SePay needs VND → multiply by rate
+            amount_vnd = round(self.amount * exchange_rate)
+            return {'charge_amount': amount_vnd, 'amount_usd': self.amount, 'amount_vnd': amount_vnd}
+        elif currency == 'vnd' and is_paypal:
+            # Package in VND, PayPal needs USD → divide by rate
+            amount_usd = round(self.amount / exchange_rate, 2)
+            return {'charge_amount': amount_usd, 'amount_usd': amount_usd, 'amount_vnd': self.amount}
+        else:
+            # VND + SePay → no conversion
+            return {'charge_amount': self.amount, 'amount_usd': 0, 'amount_vnd': self.amount}
+
     def action_create_isd_payment_external(self, payment_method):
         """Create payment transaction via ISD Payment module for external API
 
@@ -409,11 +447,16 @@ class ProfilePayment(models.Model):
         request_origin = self.env.context.get('request_origin', 'External API')
         request_ip = self.env.context.get('request_ip', '')
 
+        converted = self._convert_payment_amount(provider)
+        charge_amount = converted['charge_amount']
+
         if provider == 'paypal':
-            # PayPal: create order via PayPal API
+            # PayPal: create order via PayPal API (charge_amount is already USD)
             from odoo.addons.isd_payment.controllers.main import IsdPaymentController
             controller = IsdPaymentController()
-            paypal_result = controller._create_paypal_payment(payment_method, self.amount)
+            paypal_result = controller._create_paypal_payment(
+                payment_method, charge_amount, currency='USD', already_converted=True
+            )
 
             if not paypal_result.get('found'):
                 raise ValidationError(paypal_result.get('message', 'PayPal error'))
@@ -423,7 +466,7 @@ class ProfilePayment(models.Model):
                 'payment_method_id': payment_method.id,
                 'transaction_id': order_id,
                 'amount': self.amount,
-                'amount_usd': paypal_result.get('amount_usd', 0),
+                'amount_usd': converted['amount_usd'],
                 'description': f"External Profile Payment {self.name} - User: {self.user_id.name}",
                 'paypal_order_id': order_id,
                 'paypal_redirect_url': paypal_result.get('redirect_url'),
@@ -445,11 +488,11 @@ class ProfilePayment(models.Model):
                 'transaction_id': order_id,
                 'redirect_url': paypal_result.get('redirect_url'),
                 'amount': self.amount,
-                'amount_usd': paypal_result.get('amount_usd', 0),
+                'amount_usd': converted['amount_usd'],
             }
 
         else:
-            # SePay / VTCPay / ACBPay: generate QR URL
+            # SePay / VTCPay / ACBPay: generate QR URL (charge_amount is VND)
             transaction_id = self.env['isd_payment.transaction'].generate_transaction_id(
                 payment_method.prefix
             )
@@ -457,9 +500,9 @@ class ProfilePayment(models.Model):
             isd_transaction = self.env['isd_payment.transaction'].create({
                 'payment_method_id': payment_method.id,
                 'transaction_id': transaction_id,
-                'amount': self.amount,
+                'amount': charge_amount,
                 'description': f"External Profile Payment {self.name} - User: {self.user_id.name}",
-                'qr_url': payment_method.generate_qr_url(transaction_id, self.amount),
+                'qr_url': payment_method.generate_qr_url(transaction_id, charge_amount),
                 'bank_account': payment_method.provider_account_id,
                 'bank_code': payment_method.sepay_acc_bank,
                 'status': 'pending',
@@ -480,4 +523,5 @@ class ProfilePayment(models.Model):
                 'transaction_id': transaction_id,
                 'qr_url': isd_transaction.qr_url,
                 'amount': self.amount,
+                'amount_vnd': converted['amount_vnd'],
             }

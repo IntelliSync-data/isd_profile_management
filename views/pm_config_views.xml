@@ -36,8 +36,11 @@
                                 <div class="o_setting_left_pane"></div>
                                 <div class="o_setting_right_pane">
                                     <label for="pm_currency"/>
-                                    <div class="text-muted">Currency symbol used for payment display</div>
+                                    <div class="text-muted">Currency of package prices</div>
                                     <field name="pm_currency" class="mt-2"/>
+                                    <label for="pm_exchange_rate" class="mt-3"/>
+                                    <div class="text-muted">Used to convert between USD and VND when payment provider currency differs</div>
+                                    <field name="pm_exchange_rate" class="mt-2"/>
                                 </div>
                             </div>
                         </div>
