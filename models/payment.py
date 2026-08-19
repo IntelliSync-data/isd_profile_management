@@ -12,6 +12,10 @@ class ProfilePayment(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'create_date desc'
 
+    def _message_auto_subscribe_notify(self, partner_ids, template):
+        """Suppress automatic 'You have been assigned' email notifications"""
+        return
+
     name = fields.Char(string='Payment Reference', required=True, copy=False, readonly=True, default=lambda self: _('New'))
     transaction_id = fields.Char(
         string='Transaction ID', required=False, copy=False, readonly=True)

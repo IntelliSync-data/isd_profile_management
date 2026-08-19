@@ -17,6 +17,10 @@ class UserProfile(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'create_date desc'
 
+    def _message_auto_subscribe_notify(self, partner_ids, template):
+        """Suppress automatic 'You have been assigned' email notifications"""
+        return
+
     name = fields.Char(string='Name', compute='_compute_name', store=True)
 
     # User and Profile
