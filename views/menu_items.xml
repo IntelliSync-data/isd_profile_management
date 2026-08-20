@@ -64,12 +64,6 @@
               action="action_user_profile" 
               sequence="10"/>
     
-    <menuitem id="menu_payment_confirmations" 
-              name="Payment Confirmations" 
-              parent="menu_manager_section" 
-              action="action_profile_payment_manager" 
-              sequence="15"/>
-
     <!-- Student Menu Items (Only for students) -->
     <menuitem id="menu_student_section"
               name="Student"
