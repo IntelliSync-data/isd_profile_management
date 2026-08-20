@@ -316,7 +316,7 @@
         <field name="name">User Profiles</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">user.profile</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="context">{'default_assigned_by': uid}</field>
         <field name="search_view_id" ref="view_user_profile_search"/>
         <field name="help" type="html">
@@ -334,7 +334,7 @@
         <field name="name">My Profiles</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">user.profile</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="domain">[('user_id', '=', uid)]</field>
         <field name="context">{'default_user_id': uid, 'create': False}</field>
         <field name="search_view_id" ref="view_user_profile_search"/>

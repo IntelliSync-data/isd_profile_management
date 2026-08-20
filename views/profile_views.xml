@@ -212,7 +212,7 @@
         <field name="name">Package Configuration</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">profile.management</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="search_view_id" ref="view_profile_management_search"/>
         <field name="context">{}</field>
         <field name="domain">[]</field>

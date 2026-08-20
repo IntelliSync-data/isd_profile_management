@@ -164,7 +164,7 @@ class ProfileManagement(models.Model):
             'type': 'ir.actions.act_window',
             'name': _('Student Progress'),
             'res_model': 'user.profile',
-            'view_mode': 'kanban,list',
+            'view_mode': 'list,kanban',
             'domain': [('state', '=', 'in_progress')],
         }
     
