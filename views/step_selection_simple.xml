@@ -41,8 +41,9 @@
 
                     <separator string="Available Services"/>
                     <field name="selected_step_ids" disabled="0" widget="many2many_checkboxes" nolabel="1"
-                           domain="[('state', '=', 'active')]"
+                           domain="[('id', 'in', available_step_ids)]"
                            readonly="0"/>
+                    <field name="available_step_ids" invisible="1"/>
                 </sheet>
             </form>
         </field>

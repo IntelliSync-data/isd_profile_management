@@ -27,13 +27,6 @@
               sequence="20"
               groups="isd_profile_management.group_profile_admin"/>
 
-    <menuitem id="menu_all_payments"
-              name="All Payments"
-              parent="menu_configuration"
-              action="action_profile_payment"
-              sequence="30"
-              groups="isd_profile_management.group_profile_admin"/>
-    
     <!-- Reports Menu -->
     <menuitem id="menu_reports"
               name="Reports"

@@ -9,7 +9,7 @@ class StepSelection(models.Model):
     _rec_name = 'profile_id'
     
     # User and Profile
-    user_id = fields.Many2one('res.users', string='User', required=True, default=lambda self: self.env.user)
+    user_id = fields.Many2one('res.users', string='User', required=True)
     profile_id = fields.Many2one('profile.management', string='Profile', required=True)
     
     # Selection Details
@@ -69,47 +69,33 @@ class StepSelection(models.Model):
         for record in self:
             record.total_cost_display = self._format_currency(record.total_cost)
     
-    @api.depends('profile_id')
+    @api.depends('profile_id', 'profile_id.step_ids')
     def _compute_available_steps(self):
-        """Compute available steps for selection"""
         for record in self:
             if record.profile_id:
-                record.available_step_ids = self.env['profile.step'].search([
-                    ('state', '=', 'active')
-                ])
+                record.available_step_ids = record.profile_id.step_ids.filtered(lambda s: s.state == 'active')
             else:
                 record.available_step_ids = False
     
     @api.model
     def default_get(self, fields_list):
-        """Set default values and ensure proper loading"""
         defaults = super().default_get(fields_list)
-        if 'profile_id' in self.env.context:
-            profile_id = self.env.context.get('profile_id')
-            if profile_id:
-                defaults['profile_id'] = profile_id
-                # Auto-select all available steps by default
-                available_steps = self.env['profile.step'].search([
-                    ('state', '=', 'active')
-                ])
-                defaults['selected_step_ids'] = [(6, 0, available_steps.ids)]
+        profile_id = self.env.context.get('profile_id')
+        if profile_id:
+            profile = self.env['profile.management'].browse(profile_id)
+            defaults['profile_id'] = profile_id
+            active_steps = profile.step_ids.filtered(lambda s: s.state == 'active')
+            defaults['selected_step_ids'] = [(6, 0, active_steps.ids)]
         return defaults
     
     @api.onchange('profile_id')
     def _onchange_profile_id(self):
-        """Update domain when profile changes and auto-select all steps"""
         if self.profile_id:
-            # Auto-select all available steps
-            available_steps = self.env['profile.step'].search([
-                ('state', '=', 'active')
-            ])
-            self.selected_step_ids = [(6, 0, available_steps.ids)]
-
+            active_steps = self.profile_id.step_ids.filtered(lambda s: s.state == 'active')
+            self.selected_step_ids = [(6, 0, active_steps.ids)]
             return {
                 'domain': {
-                    'selected_step_ids': [
-                        ('state', '=', 'active')
-                    ]
+                    'selected_step_ids': [('id', 'in', active_steps.ids)]
                 }
             }
     
@@ -278,31 +264,17 @@ class ProfileManagement(models.Model):
             record.selection_count = len(record.selection_ids)
     
     def action_select_steps(self):
-        """Open step selection form for current user"""
-        # Check if user already has a draft selection
-        existing_selection = self.env['step.selection'].search([
-            ('user_id', '=', self.env.user.id),
-            ('profile_id', '=', self.id),
-            ('state', '=', 'draft')
-        ], limit=1)
-        
-        if existing_selection:
-            selection_id = existing_selection.id
-        else:
-            # Create new selection
-            selection = self.env['step.selection'].create({
-                'user_id': self.env.user.id,
-                'profile_id': self.id,
-            })
-            selection_id = selection.id
-        
         return {
             'type': 'ir.actions.act_window',
             'name': _('Select Services'),
             'res_model': 'step.selection',
             'view_mode': 'form',
-            'res_id': selection_id,
             'target': 'current',
+            'context': {
+                'default_profile_id': self.id,
+                'profile_id': self.id,
+                'default_user_id': False,
+            },
         }
     
     def action_view_selections(self):
