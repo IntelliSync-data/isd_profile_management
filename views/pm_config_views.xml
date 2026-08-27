@@ -63,6 +63,7 @@
                                     <field name="pm_email_order_template_id" class="mt-2"/>
                                     <div class="alert alert-secondary mt-2 small" role="alert">
                                         <strong>Available variables for template Variable Keys:</strong><br/>
+                                        <code>order_code</code> - Order code (e.g. transaction ID shown at checkout)<br/>
                                         <code>user_name</code> - Customer name<br/>
                                         <code>user_email</code> - Customer email<br/>
                                         <code>package_name</code> - Package name<br/>

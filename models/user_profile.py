@@ -509,8 +509,12 @@ class UserProfile(models.Model):
             'target': 'current',
         }
 
-    def _send_order_confirmation_email(self):
-        """Send order confirmation email using configured marketing template"""
+    def _send_order_confirmation_email(self, payment=None):
+        """Send order confirmation email using configured marketing template
+
+        :param payment: optional profile.payment record the order code is read
+            from. Falls back to the profile's most recent payment.
+        """
         self.ensure_one()
 
         # Get email template from config
@@ -527,8 +531,20 @@ class UserProfile(models.Model):
             _logger.warning("Configured order confirmation email template not found")
             return
 
+        # Order code shown to the customer (same value the checkout page
+        # displays as "Mã đơn hàng"): the payment gateway transaction id,
+        # falling back to the internal payment reference.
+        if payment is None:
+            payment = self.env['profile.payment'].search(
+                [('user_profile_id', '=', self.id)], order='create_date desc', limit=1
+            )
+        order_code = ''
+        if payment:
+            order_code = payment.transaction_id or payment.name or ''
+
         # Build flat variables from profile data
         variables = {
+            'order_code': order_code,
             'profile_name': self.name or '',
             'user_name': self.user_id.name or '',
             'user_email': self.user_id.email or '',

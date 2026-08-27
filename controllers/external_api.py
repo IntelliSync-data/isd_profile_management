@@ -143,8 +143,10 @@ class ExternalProfileAPIController(http.Controller):
             # Find or create user by email
             user = request.env['res.users'].sudo().search([('login', '=', email)], limit=1)
             if not user:
-                # Create new user
-                user = request.env['res.users'].sudo().create({
+                # Create new user.
+                # no_reset_password stops auth_signup from emailing the
+                # "invites you to connect to Odoo" signup invitation.
+                user = request.env['res.users'].sudo().with_context(no_reset_password=True).create({
                     'name': email.split('@')[0],  # Use email prefix as name
                     'login': email,
                     'email': email,
@@ -227,7 +229,7 @@ class ExternalProfileAPIController(http.Controller):
             # Profile stays in 'new' state, payment_status remains 'not_yet_paid'
 
             # Send order confirmation email
-            user_profile._send_order_confirmation_email()
+            user_profile._send_order_confirmation_email(payment=profile_payment)
 
             # Log creation (but don't send to end user unless enabled)
             user_profile.message_post(
