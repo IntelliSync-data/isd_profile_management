@@ -17,6 +17,10 @@
         <field name="name">My Services</field>
     </record>
 
+    <record id="menu_manager_dashboard" model="ir.ui.menu">
+        <field name="name">Services</field>
+    </record>
+
     <!-- Action name overrides -->
     <record id="action_profile_management" model="ir.actions.act_window">
         <field name="name">Service Configuration</field>

@@ -8,11 +8,11 @@
             <field name="sequence">25</field>
         </record>
 
-        <!-- Profile Student Only Group (for menu visibility) -->
+        <!-- Normal User Group -->
         <record id="group_profile_student_only" model="res.groups">
-            <field name="name">Student Only</field>
+            <field name="name">Normal</field>
             <field name="category_id" ref="module_category_profile_management"/>
-            <field name="comment">Group for student-only menus (excludes managers)</field>
+            <field name="comment">Normal users can view and interact with their own profiles</field>
         </record>
 
         <!-- Profile Manager Group -->
@@ -20,6 +20,14 @@
             <field name="name">Manager</field>
             <field name="category_id" ref="module_category_profile_management"/>
             <field name="comment">Managers can create profiles, assign users, and confirm payments</field>
+        </record>
+
+        <!-- Admin Group (full access, implies Manager + Normal) -->
+        <record id="group_profile_admin" model="res.groups">
+            <field name="name">Admin</field>
+            <field name="category_id" ref="module_category_profile_management"/>
+            <field name="implied_ids" eval="[(4, ref('group_profile_manager')), (4, ref('group_profile_student_only'))]"/>
+            <field name="comment">Full access to all menus and features</field>
         </record>
 
 
