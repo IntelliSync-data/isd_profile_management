@@ -14,6 +14,54 @@ class ExternalProfileAPIController(http.Controller):
     For external websites that don't have user login
     """
 
+    @http.route('/api/profile/package-info', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
+    def get_package_info(self, **kwargs):
+        try:
+            package_id = kwargs.get('package_id')
+            if not package_id:
+                return {
+                    'success': False,
+                    'error': 'Package ID is required',
+                    'error_code': 'MISSING_PACKAGE_ID'
+                }
+
+            package = request.env['profile.management'].sudo().browse(package_id)
+            if not package.exists():
+                return {
+                    'success': False,
+                    'error': 'Package not found',
+                    'error_code': 'PACKAGE_NOT_FOUND'
+                }
+
+            active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
+
+            return {
+                'success': True,
+                'package': {
+                    'id': package.id,
+                    'name': package.name,
+                    'description': package.description or '',
+                    'state': package.state,
+                    'package_cost': package.package_cost,
+                    'promotional_cost': package.promotional_cost,
+                    'total_cost': package.total_cost,
+                    'total_cost_display': package.total_cost_display,
+                    'services': [{
+                        'id': step.id,
+                        'name': step.name,
+                        'cost': step.cost,
+                    } for step in active_steps],
+                }
+            }
+
+        except Exception as e:
+            _logger.exception("Error getting package info via external API")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_code': 'INTERNAL_ERROR'
+            }
+
     @http.route('/api/profile/create', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
     def create_profile_package(self, **kwargs):
         """
@@ -141,8 +189,11 @@ class ExternalProfileAPIController(http.Controller):
             # Flush to database to ensure user_step records exist
             request.env.cr.flush()
 
-            # Calculate total cost: sum of step costs + package cost
-            total_amount = sum(active_steps.mapped('cost')) + (package.package_cost or 0)
+            # Calculate total cost
+            if package.promotional_cost:
+                total_amount = package.promotional_cost
+            else:
+                total_amount = sum(active_steps.mapped('cost')) + (package.package_cost or 0)
             if total_amount <= 0:
                 total_amount = package.total_cost or 0
 
