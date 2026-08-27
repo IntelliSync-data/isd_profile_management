@@ -105,12 +105,15 @@ class UserProfile(models.Model):
             else:
                 record.progress_percentage = 0.0
 
-    @api.depends('user_step_ids.is_selected', 'user_step_ids.cost', 'profile_id.package_cost', 'payment_status')
+    @api.depends('user_step_ids.is_selected', 'user_step_ids.cost', 'profile_id.package_cost', 'profile_id.promotional_cost', 'payment_status')
     def _compute_costs(self):
         for record in self:
             selected_steps = record.user_step_ids.filtered('is_selected')
-            package_cost = record.profile_id.package_cost if record.profile_id else 0.0
-            record.total_cost = sum(selected_steps.mapped('cost')) + package_cost
+            if record.profile_id and record.profile_id.promotional_cost:
+                record.total_cost = record.profile_id.promotional_cost
+            else:
+                package_cost = record.profile_id.package_cost if record.profile_id else 0.0
+                record.total_cost = sum(selected_steps.mapped('cost')) + package_cost
 
             # paid_amount: combine payment records + payment_status override
             # First, get actual paid from confirmed payments
@@ -348,8 +351,11 @@ class UserProfile(models.Model):
             raise ValidationError(_("No steps selected for payment."))
 
         # Calculate remaining amount
-        package_cost = self.profile_id.package_cost if self.profile_id else 0.0
-        full_amount = sum(selected_steps.mapped('cost')) + package_cost
+        if self.profile_id and self.profile_id.promotional_cost:
+            full_amount = self.profile_id.promotional_cost
+        else:
+            package_cost = self.profile_id.package_cost if self.profile_id else 0.0
+            full_amount = sum(selected_steps.mapped('cost')) + package_cost
         confirmed_payments = self.env['profile.payment'].search([
             ('user_profile_id', '=', self.id),
             ('state', '=', 'confirmed'),
