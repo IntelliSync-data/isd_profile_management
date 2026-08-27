@@ -21,6 +21,7 @@ class ProfileManagement(models.Model):
     step_ids = fields.Many2many('profile.step', 'profile_management_step_rel', 'profile_id', 'step_id', string='Steps')
     total_steps = fields.Integer(string='Total Steps', compute='_compute_step_counts', store=True)
     package_cost = fields.Float(string='Package Cost', default=0.0, tracking=True)
+    use_promotional_price = fields.Boolean(string='Use Promotional Price', default=False, tracking=True)
     promotional_cost = fields.Float(string='Promotional Price', default=0.0, tracking=True)
     total_cost = fields.Float(string='Total Cost', compute='_compute_total_cost', store=True)
     total_cost_display = fields.Char(string='Total Cost', compute='_compute_total_cost_display', store=True)
@@ -42,10 +43,10 @@ class ProfileManagement(models.Model):
         for record in self:
             record.total_steps = len(record.step_ids)
     
-    @api.depends('step_ids.cost', 'package_cost', 'promotional_cost')
+    @api.depends('step_ids.cost', 'package_cost', 'use_promotional_price', 'promotional_cost')
     def _compute_total_cost(self):
         for record in self:
-            if record.promotional_cost:
+            if record.use_promotional_price:
                 record.total_cost = record.promotional_cost
             else:
                 record.total_cost = sum(record.step_ids.mapped('cost')) + record.package_cost

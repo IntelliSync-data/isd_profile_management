@@ -43,6 +43,7 @@ class ExternalProfileAPIController(http.Controller):
                     'description': package.description or '',
                     'state': package.state,
                     'package_cost': package.package_cost,
+                    'use_promotional_price': package.use_promotional_price,
                     'promotional_cost': package.promotional_cost,
                     'total_cost': package.total_cost,
                     'total_cost_display': package.total_cost_display,
@@ -190,7 +191,7 @@ class ExternalProfileAPIController(http.Controller):
             request.env.cr.flush()
 
             # Calculate total cost
-            if package.promotional_cost:
+            if package.use_promotional_price:
                 total_amount = package.promotional_cost
             else:
                 total_amount = sum(active_steps.mapped('cost')) + (package.package_cost or 0)
