@@ -18,6 +18,10 @@
                     </group>
 
                     <notebook>
+                        <page string="ℹ️ Package Info" name="api_package_info">
+                            <field name="api_package_info_doc" widget="html" nolabel="1"/>
+                        </page>
+
                         <page string="📦 API 1: Create Package" name="api_create">
                             <field name="api_create_doc" widget="html" nolabel="1"/>
                         </page>

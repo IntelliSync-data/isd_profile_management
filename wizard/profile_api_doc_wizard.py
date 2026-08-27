@@ -11,6 +11,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
     base_url = fields.Char(string='Base URL', compute='_compute_base_url', readonly=True)
 
     # API Documentation fields
+    api_package_info_doc = fields.Html(string='Package Info API', compute='_compute_api_documentation')
     api_create_doc = fields.Html(string='Create Package API', compute='_compute_api_documentation')
     api_check_doc = fields.Html(string='Check Payment Status API', compute='_compute_api_documentation')
     api_confirm_doc = fields.Html(string='Confirm Payment API', compute='_compute_api_documentation')
@@ -26,6 +27,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
         """Generate API documentation HTML"""
         for wizard in self:
             if not wizard.package_id:
+                wizard.api_package_info_doc = ''
                 wizard.api_create_doc = ''
                 wizard.api_check_doc = ''
                 wizard.api_confirm_doc = ''
@@ -36,6 +38,81 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
             payment_methods_list = '<br/>'.join([
                 f'• ID: {pm.id} - {pm.name}' for pm in payment_methods
             ])
+
+            # API 0: Package Info
+            promo_info = f', Promotional Price: {wizard.package_id.promotional_cost}' if wizard.package_id.use_promotional_price else ''
+            wizard.api_package_info_doc = f'''
+<div style="font-family: monospace; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+    <h3 style="color: #2c3e50;">ℹ️ Get Package Info</h3>
+
+    <h4>Endpoint:</h4>
+    <div style="background-color: #34495e; color: #ecf0f1; padding: 10px; border-radius: 3px; margin-bottom: 10px;">
+        POST {wizard.base_url}/api/profile/package-info
+    </div>
+
+    <h4>Headers:</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #3498db;">
+Content-Type: application/json</pre>
+
+    <h4>Request Body:</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #3498db;">
+{{
+    "jsonrpc": "2.0",
+    "params": {{
+        "package_id": {wizard.package_id.id}
+    }}
+}}</pre>
+
+    <h4>Parameters:</h4>
+    <ul>
+        <li><strong>package_id</strong> (required): Package ID = <code>{wizard.package_id.id}</code></li>
+    </ul>
+
+    <h4>Success Response (200 OK):</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #27ae60;">
+{{
+    "jsonrpc": "2.0",
+    "result": {{
+        "success": true,
+        "package": {{
+            "id": {wizard.package_id.id},
+            "name": "{wizard.package_id.name}",
+            "description": "...",
+            "state": "{wizard.package_id.state}",
+            "package_cost": {wizard.package_id.package_cost},
+            "use_promotional_price": {'true' if wizard.package_id.use_promotional_price else 'false'},
+            "promotional_cost": {wizard.package_id.promotional_cost},
+            "total_cost": {wizard.package_id.total_cost},
+            "total_cost_display": "{wizard.package_id.total_cost_display}",
+            "services": [
+                {{"id": 1, "name": "Service Name", "cost": 500000}},
+                ...
+            ]
+        }}
+    }}
+}}</pre>
+
+    <h4>Example cURL:</h4>
+    <pre style="background-color: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 3px;">
+curl -X POST '{wizard.base_url}/api/profile/package-info' \\
+  -H 'Content-Type: application/json' \\
+  -d '{{
+    "jsonrpc": "2.0",
+    "params": {{
+      "package_id": {wizard.package_id.id}
+    }}
+  }}'</pre>
+
+    <h4 style="color: #3498db;">ℹ️ Pricing Info:</h4>
+    <div style="background-color: #d1ecf1; padding: 10px; border-left: 3px solid #3498db; margin-top: 10px;">
+        <strong>Package Cost:</strong> {wizard.package_id.package_cost}{promo_info}<br/>
+        <strong>Total Cost:</strong> {wizard.package_id.total_cost} ({wizard.package_id.total_cost_display})<br/>
+        <br/>
+        If <code>use_promotional_price</code> is <code>true</code>, the <code>total_cost</code> equals the <code>promotional_cost</code> (can be 0 for free).<br/>
+        Otherwise, <code>total_cost</code> = <code>package_cost</code> + sum of all service costs.
+    </div>
+</div>
+'''
 
             # API 1: Create Package
             wizard.api_create_doc = f'''
