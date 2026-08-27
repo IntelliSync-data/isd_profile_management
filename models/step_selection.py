@@ -58,13 +58,13 @@ class StepSelection(models.Model):
             else:
                 record.name = "New Selection"
     
-    @api.depends('selected_step_ids.cost')
+    @api.depends('selected_step_ids.cost', 'profile_id.package_cost')
     def _compute_totals(self):
         for record in self:
             record.total_steps = len(record.selected_step_ids)
-            record.total_cost = sum(record.selected_step_ids.mapped('cost'))
-    
-    @api.depends('selected_step_ids.cost')
+            record.total_cost = sum(record.selected_step_ids.mapped('cost')) + (record.profile_id.package_cost or 0)
+
+    @api.depends('selected_step_ids.cost', 'profile_id.package_cost')
     def _compute_total_cost_display(self):
         for record in self:
             record.total_cost_display = self._format_currency(record.total_cost)
