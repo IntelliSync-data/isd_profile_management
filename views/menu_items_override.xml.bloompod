@@ -93,4 +93,66 @@
         </field>
     </record>
 
+    <!-- View overrides: Service Package form button -->
+    <record id="view_service_package_form_override" model="ir.ui.view">
+        <field name="name">service.package.form.override</field>
+        <field name="model">profile.management</field>
+        <field name="inherit_id" ref="view_service_package_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_select_steps']" position="replace">
+                <button name="action_select_steps" type="object" class="btn btn-primary" style="border-radius: 6px; padding: 10px 20px;">
+                    <i class="fa fa-shopping-cart mr-1"></i> Select Products
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- View overrides: Profile Card kanban button -->
+    <record id="view_profile_card_kanban_override" model="ir.ui.view">
+        <field name="name">profile.management.card.kanban.override</field>
+        <field name="model">profile.management</field>
+        <field name="inherit_id" ref="view_profile_card_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_select_steps']" position="replace">
+                <button name="action_select_steps" type="object" class="btn btn-primary" style="border-radius: 6px; padding: 8px 16px;">
+                    <i class="fa fa-shopping-cart mr-1"></i> Select Products
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Action overrides: Profile Cards -->
+    <record id="action_profile_cards" model="ir.actions.act_window">
+        <field name="name">Products</field>
+        <field name="help" type="html">
+            <p style="text-align: center; color: #64748b; font-size: 18px; margin: 40px 0 20px 0;">
+                <i class="fa fa-box-open" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px;"></i><br/>
+                No products available!
+            </p>
+            <p style="text-align: center; color: #64748b; font-size: 14px; margin-bottom: 20px;">
+                Products will be displayed here as beautiful cards with selectable steps and pricing.
+            </p>
+            <p style="text-align: center; color: #64748b; font-size: 14px;">
+                <strong>Note:</strong> If you expect to see products here, please check:<br/>
+                • Go to <strong>Configuration → Package Configuration</strong> to create products<br/>
+                • Ensure products have steps and are marked as 'Active'
+            </p>
+        </field>
+    </record>
+
+    <!-- View overrides: Step Selection form title -->
+    <record id="view_step_selection_form_override" model="ir.ui.view">
+        <field name="name">step.selection.form.override</field>
+        <field name="model">step.selection</field>
+        <field name="inherit_id" ref="view_step_selection_simple_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//h2" position="replace">
+                <h2>Order Selection for <field name="user_id" options="{'no_quick_create': True}"/></h2>
+            </xpath>
+            <xpath expr="//button[@name='action_confirm_selection']" position="attributes">
+                <attribute name="string">Confirm Order</attribute>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>

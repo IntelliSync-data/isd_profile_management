@@ -14,7 +14,7 @@
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="profile_id" readonly="1"/></h1>
-                        <h2>Step Selection for <field name="user_id" options="{'no_create': True}"/></h2>
+                        <h2>Step Selection for <field name="user_id" options="{'no_quick_create': True}"/></h2>
                     </div>
                     
                     <group>
@@ -29,8 +29,8 @@
                         <field name="notes" widget="text" placeholder="Add notes about this profile assignment..." nolabel="1"/>
                     </group>
 
-                    <separator string="Instructions"/>
-                    <div class="alert alert-info">
+                    <separator string="Instructions" invisible="1"/>
+                    <div class="alert alert-info" invisible="1">
                         <strong>How to Select Services:</strong>
                         <ul>
                             <li>Check boxes for services you want</li>
@@ -40,9 +40,9 @@
                     </div>
 
                     <separator string="Available Services"/>
-                    <field name="selected_step_ids" disabled="0" widget="many2many_checkboxes" nolabel="1"
+                    <field name="selected_step_ids" widget="many2many_checkboxes" nolabel="1"
                            domain="[('id', 'in', available_step_ids)]"
-                           readonly="0"/>
+                           readonly="1"/>
                     <field name="available_step_ids" invisible="1"/>
                 </sheet>
             </form>

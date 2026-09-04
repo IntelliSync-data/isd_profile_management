@@ -1,0 +1,2318 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* isd_profile_management
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 00:00+0000\n"
+"PO-Revision-Date: 2026-09-04 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Vietnamese\n"
+"Language: vi_VN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: isd_profile_management
+#: model:ir.module.module,shortdesc:isd_profile_management.module_isd_profile_management
+msgid "ISD Profile Management"
+msgstr "Quản lý hồ sơ ISD"
+
+#. module: isd_profile_management
+#: model:ir.module.module,summary:isd_profile_management.module_isd_profile_management
+msgid "Profile Management System for Users and Managers"
+msgstr "Hệ thống quản lý hồ sơ cho người dùng và quản lý"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_profile_management
+msgid "Profile Management"
+msgstr "Quản lý hồ sơ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__name
+msgid "Profile Name"
+msgstr "Tên gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__description
+msgid "Description"
+msgstr "Mô tả"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__state
+msgid "Status"
+msgstr "Trạng thái"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__step_ids
+msgid "Steps"
+msgstr "Các bước"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__total_steps
+msgid "Total Steps"
+msgstr "Tổng số bước"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__package_cost
+msgid "Package Cost"
+msgstr "Chi phí gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__use_promo_price
+msgid "Use Promotional Price"
+msgstr "Dùng giá khuyến mãi"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__promo_price
+msgid "Promotional Price"
+msgstr "Giá khuyến mãi"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__total_cost
+msgid "Total Cost"
+msgstr "Tổng chi phí"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__user_profile_ids
+msgid "User Profiles"
+msgstr "Hồ sơ người dùng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__assigned_user_ids
+msgid "Assigned Users"
+msgstr "Người dùng được gán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__create_date
+msgid "Created Date"
+msgstr "Ngày tạo"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__create_uid
+msgid "Created By"
+msgstr "Tạo bởi"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__advanced
+msgid "Advanced"
+msgstr "Nâng cao"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__auto_complete
+msgid "Auto Complete"
+msgstr "Tự động hoàn thành"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_management__advanced
+msgid "Enable advanced step flow (Start -> Complete -> Approve)"
+msgstr "Bật quy trình bước nâng cao (Bắt đầu -> Hoàn thành -> Phê duyệt)"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_management__auto_complete
+msgid "Automatically mark profile as completed when all selected steps are approved"
+msgstr "Tự động đánh dấu hồ sơ hoàn thành khi tất cả các bước đã chọn được phê duyệt"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_profile_management__state
+msgid "Draft"
+msgstr "Nháp"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_profile_management__state
+msgid "Active"
+msgstr "Hoạt động"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_profile_management__state
+msgid "Inactive"
+msgstr "Không hoạt động"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Profile activated"
+msgstr "Đã kích hoạt gói"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Profile deactivated"
+msgstr "Đã vô hiệu hóa gói"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Assigned Users"
+msgstr "Người dùng được gán"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Profile Steps"
+msgstr "Các bước của gói"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Create New Service Item"
+msgstr "Tạo dịch vụ mới"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "All Service Items"
+msgstr "Tất cả dịch vụ"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Create New Package"
+msgstr "Tạo gói mới"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "All Packages"
+msgstr "Tất cả gói"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Package Builder"
+msgstr "Tạo gói"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Package builder feature coming soon! For now, use \"Create New Package\" to build packages."
+msgstr "Tính năng tạo gói sắp ra mắt! Hiện tại, hãy dùng \"Tạo gói mới\" để tạo."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Assign Package to Student"
+msgstr "Gán gói cho học viên"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "All User Assignments"
+msgstr "Tất cả phân công"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Student Progress"
+msgstr "Tiến độ học viên"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Package Report"
+msgstr "Báo cáo gói"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Package performance reports coming soon!"
+msgstr "Báo cáo hiệu suất gói sắp ra mắt!"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Revenue Report"
+msgstr "Báo cáo doanh thu"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Revenue reports coming soon!"
+msgstr "Báo cáo doanh thu sắp ra mắt!"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Student Report"
+msgstr "Báo cáo học viên"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/profile.py
+#, python-format
+msgid "Student progress reports coming soon!"
+msgstr "Báo cáo tiến độ học viên sắp ra mắt!"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_profile_payment
+msgid "Profile Payment"
+msgstr "Thanh toán gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__name
+msgid "Payment Reference"
+msgstr "Mã thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__transaction_id
+msgid "Transaction ID"
+msgstr "Mã giao dịch"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__isd_transaction_id
+msgid "ISD Payment Transaction"
+msgstr "Giao dịch thanh toán ISD"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__qr_code_url
+msgid "QR Code URL"
+msgstr "URL mã QR"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__user_id
+msgid "User"
+msgstr "Người dùng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__user_profile_id
+msgid "User Profile"
+msgstr "Hồ sơ người dùng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__step_selection_id
+msgid "Original Selection"
+msgstr "Đơn hàng gốc"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__profile_id
+msgid "Profile"
+msgstr "Gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__amount
+msgid "Amount"
+msgstr "Số tiền"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__currency_id
+msgid "Currency"
+msgstr "Tiền tệ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__payment_date
+msgid "Payment Date"
+msgstr "Ngày thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__bank_name
+msgid "Bank Name"
+msgstr "Tên ngân hàng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__bank_account
+msgid "Bank Account Number"
+msgstr "Số tài khoản ngân hàng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__reference_number
+msgid "Reference Number"
+msgstr "Số tham chiếu"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__receipt_ids
+msgid "Receipt Attachments"
+msgstr "Tệp đính kèm biên lai"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__state
+msgid "Status"
+msgstr "Trạng thái"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__step_ids
+msgid "Steps to Pay"
+msgstr "Các bước cần thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__confirmed_by
+msgid "Confirmed By"
+msgstr "Xác nhận bởi"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__confirmed_date
+msgid "Confirmed Date"
+msgstr "Ngày xác nhận"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__rejection_reason
+msgid "Rejection Reason"
+msgstr "Lý do từ chối"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__metadata
+msgid "Metadata"
+msgstr "Siêu dữ liệu"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__payment_method_id
+msgid "Payment Method"
+msgstr "Phương thức thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_payment__isd_transaction_id
+msgid "Link to ISD Payment transaction"
+msgstr "Liên kết đến giao dịch thanh toán ISD"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_payment__qr_code_url
+msgid "QR code URL for payment"
+msgstr "URL mã QR thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_payment__user_profile_id
+msgid "Profile created after payment confirmation"
+msgstr "Hồ sơ được tạo sau khi xác nhận thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_payment__step_selection_id
+msgid "Original step selection that created this payment"
+msgstr "Đơn hàng gốc tạo ra thanh toán này"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_payment__metadata
+msgid "Additional metadata for the payment"
+msgstr "Siêu dữ liệu bổ sung cho thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_payment__payment_method_id
+msgid "Payment method used for this payment"
+msgstr "Phương thức thanh toán được sử dụng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_profile_payment__state
+msgid "Pending Confirmation"
+msgstr "Chờ xác nhận"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_profile_payment__state
+msgid "Confirmed"
+msgstr "Đã xác nhận"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_profile_payment__state
+msgid "Rejected"
+msgstr "Đã từ chối"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_profile_payment__state
+msgid "Cancelled"
+msgstr "Đã hủy"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "New"
+msgstr "Mới"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment amount must be positive."
+msgstr "Số tiền thanh toán phải là số dương."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Please upload a payment receipt before submitting."
+msgstr "Vui lòng tải lên biên lai thanh toán trước khi gửi."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment submitted for approval"
+msgstr "Thanh toán đã gửi để phê duyệt"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment confirmed by %s"
+msgstr "Thanh toán được xác nhận bởi %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Reject Payment"
+msgstr "Từ chối thanh toán"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment cancelled"
+msgstr "Thanh toán đã hủy"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "New Payment Confirmation Required"
+msgstr "Cần xác nhận thanh toán mới"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment of %s submitted by %s needs confirmation."
+msgstr "Thanh toán %s do %s gửi cần được xác nhận."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment Confirmed"
+msgstr "Thanh toán đã xác nhận"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Your payment of %s has been confirmed."
+msgstr "Thanh toán %s của bạn đã được xác nhận."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Please configure Payment Methods in Settings first."
+msgstr "Vui lòng cấu hình phương thức thanh toán trong Cài đặt trước."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Configured Payment Method not found."
+msgstr "Không tìm thấy phương thức thanh toán đã cấu hình."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment QR code generated. Transaction ID: %s"
+msgstr "Đã tạo mã QR thanh toán. Mã giao dịch: %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "No payment method linked to this payment."
+msgstr "Không có phương thức thanh toán liên kết với thanh toán này."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment already confirmed"
+msgstr "Thanh toán đã được xác nhận"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Transaction not found in payment system"
+msgstr "Không tìm thấy giao dịch trong hệ thống thanh toán"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment confirmed successfully"
+msgstr "Thanh toán đã xác nhận thành công"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment has expired"
+msgstr "Thanh toán đã hết hạn"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Waiting for payment confirmation from ACB"
+msgstr "Đang chờ xác nhận thanh toán từ ACB"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "Payment not yet confirmed"
+msgstr "Thanh toán chưa được xác nhận"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "PayPal payment created. Order ID: %s"
+msgstr "Đã tạo thanh toán PayPal. Mã đơn hàng: %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py
+#, python-format
+msgid "External payment QR code generated. Transaction ID: %s"
+msgstr "Đã tạo mã QR thanh toán bên ngoài. Mã giao dịch: %s"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_payment_method_ids
+msgid "Payment Methods"
+msgstr "Phương thức thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_currency
+msgid "Currency"
+msgstr "Tiền tệ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_exchange_rate
+msgid "Exchange Rate (1 USD = ? VND)"
+msgstr "Tỷ giá (1 USD = ? VND)"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_order_email_template_id
+msgid "Order Confirmation Email Template"
+msgstr "Mẫu email xác nhận đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_payment_email_template_id
+msgid "Payment Confirmation Email Template"
+msgstr "Mẫu email xác nhận thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_send_user_emails
+msgid "Send Assignment Emails to End Users"
+msgstr "Gửi email phân công cho người dùng cuối"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_res_config_settings__pm_payment_method_ids
+msgid "Select payment methods from ISD Payment module"
+msgstr "Chọn phương thức thanh toán từ module ISD Payment"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_res_config_settings__pm_exchange_rate
+msgid "Exchange rate used to convert between USD and VND when payment provider currency differs from package currency"
+msgstr "Tỷ giá dùng để quy đổi giữa USD và VND khi tiền tệ của nhà cung cấp thanh toán khác với tiền tệ gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_res_config_settings__pm_order_email_template_id
+msgid "Email template sent when a new order (package purchase) is created"
+msgstr "Mẫu email gửi khi tạo đơn hàng mới (mua gói)"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_res_config_settings__pm_payment_email_template_id
+msgid "Email template sent when payment is confirmed"
+msgstr "Mẫu email gửi khi thanh toán được xác nhận"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_res_config_settings__pm_send_user_emails
+msgid "If unchecked, assignment and activity emails will only be sent to internal users/managers, not to end users"
+msgstr "Nếu bỏ chọn, email phân công và hoạt động chỉ gửi cho người dùng/quản lý nội bộ, không gửi cho người dùng cuối"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_res_config_settings__pm_currency
+msgid "VND (d)"
+msgstr "VND (đ)"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_res_config_settings__pm_currency
+msgid "USD ($)"
+msgstr "USD ($)"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_users__user_profile_ids
+msgid "Assigned Profiles"
+msgstr "Hồ sơ được gán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_users__profile_count
+msgid "Profile Count"
+msgstr "Số hồ sơ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_users__is_student
+msgid "Is Student"
+msgstr "Là học viên"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_users__is_manager
+msgid "Is Manager"
+msgstr "Là quản lý"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_users__student_id
+msgid "Student ID"
+msgstr "Mã học viên"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_users__phone_number
+msgid "Phone Number"
+msgstr "Số điện thoại"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_users__address
+msgid "Address"
+msgstr "Địa chỉ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_users__emergency_contact
+msgid "Emergency Contact"
+msgstr "Liên hệ khẩn cấp"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_profile_step
+msgid "Profile Step"
+msgstr "Bước dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__name
+msgid "Step Name"
+msgstr "Tên bước"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__sequence
+msgid "Sequence"
+msgstr "Thứ tự"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__cost
+msgid "Cost"
+msgstr "Chi phí"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__duration_days
+msgid "Duration (Days)"
+msgstr "Thời gian (Ngày)"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__instructions
+msgid "Instructions"
+msgstr "Hướng dẫn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__result
+msgid "Result"
+msgstr "Kết quả"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__mandatory
+msgid "Mandatory"
+msgstr "Bắt buộc"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__prerequisite_ids
+msgid "Prerequisites"
+msgstr "Điều kiện tiên quyết"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_step__user_step_ids
+msgid "User Steps"
+msgstr "Bước người dùng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_step__duration_days
+msgid "Estimated duration in days"
+msgstr "Thời gian ước tính theo ngày"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_step__instructions
+msgid "Detailed instructions for this step"
+msgstr "Hướng dẫn chi tiết cho bước này"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_step__result
+msgid "Result or outcome of this step"
+msgstr "Kết quả của bước này"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_step__mandatory
+msgid "Is this step mandatory for the profile?"
+msgstr "Bước này có bắt buộc cho gói không?"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_step__prerequisite_ids
+msgid "Steps that must be completed before this step"
+msgstr "Các bước phải hoàn thành trước bước này"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step.py
+#, python-format
+msgid "A step cannot be a prerequisite of itself."
+msgstr "Một bước không thể là điều kiện tiên quyết của chính nó."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step.py
+#, python-format
+msgid "Circular dependency detected in prerequisites."
+msgstr "Phát hiện phụ thuộc vòng trong điều kiện tiên quyết."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step.py
+#, python-format
+msgid "Cost cannot be negative."
+msgstr "Chi phí không được âm."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step.py
+#, python-format
+msgid "Step activated"
+msgstr "Bước đã kích hoạt"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step.py
+#, python-format
+msgid "Step deactivated"
+msgstr "Bước đã vô hiệu hóa"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_step_selection
+msgid "User Step Selection"
+msgstr "Lựa chọn dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_step_selection__selection_name
+msgid "Selection Name"
+msgstr "Tên đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_step_selection__available_step_ids
+msgid "Available Steps"
+msgstr "Bước có sẵn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_step_selection__selected_step_ids
+msgid "Selected Steps"
+msgstr "Bước đã chọn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_step_selection__total_steps
+msgid "Total Steps Selected"
+msgstr "Tổng số bước đã chọn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_step_selection__user_profile_id
+msgid "Created Profile"
+msgstr "Hồ sơ đã tạo"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_step_selection__confirmed_date
+msgid "Confirmed Date"
+msgstr "Ngày xác nhận"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_step_selection__notes
+msgid "Notes"
+msgstr "Ghi chú"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_step_selection__user_profile_id
+msgid "Profile created after payment confirmation"
+msgstr "Hồ sơ được tạo sau khi xác nhận thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_step_selection__notes
+msgid "Additional notes for this profile assignment"
+msgstr "Ghi chú bổ sung cho phân công hồ sơ này"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_step_selection__state
+msgid "Quoted"
+msgstr "Đã báo giá"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "Please select at least one step before confirming."
+msgstr "Vui lòng chọn ít nhất một bước trước khi xác nhận."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "My Profile"
+msgstr "Hồ sơ của tôi"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "Profile created from step selection. %d steps selected."
+msgstr "Hồ sơ được tạo từ lựa chọn dịch vụ. %d bước đã chọn."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "Please confirm the selection first before getting an order."
+msgstr "Vui lòng xác nhận lựa chọn trước khi tạo đơn hàng."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "Please select at least one step to get an order."
+msgstr "Vui lòng chọn ít nhất một bước để tạo đơn hàng."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "Order Generated"
+msgstr "Đã tạo đơn hàng"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "Your order has been generated! Total: %s for %s steps."
+msgstr "Đơn hàng của bạn đã được tạo! Tổng: %s cho %s bước."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "No steps selected for payment."
+msgstr "Chưa chọn bước nào để thanh toán."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "Make Payment"
+msgstr "Thanh toán"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "Select Services"
+msgstr "Chọn dịch vụ"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/step_selection.py
+#, python-format
+msgid "User Selections"
+msgstr "Đơn hàng người dùng"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_user_profile
+msgid "User Profile Assignment"
+msgstr "Phân công hồ sơ người dùng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__name
+msgid "Name"
+msgstr "Tên"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__stage
+msgid "Stage"
+msgstr "Giai đoạn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__payment_status
+msgid "Payment Status"
+msgstr "Trạng thái thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__progress_percentage
+msgid "Progress %"
+msgstr "Tiến độ %"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__start_date
+msgid "Start Date"
+msgstr "Ngày bắt đầu"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__expected_date
+msgid "Expected Completion Date"
+msgstr "Ngày dự kiến hoàn thành"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__completion_date
+msgid "Actual Completion Date"
+msgstr "Ngày hoàn thành thực tế"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__user_step_ids
+msgid "User Steps"
+msgstr "Bước người dùng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__selected_step_ids
+msgid "Selected Steps"
+msgstr "Bước đã chọn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__paid_amount
+msgid "Paid Amount"
+msgstr "Đã thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__remaining_amount
+msgid "Remaining Amount"
+msgstr "Còn lại"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__assigned_by
+msgid "Assigned By"
+msgstr "Phân công bởi"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__assigned_date
+msgid "Assigned Date"
+msgstr "Ngày phân công"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_user_profile__selected_step_ids
+msgid "Steps selected by the user"
+msgstr "Các bước do người dùng chọn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__state
+msgid "In Progress"
+msgstr "Đang thực hiện"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__state
+msgid "Pending"
+msgstr "Đang chờ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__state
+msgid "Completed"
+msgstr "Hoàn thành"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__payment_status
+msgid "Not Yet Paid"
+msgstr "Chưa thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__payment_status
+msgid "Half Paid"
+msgstr "Đã trả một phần"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__payment_status
+msgid "Paid"
+msgstr "Đã thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__payment_status
+msgid "Returned"
+msgstr "Đã hoàn trả"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Profile started"
+msgstr "Hồ sơ đã bắt đầu"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Profile auto-started: first step approved"
+msgstr "Hồ sơ tự động bắt đầu: bước đầu tiên đã được phê duyệt"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Cannot complete profile. The following mandatory steps are not completed: %s"
+msgstr "Không thể hoàn thành hồ sơ. Các bước bắt buộc sau chưa hoàn thành: %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Profile completed"
+msgstr "Hồ sơ đã hoàn thành"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Profile cancelled"
+msgstr "Hồ sơ đã hủy"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Payments"
+msgstr "Thanh toán"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Payment marked as paid by %s"
+msgstr "Thanh toán được đánh dấu đã trả bởi %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Payment marked as returned by %s"
+msgstr "Thanh toán được đánh dấu hoàn trả bởi %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Can only set status to pending from in progress state."
+msgstr "Chỉ có thể đặt trạng thái chờ từ trạng thái đang thực hiện."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Status set to pending by manager %s"
+msgstr "Trạng thái được đặt chờ bởi quản lý %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Can only resume progress from pending state."
+msgstr "Chỉ có thể tiếp tục từ trạng thái đang chờ."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Progress resumed by manager %s"
+msgstr "Tiến độ được tiếp tục bởi quản lý %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Please confirm the profile first before getting an order."
+msgstr "Vui lòng xác nhận hồ sơ trước khi tạo đơn hàng."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "No steps selected for order."
+msgstr "Chưa chọn bước nào cho đơn hàng."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Total: %s for %s steps. Use \"Make Payment\" to proceed."
+msgstr "Tổng: %s cho %s bước. Dùng \"Thanh toán\" để tiếp tục."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "This profile is already fully paid."
+msgstr "Hồ sơ này đã thanh toán đầy đủ."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "No remaining amount to pay."
+msgstr "Không còn số tiền cần thanh toán."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Payment method not found."
+msgstr "Không tìm thấy phương thức thanh toán."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Could not reach payment service. Please try again later. Error: %s"
+msgstr "Không thể kết nối dịch vụ thanh toán. Vui lòng thử lại sau. Lỗi: %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Payment creation failed"
+msgstr "Tạo thanh toán thất bại"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Could not retrieve QR code. Please try again later. Error: %s"
+msgstr "Không thể lấy mã QR. Vui lòng thử lại sau. Lỗi: %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Payment service returned no QR or redirect URL."
+msgstr "Dịch vụ thanh toán không trả về mã QR hoặc URL chuyển hướng."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Select Payment Method"
+msgstr "Chọn phương thức thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_user_step
+msgid "User Step"
+msgstr "Bước người dùng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_step__selected
+msgid "Selected"
+msgstr "Đã chọn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_step__progress_notes
+msgid "Progress Notes"
+msgstr "Ghi chú tiến độ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_step__start_time
+msgid "Start Time"
+msgstr "Thời gian bắt đầu"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_step__deadline
+msgid "Deadline"
+msgstr "Hạn chót"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_step__complete_time
+msgid "Complete Time"
+msgstr "Thời gian hoàn thành"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_step__manager_notes
+msgid "Manager Notes"
+msgstr "Ghi chú quản lý"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_step__last_updated_by
+msgid "Last Updated By"
+msgstr "Cập nhật lần cuối bởi"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_step__state
+msgid "Not Started"
+msgstr "Chưa bắt đầu"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_step__state
+msgid "Pending Approval"
+msgstr "Chờ phê duyệt"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_step__payment_status
+msgid "Not Paid"
+msgstr "Chưa thanh toán"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Step selected"
+msgstr "Đã chọn bước"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Step deselected"
+msgstr "Đã bỏ chọn bước"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Cannot start a step that is not selected."
+msgstr "Không thể bắt đầu bước chưa được chọn."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Step started"
+msgstr "Bước đã bắt đầu"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Step completion submitted for approval"
+msgstr "Bước hoàn thành đã gửi để phê duyệt"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Step completion approved by %s"
+msgstr "Bước hoàn thành được phê duyệt bởi %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Step completion rejected by %s"
+msgstr "Bước hoàn thành bị từ chối bởi %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Profile auto-completed: all steps approved"
+msgstr "Hồ sơ tự động hoàn thành: tất cả bước đã được phê duyệt"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Step Completion Approval Required"
+msgstr "Cần phê duyệt hoàn thành bước"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py
+#, python-format
+msgid "Step \"%s\" completed by %s needs approval."
+msgstr "Bước \"%s\" hoàn thành bởi %s cần phê duyệt."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/controllers/external_api.py
+#, python-format
+msgid "Profile created via external API. Email: %s, Notes: %s"
+msgstr "Hồ sơ tạo qua API bên ngoài. Email: %s, Ghi chú: %s"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_payment_method_select_wizard
+msgid "Select Payment Method"
+msgstr "Chọn phương thức thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_payment_rejection_wizard
+msgid "Payment Rejection Wizard"
+msgstr "Trình từ chối thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_payment_rejection_wizard__reason
+msgid "Please provide a clear reason for rejecting this payment"
+msgstr "Vui lòng cung cấp lý do rõ ràng để từ chối thanh toán này"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py
+#, python-format
+msgid "Please provide a reason for rejection."
+msgstr "Vui lòng cung cấp lý do từ chối."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py
+#, python-format
+msgid "Payment rejected by %s. Reason: %s"
+msgstr "Thanh toán bị từ chối bởi %s. Lý do: %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py
+#, python-format
+msgid "Payment Rejected"
+msgstr "Thanh toán bị từ chối"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py
+#, python-format
+msgid "Your payment of %s has been rejected. Reason: %s"
+msgstr "Thanh toán %s của bạn đã bị từ chối. Lý do: %s"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_profile_api_documentation_wizard
+msgid "Profile Package API Documentation Wizard"
+msgstr "Trình tài liệu API gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__package_id
+msgid "Package"
+msgstr "Gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__package_name
+msgid "Package Name"
+msgstr "Tên gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__base_url
+msgid "Base URL"
+msgstr "URL gốc"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__package_info_api
+msgid "Package Info API"
+msgstr "API thông tin gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__create_package_api
+msgid "Create Package API"
+msgstr "API tạo gói"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__check_payment_api
+msgid "Check Payment Status API"
+msgstr "API kiểm tra trạng thái thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__confirm_payment_api
+msgid "Confirm Payment API"
+msgstr "API xác nhận thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_qr_popup_wizard
+msgid "QR Popup Wizard"
+msgstr "Trình hiển thị mã QR"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_qr_popup_wizard__qr_url
+msgid "QR Code"
+msgstr "Mã QR"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_step_selection_wizard
+msgid "Step Selection Wizard"
+msgstr "Trình chọn dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_step_selection_wizard__step_ids
+msgid "Select Steps"
+msgstr "Chọn bước"
+
+#. module: isd_profile_management
+#: model:res.groups,name:isd_profile_management.group_profile_normal
+msgid "Normal"
+msgstr "Thường"
+
+#. module: isd_profile_management
+#: model:res.groups,name:isd_profile_management.group_profile_manager
+msgid "Manager"
+msgstr "Quản lý"
+
+#. module: isd_profile_management
+#: model:res.groups,name:isd_profile_management.group_profile_admin
+msgid "Admin"
+msgstr "Quản trị"
+
+#. module: isd_profile_management
+#: model:ir.module.category,name:isd_profile_management.module_category_profile_management
+msgid "Profile Management"
+msgstr "Quản lý hồ sơ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_tree
+msgid "Profiles"
+msgstr "Gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_form
+msgid "Profile"
+msgstr "Gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_form
+msgid "Activate"
+msgstr "Kích hoạt"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_form
+msgid "Deactivate"
+msgstr "Vô hiệu hóa"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_form
+msgid "Users"
+msgstr "Người dùng"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_form
+msgid "View API"
+msgstr "Xem API"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_search
+msgid "Search Profiles"
+msgstr "Tìm kiếm gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_search
+msgid "Group By"
+msgstr "Nhóm theo"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_form
+msgid "Profile Name..."
+msgstr "Tên gói..."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_form
+msgid "Profile description..."
+msgstr "Mô tả gói..."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_management_form
+msgid "Assigned Users"
+msgstr "Người dùng được gán"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,name:isd_profile_management.action_profile_management
+msgid "Package Configuration"
+msgstr "Cấu hình gói"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_profile_management
+msgid "No packages configured yet!"
+msgstr "Chưa có gói nào được cấu hình!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_profile_management
+msgid "Create your first service package to get started."
+msgstr "Tạo gói dịch vụ đầu tiên để bắt đầu."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_tree
+msgid "Steps"
+msgstr "Các bước"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Step"
+msgstr "Bước"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Basic Information"
+msgstr "Thông tin cơ bản"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Cost & Duration"
+msgstr "Chi phí & thời gian"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Description"
+msgstr "Mô tả"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Enter step name..."
+msgstr "Nhập tên bước..."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Enter step description..."
+msgstr "Nhập mô tả bước..."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Enter detailed instructions..."
+msgstr "Nhập hướng dẫn chi tiết..."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Select prerequisite steps..."
+msgstr "Chọn các bước tiên quyết..."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Note:"
+msgstr "Lưu ý:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_form
+msgid "Prerequisites are steps that must be completed before this step can be started."
+msgstr "Điều kiện tiên quyết là các bước phải hoàn thành trước khi bước này có thể bắt đầu."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_search
+msgid "Search Steps"
+msgstr "Tìm kiếm bước"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_search
+msgid "Optional"
+msgstr "Tùy chọn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_student_form
+msgid "Service Details"
+msgstr "Chi tiết dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_student_form
+msgid "Service Details & Information"
+msgstr "Chi tiết & thông tin dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_student_form
+msgid "Service Information"
+msgstr "Thông tin dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_student_form
+msgid "Details"
+msgstr "Chi tiết"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,name:isd_profile_management.action_step_detail
+msgid "Step Details"
+msgstr "Chi tiết bước"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,name:isd_profile_management.action_profile_step
+msgid "Profile Steps"
+msgstr "Các bước của gói"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_profile_step
+msgid "Create your first profile step!"
+msgstr "Tạo bước dịch vụ đầu tiên!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_profile_step
+msgid "Steps define the individual tasks or services within a profile."
+msgstr "Các bước xác định từng nhiệm vụ hoặc dịch vụ trong gói."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_tree
+msgid "Payments"
+msgstr "Thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_form
+msgid "Payment"
+msgstr "Thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_form
+msgid "Generate QR Code"
+msgstr "Tạo mã QR"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_form
+msgid "Check Payment Status"
+msgstr "Kiểm tra trạng thái thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_form
+msgid "Payment QR Code"
+msgstr "Mã QR thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_search
+msgid "Search Payments"
+msgstr "Tìm kiếm thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_search
+msgid "My Payments"
+msgstr "Thanh toán của tôi"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_payment
+msgid "No payments found!"
+msgstr "Không tìm thấy thanh toán nào!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_payment
+msgid "Payments are created when users select steps and submit payment for confirmation."
+msgstr "Thanh toán được tạo khi người dùng chọn bước và gửi thanh toán để xác nhận."
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,name:isd_profile_management.action_payment_confirmation
+msgid "Payment Confirmations"
+msgstr "Xác nhận thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_payment_confirmation
+msgid "No pending payments!"
+msgstr "Không có thanh toán đang chờ!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_payment_confirmation
+msgid "Payments requiring confirmation will appear here."
+msgstr "Thanh toán cần xác nhận sẽ hiển thị ở đây."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_tree
+msgid "User Profiles"
+msgstr "Hồ sơ người dùng"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "User Profile"
+msgstr "Hồ sơ người dùng"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Checkout"
+msgstr "Thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Start Progress"
+msgstr "Bắt đầu"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Set Pending"
+msgstr "Đặt chờ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Resume Progress"
+msgstr "Tiếp tục"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Mark Complete"
+msgstr "Hoàn thành"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Mark as Paid"
+msgstr "Đánh dấu đã trả"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Mark Returned"
+msgstr "Đánh dấu hoàn trả"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Cancel"
+msgstr "Hủy"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Profile Information"
+msgstr "Thông tin gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Cost Information"
+msgstr "Thông tin chi phí"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Dates"
+msgstr "Ngày"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Completion"
+msgstr "Hoàn thành"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Manager Notes"
+msgstr "Ghi chú quản lý"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "My Steps"
+msgstr "Bước của tôi"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Add notes about this profile assignment..."
+msgstr "Thêm ghi chú..."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Start"
+msgstr "Bắt đầu"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Complete"
+msgstr "Hoàn thành"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Approve"
+msgstr "Phê duyệt"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Reject"
+msgstr "Từ chối"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Result Summary"
+msgstr "Tóm tắt kết quả"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Confirm"
+msgstr "Xác nhận"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_step_form
+msgid "This step is selected for completion."
+msgstr "Bước này đã được chọn để hoàn thành."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_step_form
+msgid "This is a mandatory step that must be selected."
+msgstr "Đây là bước bắt buộc phải chọn."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_search
+msgid "Search User Profiles"
+msgstr "Tìm kiếm hồ sơ người dùng"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_search
+msgid "My Profiles"
+msgstr "Hồ sơ của tôi"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_search
+msgid "Payment Due"
+msgstr "Cần thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_user_profile
+msgid "No profiles assigned yet!"
+msgstr "Chưa có hồ sơ nào được gán!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_user_profile
+msgid "Assign profiles to users to help them track their progress and complete their goals."
+msgstr "Gán hồ sơ cho người dùng để giúp họ theo dõi tiến độ và hoàn thành mục tiêu."
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_my_profiles
+msgid "No profiles assigned to you yet!"
+msgstr "Chưa có hồ sơ nào được gán cho bạn!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_my_profiles
+msgid "Your assigned profiles will appear here. Contact your manager to get started."
+msgstr "Hồ sơ được gán cho bạn sẽ hiển thị ở đây. Liên hệ quản lý để bắt đầu."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_kanban
+msgid "Total:"
+msgstr "Tổng:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_kanban
+msgid "Due:"
+msgstr "Cần trả:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_card_kanban
+msgid "Available"
+msgstr "Có sẵn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_card_kanban
+msgid "services"
+msgstr "dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_card_kanban
+msgid "Starting from"
+msgstr "Giá từ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_card_kanban
+msgid "Services"
+msgstr "Dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_card_kanban
+msgid "Full Package"
+msgstr "Trọn gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_card_kanban
+msgid "Select Services"
+msgstr "Chọn dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,name:isd_profile_management.action_profile_cards
+msgid "Service Packages"
+msgstr "Gói dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_profile_cards
+msgid "No service packages available!"
+msgstr "Chưa có gói dịch vụ nào!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_profile_cards
+msgid "Service packages will be displayed here as beautiful cards with selectable steps and pricing."
+msgstr "Các gói dịch vụ sẽ được hiển thị tại đây dưới dạng thẻ với các bước và giá."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Service Package"
+msgstr "Gói dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Service Package Details"
+msgstr "Chi tiết gói dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Pricing Information"
+msgstr "Thông tin giá"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Total Steps:"
+msgstr "Tổng số bước:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Total Cost:"
+msgstr "Tổng chi phí:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Assigned Users:"
+msgstr "Người dùng được gán:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Package Status"
+msgstr "Trạng thái gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Status:"
+msgstr "Trạng thái:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Created By:"
+msgstr "Tạo bởi:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Created Date:"
+msgstr "Ngày tạo:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Package Description"
+msgstr "Mô tả gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Available Services/Steps"
+msgstr "Dịch vụ/bước có sẵn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "No Service Packages Available"
+msgstr "Chưa có gói dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Service packages are collections of services with pricing that students can select from."
+msgstr "Gói dịch vụ là tập hợp các dịch vụ có giá để học viên lựa chọn."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Create Packages"
+msgstr "Tạo gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Add Services"
+msgstr "Thêm dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "How Service Packages Work"
+msgstr "Cách gói dịch vụ hoạt động"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Create service packages like \"IELTS Preparation\" or \"Visa Application\""
+msgstr "Tạo gói dịch vụ như \"Luyện thi IELTS\" hoặc \"Hồ sơ Visa\""
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Add individual services/steps with pricing to each package"
+msgstr "Thêm các dịch vụ/bước riêng lẻ có giá vào mỗi gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_service_package_form
+msgid "Students can select packages and customize their service selection"
+msgstr "Học viên có thể chọn gói và tùy chỉnh lựa chọn dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_manager_dashboard_form
+msgid "Manager Dashboard"
+msgstr "Bảng điều khiển quản lý"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_manager_dashboard
+msgid "Welcome to the Manager Dashboard!"
+msgstr "Chào mừng đến bảng điều khiển quản lý!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_manager_dashboard
+msgid "Use the tabs above to manage items, packages, and user assignments."
+msgstr "Sử dụng các tab để quản lý dịch vụ, gói và phân công người dùng."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Select Your Steps"
+msgstr "Chọn dịch vụ"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Confirm Selection"
+msgstr "Xác nhận"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Step Selection for"
+msgstr "Chọn dịch vụ cho"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Summary"
+msgstr "Tóm tắt"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Notes"
+msgstr "Ghi chú"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Instructions"
+msgstr "Hướng dẫn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "How to Select Services:"
+msgstr "Cách chọn dịch vụ:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Check boxes for services you want"
+msgstr "Chọn các dịch vụ bạn muốn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Total cost updates automatically"
+msgstr "Tổng chi phí tự động cập nhật"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Mandatory services required, Optional your choice"
+msgstr "Dịch vụ bắt buộc phải chọn, dịch vụ tùy chọn do bạn quyết định"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Available Services"
+msgstr "Dịch vụ có sẵn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_tree
+msgid "Step Selections"
+msgstr "Danh sách đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,name:isd_profile_management.action_step_selection
+msgid "Step Selections"
+msgstr "Danh sách đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_step_selection
+msgid "No step selections yet!"
+msgstr "Chưa có đơn hàng nào!"
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,help:isd_profile_management.action_step_selection
+msgid "User step selections will appear here when users choose their desired services."
+msgstr "Đơn hàng sẽ hiển thị ở đây khi người dùng chọn dịch vụ mong muốn."
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,name:isd_profile_management.action_step_selection_form
+msgid "Select Steps"
+msgstr "Chọn bước"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_form
+msgid "User:"
+msgstr "Người dùng:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_form
+msgid "Selected Steps"
+msgstr "Bước đã chọn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_form
+msgid "Available Steps"
+msgstr "Bước có sẵn"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_profile_management_main
+msgid "Profile Management"
+msgstr "Quản lý hồ sơ"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_config
+msgid "Configuration"
+msgstr "Cấu hình"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_profiles
+msgid "Profiles"
+msgstr "Gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_steps
+msgid "Steps"
+msgstr "Các bước"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_reports
+msgid "Reports"
+msgstr "Báo cáo"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_manager_section
+msgid "Manager"
+msgstr "Quản lý"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_user_profiles
+msgid "User Profiles"
+msgstr "Hồ sơ người dùng"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_manager_dashboard
+msgid "Profile Packages"
+msgstr "Gói hồ sơ"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_student_section
+msgid "Student"
+msgstr "Học viên"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_settings
+msgid "Settings"
+msgstr "Cài đặt"
+
+#. module: isd_profile_management
+#: model:ir.ui.menu,name:isd_profile_management.menu_my_profiles
+msgid "My Profiles"
+msgstr "Hồ sơ của tôi"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Payment Configuration"
+msgstr "Cấu hình thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Select payment methods configured in ISD Payment module"
+msgstr "Chọn phương thức thanh toán đã cấu hình trong module ISD Payment"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "General"
+msgstr "Chung"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Currency of package prices"
+msgstr "Tiền tệ của giá gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Used to convert between USD and VND when payment provider currency differs"
+msgstr "Dùng để quy đổi giữa USD và VND khi tiền tệ nhà cung cấp thanh toán khác"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Email Notification Templates"
+msgstr "Mẫu email thông báo"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Configure email templates for customer notifications. Assignment emails to internal users are sent separately."
+msgstr "Cấu hình mẫu email cho thông báo khách hàng. Email phân công cho người dùng nội bộ được gửi riêng."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Email sent to customer when a new package order is created"
+msgstr "Email gửi cho khách hàng khi tạo đơn hàng gói mới"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Email sent to customer when payment is confirmed"
+msgstr "Email gửi cho khách hàng khi thanh toán được xác nhận"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Enable to send assignment/activity emails to end users. If disabled, only internal users receive these notifications."
+msgstr "Bật để gửi email phân công/hoạt động cho người dùng cuối. Nếu tắt, chỉ người dùng nội bộ nhận thông báo."
+
+#. module: isd_profile_management
+#: model:ir.actions.act_window,name:isd_profile_management.action_pm_settings
+msgid "PM Settings"
+msgstr "Cài đặt PM"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_rejection_wizard_form
+msgid "Reject Payment"
+msgstr "Từ chối thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_rejection_wizard_form
+msgid "Please provide a clear reason for rejecting this payment..."
+msgstr "Vui lòng cung cấp lý do rõ ràng để từ chối thanh toán này..."
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_wizard_form
+msgid "Select Your Services"
+msgstr "Chọn dịch vụ của bạn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_wizard_form
+msgid "Available Services - Check What You Need"
+msgstr "Dịch vụ có sẵn - Chọn dịch vụ bạn cần"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_qr_popup_wizard_form
+msgid "Transaction ID:"
+msgstr "Mã giao dịch:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_qr_popup_wizard_form
+msgid "Close"
+msgstr "Đóng"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_api_doc_wizard_form
+msgid "API Documentation"
+msgstr "Tài liệu API"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_api_doc_wizard_form
+msgid "External API Integration Guide"
+msgstr "Hướng dẫn tích hợp API bên ngoài"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_method_select_wizard_form
+msgid "Select Payment Method"
+msgstr "Chọn phương thức thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_payment_method_select_wizard_form
+msgid "Proceed to Payment"
+msgstr "Tiến hành thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.actions.report.xml,name:isd_profile_management.action_report_profile_progress
+msgid "Profile Progress Report"
+msgstr "Báo cáo tiến độ hồ sơ"
+
+#. module: isd_profile_management
+#: model:ir.actions.report.xml,name:isd_profile_management.action_report_payment_receipt
+msgid "Payment Report"
+msgstr "Báo cáo thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "User:"
+msgstr "Người dùng:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Profile:"
+msgstr "Gói:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Status:"
+msgstr "Trạng thái:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Progress:"
+msgstr "Tiến độ:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Start Date:"
+msgstr "Ngày bắt đầu:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Total Cost:"
+msgstr "Tổng chi phí:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Paid Amount:"
+msgstr "Đã thanh toán:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Remaining:"
+msgstr "Còn lại:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Steps Progress"
+msgstr "Tiến độ các bước"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_profile_progress
+msgid "Completion Date"
+msgstr "Ngày hoàn thành"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Payment Receipt"
+msgstr "Biên lai thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Payment Reference:"
+msgstr "Mã thanh toán:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Amount:"
+msgstr "Số tiền:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Payment Date:"
+msgstr "Ngày thanh toán:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Confirmed By:"
+msgstr "Xác nhận bởi:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Confirmed Date:"
+msgstr "Ngày xác nhận:"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Steps Paid"
+msgstr "Bước đã thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Step Name"
+msgstr "Tên bước"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.report_payment_receipt
+msgid "Total"
+msgstr "Tổng"
+
+#. module: isd_profile_management
+#: model:ir.sequence,name:isd_profile_management.seq_profile_payment
+msgid "Profile Payment"
+msgstr "Thanh toán gói"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_step_selection_simple_form
+msgid "Order Information"
+msgstr "Thông tin đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Email Templates"
+msgstr "Mẫu email"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Partner Integration Settings"
+msgstr "Cài đặt tích hợp đối tác"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
+msgid "Save"
+msgstr "Lưu"
