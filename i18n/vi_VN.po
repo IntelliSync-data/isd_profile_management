@@ -132,115 +132,115 @@ msgid "Inactive"
 msgstr "Không hoạt động"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Profile activated"
 msgstr "Đã kích hoạt gói"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Profile deactivated"
 msgstr "Đã vô hiệu hóa gói"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Assigned Users"
 msgstr "Người dùng được gán"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Profile Steps"
 msgstr "Các bước của gói"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Create New Service Item"
 msgstr "Tạo dịch vụ mới"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "All Service Items"
 msgstr "Tất cả dịch vụ"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Create New Package"
 msgstr "Tạo gói mới"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "All Packages"
 msgstr "Tất cả gói"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Package Builder"
 msgstr "Tạo gói"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Package builder feature coming soon! For now, use \"Create New Package\" to build packages."
 msgstr "Tính năng tạo gói sắp ra mắt! Hiện tại, hãy dùng \"Tạo gói mới\" để tạo."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Assign Package to Student"
 msgstr "Gán gói cho học viên"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "All User Assignments"
 msgstr "Tất cả phân công"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Student Progress"
 msgstr "Tiến độ học viên"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Package Report"
 msgstr "Báo cáo gói"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Package performance reports coming soon!"
 msgstr "Báo cáo hiệu suất gói sắp ra mắt!"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Revenue Report"
 msgstr "Báo cáo doanh thu"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Revenue reports coming soon!"
 msgstr "Báo cáo doanh thu sắp ra mắt!"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Student Report"
 msgstr "Báo cáo học viên"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/profile.py
+#: code:addons/isd_profile_management/models/profile.py:0
 #, python-format
 msgid "Student progress reports coming soon!"
 msgstr "Báo cáo tiến độ học viên sắp ra mắt!"
@@ -411,139 +411,139 @@ msgid "Cancelled"
 msgstr "Đã hủy"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "New"
 msgstr "Mới"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment amount must be positive."
 msgstr "Số tiền thanh toán phải là số dương."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Please upload a payment receipt before submitting."
 msgstr "Vui lòng tải lên biên lai thanh toán trước khi gửi."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment submitted for approval"
 msgstr "Thanh toán đã gửi để phê duyệt"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment confirmed by %s"
 msgstr "Thanh toán được xác nhận bởi %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Reject Payment"
 msgstr "Từ chối thanh toán"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment cancelled"
 msgstr "Thanh toán đã hủy"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "New Payment Confirmation Required"
 msgstr "Cần xác nhận thanh toán mới"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment of %s submitted by %s needs confirmation."
 msgstr "Thanh toán %s do %s gửi cần được xác nhận."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment Confirmed"
 msgstr "Thanh toán đã xác nhận"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Your payment of %s has been confirmed."
 msgstr "Thanh toán %s của bạn đã được xác nhận."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Please configure Payment Methods in Settings first."
 msgstr "Vui lòng cấu hình phương thức thanh toán trong Cài đặt trước."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Configured Payment Method not found."
 msgstr "Không tìm thấy phương thức thanh toán đã cấu hình."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment QR code generated. Transaction ID: %s"
 msgstr "Đã tạo mã QR thanh toán. Mã giao dịch: %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "No payment method linked to this payment."
 msgstr "Không có phương thức thanh toán liên kết với thanh toán này."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment already confirmed"
 msgstr "Thanh toán đã được xác nhận"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Transaction not found in payment system"
 msgstr "Không tìm thấy giao dịch trong hệ thống thanh toán"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment confirmed successfully"
 msgstr "Thanh toán đã xác nhận thành công"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment has expired"
 msgstr "Thanh toán đã hết hạn"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Waiting for payment confirmation from ACB"
 msgstr "Đang chờ xác nhận thanh toán từ ACB"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "Payment not yet confirmed"
 msgstr "Thanh toán chưa được xác nhận"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "PayPal payment created. Order ID: %s"
 msgstr "Đã tạo thanh toán PayPal. Mã đơn hàng: %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py
+#: code:addons/isd_profile_management/models/payment.py:0
 #, python-format
 msgid "External payment QR code generated. Transaction ID: %s"
 msgstr "Đã tạo mã QR thanh toán bên ngoài. Mã giao dịch: %s"
@@ -729,31 +729,31 @@ msgid "Steps that must be completed before this step"
 msgstr "Các bước phải hoàn thành trước bước này"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step.py
+#: code:addons/isd_profile_management/models/step.py:0
 #, python-format
 msgid "A step cannot be a prerequisite of itself."
 msgstr "Một bước không thể là điều kiện tiên quyết của chính nó."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step.py
+#: code:addons/isd_profile_management/models/step.py:0
 #, python-format
 msgid "Circular dependency detected in prerequisites."
 msgstr "Phát hiện phụ thuộc vòng trong điều kiện tiên quyết."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step.py
+#: code:addons/isd_profile_management/models/step.py:0
 #, python-format
 msgid "Cost cannot be negative."
 msgstr "Chi phí không được âm."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step.py
+#: code:addons/isd_profile_management/models/step.py:0
 #, python-format
 msgid "Step activated"
 msgstr "Bước đã kích hoạt"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step.py
+#: code:addons/isd_profile_management/models/step.py:0
 #, python-format
 msgid "Step deactivated"
 msgstr "Bước đã vô hiệu hóa"
@@ -814,67 +814,67 @@ msgid "Quoted"
 msgstr "Đã báo giá"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "Please select at least one step before confirming."
 msgstr "Vui lòng chọn ít nhất một bước trước khi xác nhận."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "My Profile"
 msgstr "Hồ sơ của tôi"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "Profile created from step selection. %d steps selected."
 msgstr "Hồ sơ được tạo từ lựa chọn dịch vụ. %d bước đã chọn."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "Please confirm the selection first before getting an order."
 msgstr "Vui lòng xác nhận lựa chọn trước khi tạo đơn hàng."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "Please select at least one step to get an order."
 msgstr "Vui lòng chọn ít nhất một bước để tạo đơn hàng."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "Order Generated"
 msgstr "Đã tạo đơn hàng"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "Your order has been generated! Total: %s for %s steps."
 msgstr "Đơn hàng của bạn đã được tạo! Tổng: %s cho %s bước."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "No steps selected for payment."
 msgstr "Chưa chọn bước nào để thanh toán."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "Make Payment"
 msgstr "Thanh toán"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "Select Services"
 msgstr "Chọn dịch vụ"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/step_selection.py
+#: code:addons/isd_profile_management/models/step_selection.py:0
 #, python-format
 msgid "User Selections"
 msgstr "Đơn hàng người dùng"
@@ -990,139 +990,139 @@ msgid "Returned"
 msgstr "Đã hoàn trả"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Profile started"
 msgstr "Hồ sơ đã bắt đầu"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Profile auto-started: first step approved"
 msgstr "Hồ sơ tự động bắt đầu: bước đầu tiên đã được phê duyệt"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Cannot complete profile. The following mandatory steps are not completed: %s"
 msgstr "Không thể hoàn thành hồ sơ. Các bước bắt buộc sau chưa hoàn thành: %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Profile completed"
 msgstr "Hồ sơ đã hoàn thành"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Profile cancelled"
 msgstr "Hồ sơ đã hủy"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Payments"
 msgstr "Thanh toán"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Payment marked as paid by %s"
 msgstr "Thanh toán được đánh dấu đã trả bởi %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Payment marked as returned by %s"
 msgstr "Thanh toán được đánh dấu hoàn trả bởi %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Can only set status to pending from in progress state."
 msgstr "Chỉ có thể đặt trạng thái chờ từ trạng thái đang thực hiện."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Status set to pending by manager %s"
 msgstr "Trạng thái được đặt chờ bởi quản lý %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Can only resume progress from pending state."
 msgstr "Chỉ có thể tiếp tục từ trạng thái đang chờ."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Progress resumed by manager %s"
 msgstr "Tiến độ được tiếp tục bởi quản lý %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Please confirm the profile first before getting an order."
 msgstr "Vui lòng xác nhận hồ sơ trước khi tạo đơn hàng."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "No steps selected for order."
 msgstr "Chưa chọn bước nào cho đơn hàng."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Total: %s for %s steps. Use \"Make Payment\" to proceed."
 msgstr "Tổng: %s cho %s bước. Dùng \"Thanh toán\" để tiếp tục."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "This profile is already fully paid."
 msgstr "Hồ sơ này đã thanh toán đầy đủ."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "No remaining amount to pay."
 msgstr "Không còn số tiền cần thanh toán."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Payment method not found."
 msgstr "Không tìm thấy phương thức thanh toán."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Could not reach payment service. Please try again later. Error: %s"
 msgstr "Không thể kết nối dịch vụ thanh toán. Vui lòng thử lại sau. Lỗi: %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Payment creation failed"
 msgstr "Tạo thanh toán thất bại"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Could not retrieve QR code. Please try again later. Error: %s"
 msgstr "Không thể lấy mã QR. Vui lòng thử lại sau. Lỗi: %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Payment service returned no QR or redirect URL."
 msgstr "Dịch vụ thanh toán không trả về mã QR hoặc URL chuyển hướng."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Select Payment Method"
 msgstr "Chọn phương thức thanh toán"
@@ -1183,67 +1183,67 @@ msgid "Not Paid"
 msgstr "Chưa thanh toán"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Step selected"
 msgstr "Đã chọn bước"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Step deselected"
 msgstr "Đã bỏ chọn bước"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Cannot start a step that is not selected."
 msgstr "Không thể bắt đầu bước chưa được chọn."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Step started"
 msgstr "Bước đã bắt đầu"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Step completion submitted for approval"
 msgstr "Bước hoàn thành đã gửi để phê duyệt"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Step completion approved by %s"
 msgstr "Bước hoàn thành được phê duyệt bởi %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Step completion rejected by %s"
 msgstr "Bước hoàn thành bị từ chối bởi %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Profile auto-completed: all steps approved"
 msgstr "Hồ sơ tự động hoàn thành: tất cả bước đã được phê duyệt"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Step Completion Approval Required"
 msgstr "Cần phê duyệt hoàn thành bước"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/models/user_profile.py
+#: code:addons/isd_profile_management/models/user_profile.py:0
 #, python-format
 msgid "Step \"%s\" completed by %s needs approval."
 msgstr "Bước \"%s\" hoàn thành bởi %s cần phê duyệt."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/controllers/external_api.py
+#: code:addons/isd_profile_management/controllers/external_api.py:0
 #, python-format
 msgid "Profile created via external API. Email: %s, Notes: %s"
 msgstr "Hồ sơ tạo qua API bên ngoài. Email: %s, Ghi chú: %s"
@@ -1264,25 +1264,25 @@ msgid "Please provide a clear reason for rejecting this payment"
 msgstr "Vui lòng cung cấp lý do rõ ràng để từ chối thanh toán này"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py
+#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py:0
 #, python-format
 msgid "Please provide a reason for rejection."
 msgstr "Vui lòng cung cấp lý do từ chối."
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py
+#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py:0
 #, python-format
 msgid "Payment rejected by %s. Reason: %s"
 msgstr "Thanh toán bị từ chối bởi %s. Lý do: %s"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py
+#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py:0
 #, python-format
 msgid "Payment Rejected"
 msgstr "Thanh toán bị từ chối"
 
 #. module: isd_profile_management
-#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py
+#: code:addons/isd_profile_management/wizard/payment_rejection_wizard.py:0
 #, python-format
 msgid "Your payment of %s has been rejected. Reason: %s"
 msgstr "Thanh toán %s của bạn đã bị từ chối. Lý do: %s"
