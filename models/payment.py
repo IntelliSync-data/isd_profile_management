@@ -287,6 +287,7 @@ class ProfilePayment(models.Model):
             'status': 'pending',
             'request_origin': request_origin,
             'request_ip': request_ip,
+            'branch': self.user_profile_id.profile_id.name if self.user_profile_id else '',
         })
 
         # Link to profile payment
@@ -477,6 +478,7 @@ class ProfilePayment(models.Model):
                 'status': 'pending',
                 'request_origin': request_origin,
                 'request_ip': request_ip,
+                'branch': self.user_profile_id.profile_id.name if self.user_profile_id else '',
             })
 
             self.write({
@@ -512,6 +514,7 @@ class ProfilePayment(models.Model):
                 'status': 'pending',
                 'request_origin': request_origin,
                 'request_ip': request_ip,
+                'branch': self.user_profile_id.profile_id.name if self.user_profile_id else '',
             })
 
             self.write({
