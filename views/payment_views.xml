@@ -8,7 +8,6 @@
             <list string="Payments" decoration-success="state=='confirmed'" decoration-info="state=='pending'" decoration-danger="state=='rejected'">
                 <field name="name"/>
                 <field name="partner_id"/>
-                <field name="user_id" optional="hide"/>
                 <field name="profile_id"/>
                 <field name="amount" widget="monetary"/>
                 <field name="payment_date"/>
@@ -36,7 +35,6 @@
                     <group>
                         <group>
                             <field name="partner_id" readonly="state != 'draft'"/>
-                            <field name="user_id" readonly="state != 'draft'" groups="isd_profile_management.group_profile_manager"/>
                             <field name="user_profile_id" readonly="state != 'draft'"/>
                             <field name="profile_id"/>
                         </group>
@@ -90,7 +88,6 @@
             <kanban default_group_by="state">
                 <field name="name"/>
                 <field name="partner_id"/>
-                <field name="user_id"/>
                 <field name="amount"/>
                 <field name="payment_date"/>
                 <field name="state"/>
@@ -136,7 +133,6 @@
             <search string="Search Payments">
                 <field name="name" string="Payment" filter_domain="[('name','ilike',self)]"/>
                 <field name="partner_id"/>
-                <field name="user_id"/>
                 <field name="profile_id"/>
                 <separator/>
                 <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
@@ -144,9 +140,9 @@
                 <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
                 <filter string="Rejected" name="rejected" domain="[('state','=','rejected')]"/>
                 <separator/>
-                <filter string="My Payments" name="my_payments" domain="[('user_id','=',uid)]"/>
+                <filter string="My Payments" name="my_payments" domain="[('partner_id','=',user.partner_id.id)]"/>
                 <group expand="0" string="Group By">
-                    <filter string="User" name="group_user" context="{'group_by':'user_id'}"/>
+                    <filter string="Customer" name="group_customer" context="{'group_by':'partner_id'}"/>
                     <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
                     <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
                     <filter string="Payment Date" name="group_payment_date" context="{'group_by':'payment_date'}"/>

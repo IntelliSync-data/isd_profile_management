@@ -15,7 +15,6 @@
                     <div class="oe_title">
                         <h1><field name="profile_id" readonly="1"/></h1>
                         <h2>Customer: <field name="partner_id" readonly="1"/></h2>
-                        <field name="user_id" invisible="1"/>
                     </div>
                     
                     <group>
@@ -68,7 +67,6 @@
         <field name="arch" type="xml">
             <list string="Step Selections">
                 <field name="partner_id"/>
-                <field name="user_id" optional="hide"/>
                 <field name="profile_id"/>
                 <field name="total_steps"/>
                 <field name="total_cost" widget="monetary"/>

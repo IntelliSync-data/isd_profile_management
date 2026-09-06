@@ -7,7 +7,7 @@
             <form string="Select Your Services">
                 <group>
                     <field name="profile_id" invisible="1"/>
-                    <field name="user_id" invisible="1"/>
+                    <field name="partner_id" invisible="1"/>
                 </group>
                 <separator string="Available Services - Check What You Need"/>
                 <field name="selected_step_ids" widget="many2many_checkboxes" nolabel="1" domain="[('state', '=', 'active')]"/>

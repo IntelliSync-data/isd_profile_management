@@ -8,8 +8,7 @@ class StepSelection(models.Model):
     _description = 'User Step Selection'
     _rec_name = 'profile_id'
     
-    # User and Profile
-    user_id = fields.Many2one('res.users', string='User')
+    # Customer and Profile
     partner_id = fields.Many2one('res.partner', string='Customer')
     profile_id = fields.Many2one('profile.management', string='Profile', required=True)
     
@@ -51,10 +50,10 @@ class StepSelection(models.Model):
     # Notes
     notes = fields.Text(string='Notes', help='Additional notes for this profile assignment')
     
-    @api.depends('user_id', 'partner_id', 'profile_id')
+    @api.depends('partner_id', 'profile_id')
     def _compute_name(self):
         for record in self:
-            contact_name = record.partner_id.name if record.partner_id else (record.user_id.name if record.user_id else None)
+            contact_name = record.partner_id.name if record.partner_id else None
             if contact_name and record.profile_id:
                 record.name = f"{contact_name} - {record.profile_id.name}"
             else:
@@ -174,8 +173,6 @@ class StepSelection(models.Model):
         domain = [('profile_id', '=', self.profile_id.id)]
         if self.partner_id:
             domain.append(('partner_id', '=', self.partner_id.id))
-        elif self.user_id:
-            domain.append(('user_id', '=', self.user_id.id))
         existing_profile = self.env['user.profile'].search(domain, limit=1)
         
         # Calculate locked cost at time of order
@@ -200,24 +197,18 @@ class StepSelection(models.Model):
             }
             if self.partner_id:
                 vals['partner_id'] = self.partner_id.id
-            if self.user_id:
-                vals['user_id'] = self.user_id.id
-                vals['assigned_by'] = self.user_id.id
             user_profile = self.env['user.profile'].with_context(skip_create_steps=True).create(vals)
         
         # Create user step instances ONLY for selected steps
         for step in self.selected_step_ids:
-            step_vals = {
+            self.env['user.step'].create({
                 'step_id': step.id,
                 'user_profile_id': user_profile.id,
                 'state': 'not_started',
                 'payment_status': 'not_paid',
                 'is_selected': True,
                 'cost': step.cost,
-            }
-            if self.user_id:
-                step_vals['user_id'] = self.user_id.id
-            self.env['user.step'].create(step_vals)
+            })
         
         # Link the created profile back to this selection
         self.created_profile_id = user_profile.id
@@ -254,17 +245,13 @@ class StepSelection(models.Model):
         if not self.selected_step_ids:
             raise ValidationError(_("No steps selected for payment."))
         
-        payment_vals = {
+        payment = self.env['profile.payment'].create({
             'amount': self.total_cost,
             'step_ids': [(6, 0, self.selected_step_ids.ids)],
             'step_selection_id': self.id,
+            'partner_id': self.partner_id.id if self.partner_id else False,
             'notes': f"Payment for {self.profile_id.name} - {self.total_steps} steps selected",
-        }
-        if self.user_id:
-            payment_vals['user_id'] = self.user_id.id
-        if self.partner_id:
-            payment_vals['partner_id'] = self.partner_id.id
-        payment = self.env['profile.payment'].create(payment_vals)
+        })
         
         return {
             'type': 'ir.actions.act_window',
@@ -298,7 +285,6 @@ class ProfileManagement(models.Model):
             'context': {
                 'default_profile_id': self.id,
                 'profile_id': self.id,
-                'default_user_id': False,
             },
         }
     

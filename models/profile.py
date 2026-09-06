@@ -151,7 +151,7 @@ class ProfileManagement(models.Model):
             'res_model': 'user.profile',
             'view_mode': 'form',
             'target': 'new',
-            'context': {'default_assigned_by': self.env.user.id},
+            'context': {'default_assigned_to': self.env.user.id},
         }
     
     def action_view_assignments(self):

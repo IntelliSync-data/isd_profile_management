@@ -17,47 +17,10 @@ class ResPartner(models.Model):
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
-    # Profile Management
-    user_profile_ids = fields.One2many('user.profile', 'user_id', string='Assigned Profiles')
-    profile_count = fields.Integer(string='Profile Count', compute='_compute_profile_count')
-    
     # User Type for Profile Management
     is_profile_student = fields.Boolean(string='Is Student', default=False)
     is_profile_manager = fields.Boolean(string='Is Manager', default=False)
-    
-    # Student Information
-    student_id = fields.Char(string='Student ID')
-    phone_number = fields.Char(string='Phone Number')
-    address = fields.Text(string='Address')
-    emergency_contact = fields.Char(string='Emergency Contact')
-    
-    @api.depends('user_profile_ids')
-    def _compute_profile_count(self):
-        for user in self:
-            user.profile_count = len(user.user_profile_ids)
-    
-    def action_view_profiles(self):
-        """View user's profiles"""
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'My Profiles',
-            'res_model': 'user.profile',
-            'view_mode': 'list,form',
-            'domain': [('user_id', '=', self.id)],
-            'context': {'default_user_id': self.id},
-        }
-    
-    def action_assign_profile(self):
-        """Assign a profile to user (for managers)"""
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Assign Profile',
-            'res_model': 'user.profile',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {'default_user_id': self.id},
-        }
-    
+
     @api.model_create_multi
     def create(self, vals_list):
         """Override create to automatically assign profile management groups to new users"""

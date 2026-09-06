@@ -81,7 +81,6 @@
                             <field name="user_profile_ids">
                                 <list>
                                     <field name="partner_id"/>
-                                    <field name="user_id" optional="hide"/>
                                     <field name="state" widget="badge"/>
                                     <field name="progress_percentage" widget="progressbar"/>
                                     <field name="start_date"/>

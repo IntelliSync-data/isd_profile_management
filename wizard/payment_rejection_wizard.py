@@ -27,14 +27,16 @@ class PaymentRejectionWizard(models.TransientModel):
             body=_("Payment rejected by %s. Reason: %s") % (self.env.user.name, self.rejection_reason)
         )
         
-        # Notify user via activity
-        self.payment_id.activity_schedule(
-            'mail.mail_activity_data_todo',
-            user_id=self.payment_id.user_id.id,
-            summary=_('Payment Rejected'),
-            note=_('Your payment of %s has been rejected. Reason: %s') % (
-                self.payment_id.amount, self.rejection_reason
+        # Notify user via activity (if partner has a linked user account)
+        user = self.payment_id.partner_id.user_ids[:1] if self.payment_id.partner_id else None
+        if user:
+            self.payment_id.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=user.id,
+                summary=_('Payment Rejected'),
+                note=_('Your payment of %s has been rejected. Reason: %s') % (
+                    self.payment_id.amount, self.rejection_reason
+                )
             )
-        )
         
         return {'type': 'ir.actions.act_window_close'}

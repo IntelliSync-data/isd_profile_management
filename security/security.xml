@@ -92,7 +92,7 @@
         <record id="rule_user_profile_student_only" model="ir.rule">
             <field name="name">Student Only: Own User Profiles</field>
             <field name="model_id" ref="model_user_profile"/>
-            <field name="domain_force">['|', ('user_id', '=', user.id), ('partner_id', '=', user.partner_id.id)]</field>
+            <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
             <field name="groups" eval="[(4, ref('group_profile_student_only'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -103,7 +103,7 @@
         <record id="rule_user_step_student_only" model="ir.rule">
             <field name="name">Student Only: Own User Steps</field>
             <field name="model_id" ref="model_user_step"/>
-            <field name="domain_force">['|', ('user_id', '=', user.id), ('user_profile_id.partner_id', '=', user.partner_id.id)]</field>
+            <field name="domain_force">[('user_profile_id.partner_id', '=', user.partner_id.id)]</field>
             <field name="groups" eval="[(4, ref('group_profile_student_only'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -114,7 +114,7 @@
         <record id="rule_payment_student_only" model="ir.rule">
             <field name="name">Student Only: Own Payments</field>
             <field name="model_id" ref="model_profile_payment"/>
-            <field name="domain_force">['|', ('user_id', '=', user.id), ('partner_id', '=', user.partner_id.id)]</field>
+            <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
             <field name="groups" eval="[(4, ref('group_profile_student_only'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>

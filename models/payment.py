@@ -34,8 +34,7 @@ class ProfilePayment(models.Model):
         help='QR code URL for payment'
     )
 
-    # User and Profile
-    user_id = fields.Many2one('res.users', string='User', tracking=True)
+    # Customer and Profile
     partner_id = fields.Many2one('res.partner', string='Customer', tracking=True)
     user_profile_id = fields.Many2one('user.profile', string='User Profile', ondelete='cascade', help="Profile created after payment confirmation")
     step_selection_id = fields.Many2one('step.selection', string='Original Selection', help="Original step selection that created this payment")
@@ -101,9 +100,8 @@ class ProfilePayment(models.Model):
     
     @api.onchange('user_profile_id')
     def _onchange_user_profile_id(self):
-        """Update user_id/partner_id when user_profile_id changes"""
+        """Update partner_id when user_profile_id changes"""
         if self.user_profile_id:
-            self.user_id = self.user_profile_id.user_id
             self.partner_id = self.user_profile_id.partner_id
     
     def action_submit_for_approval(self):
@@ -173,7 +171,7 @@ class ProfilePayment(models.Model):
                 'mail.mail_activity_data_todo',
                 user_id=manager.id,
                 summary=_('New Payment Confirmation Required'),
-                note=_('Payment of %s submitted by %s needs confirmation.') % (self.amount, self.partner_id.name or (self.user_id.name if self.user_id else ''))
+                note=_('Payment of %s submitted by %s needs confirmation.') % (self.amount, self.partner_id.name or '')
             )
     
     def _notify_user_confirmation(self):
@@ -183,13 +181,15 @@ class ProfilePayment(models.Model):
             'isd_profile_management.pm_send_assignment_emails', 'False'
         ) == 'True'
 
-        if send_assignment_emails and self.user_id:
-            self.activity_schedule(
-                'mail.mail_activity_data_todo',
-                user_id=self.user_id.id,
-                summary=_('Payment Confirmed'),
-                note=_('Your payment of %s has been confirmed.') % self.amount
-            )
+        if send_assignment_emails and self.partner_id:
+            user = self.partner_id.user_ids[:1]
+            if user:
+                self.activity_schedule(
+                    'mail.mail_activity_data_todo',
+                    user_id=user.id,
+                    summary=_('Payment Confirmed'),
+                    note=_('Your payment of %s has been confirmed.') % self.amount
+                )
 
     def _send_payment_confirmation_email(self):
         """Send payment confirmation email using configured marketing template"""
@@ -209,8 +209,8 @@ class ProfilePayment(models.Model):
             _logger.warning("Configured payment confirmation email template not found")
             return
 
-        contact_name = self.partner_id.name if self.partner_id else (self.user_id.name if self.user_id else '')
-        contact_email = self.partner_id.email if self.partner_id else (self.user_id.email if self.user_id else '')
+        contact_name = self.partner_id.name or ''
+        contact_email = self.partner_id.email or ''
 
         if not contact_email:
             _logger.warning("No email for payment confirmation - skipping")
@@ -287,7 +287,7 @@ class ProfilePayment(models.Model):
             'payment_method_id': payment_method.id,
             'transaction_id': transaction_id,
             'amount': self.amount,
-            'description': f"Profile Payment {self.name} - {self.partner_id.name or (self.user_id.name if self.user_id else '')}",
+            'description': f"Profile Payment {self.name} - {self.partner_id.name or ''}",
             'qr_url': payment_method.generate_qr_url(transaction_id, self.amount),
             'bank_account': payment_method.provider_account_id,
             'bank_code': payment_method.sepay_acc_bank,
@@ -479,7 +479,7 @@ class ProfilePayment(models.Model):
                 'transaction_id': order_id,
                 'amount': self.amount,
                 'amount_usd': converted['amount_usd'],
-                'description': f"External Profile Payment {self.name} - {self.partner_id.name or (self.user_id.name if self.user_id else '')}",
+                'description': f"External Profile Payment {self.name} - {self.partner_id.name or ''}",
                 'paypal_order_id': order_id,
                 'paypal_redirect_url': paypal_result.get('redirect_url'),
                 'status': 'pending',
@@ -514,7 +514,7 @@ class ProfilePayment(models.Model):
                 'payment_method_id': payment_method.id,
                 'transaction_id': transaction_id,
                 'amount': charge_amount,
-                'description': f"External Profile Payment {self.name} - {self.partner_id.name or (self.user_id.name if self.user_id else '')}",
+                'description': f"External Profile Payment {self.name} - {self.partner_id.name or ''}",
                 'qr_url': payment_method.generate_qr_url(transaction_id, charge_amount),
                 'bank_account': payment_method.provider_account_id,
                 'bank_code': payment_method.sepay_acc_bank,

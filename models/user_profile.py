@@ -23,9 +23,7 @@ class UserProfile(models.Model):
 
     name = fields.Char(string='Name', compute='_compute_name', store=True)
 
-    # User and Profile
-    user_id = fields.Many2one(
-        'res.users', string='User', tracking=True)
+    # Customer and Profile
     partner_id = fields.Many2one(
         'res.partner', string='Customer', tracking=True)
     profile_id = fields.Many2one(
@@ -80,8 +78,8 @@ class UserProfile(models.Model):
         string='Remaining Amount', compute='_compute_costs', store=True)
 
     # Manager Assignment
-    assigned_by = fields.Many2one(
-        'res.users', string='Assigned By', default=lambda self: self.env.user)
+    assigned_to = fields.Many2one(
+        'res.users', string='Assigned To', default=lambda self: self.env.user)
     assigned_date = fields.Datetime(
         string='Assigned Date', default=fields.Datetime.now)
 
@@ -91,10 +89,10 @@ class UserProfile(models.Model):
     # Notes
     notes = fields.Text(string='Notes', help='Additional notes for this profile assignment')
 
-    @api.depends('user_id', 'partner_id', 'profile_id')
+    @api.depends('partner_id', 'profile_id')
     def _compute_name(self):
         for record in self:
-            contact_name = record.partner_id.name if record.partner_id else (record.user_id.name if record.user_id else None)
+            contact_name = record.partner_id.name if record.partner_id else None
             if contact_name and record.profile_id:
                 record.name = f"{contact_name} - {record.profile_id.name}"
             else:
@@ -163,13 +161,10 @@ class UserProfile(models.Model):
     def _create_user_steps(self):
         """Create user steps from profile steps"""
         for step in self.profile_id.step_ids.filtered(lambda s: s.state == 'active'):
-            vals = {
+            self.env['user.step'].create({
                 'user_profile_id': self.id,
                 'step_id': step.id,
-            }
-            if self.user_id:
-                vals['user_id'] = self.user_id.id
-            self.env['user.step'].create(vals)
+            })
 
     def action_start_profile(self):
         """Start working on the profile"""
@@ -265,7 +260,6 @@ class UserProfile(models.Model):
             'domain': [('user_profile_id', '=', self.id)],
             'context': {
                 'default_user_profile_id': self.id,
-                'default_user_id': self.user_id.id if self.user_id else False,
                 'default_partner_id': self.partner_id.id if self.partner_id else False,
             },
         }
@@ -420,7 +414,6 @@ class UserProfile(models.Model):
             # QR-based flow (e.g. SePay) — create profile payment in draft state
             profile_payment = self.env['profile.payment'].create({
                 'user_profile_id': self.id,
-                'user_id': self.user_id.id if self.user_id else False,
                 'partner_id': self.partner_id.id if self.partner_id else False,
                 'amount': total_amount,
                 'step_ids': [(6, 0, selected_steps.ids)],
@@ -462,7 +455,6 @@ class UserProfile(models.Model):
             # Redirect-based flow (e.g. VTCPay, PayPal)
             self.env['profile.payment'].create({
                 'user_profile_id': self.id,
-                'user_id': self.user_id.id if self.user_id else False,
                 'partner_id': self.partner_id.id if self.partner_id else False,
                 'amount': total_amount,
                 'step_ids': [(6, 0, selected_steps.ids)],
@@ -512,7 +504,6 @@ class UserProfile(models.Model):
 
         payment = self.env['profile.payment'].create({
             'user_profile_id': self.id,
-            'user_id': self.user_id.id if self.user_id else False,
             'partner_id': self.partner_id.id if self.partner_id else False,
             'amount': total_amount,
             'step_ids': [(6, 0, selected_steps.ids)],
@@ -560,8 +551,8 @@ class UserProfile(models.Model):
         if payment:
             order_code = payment.transaction_id or payment.name or ''
 
-        contact_name = self.partner_id.name if self.partner_id else (self.user_id.name if self.user_id else '')
-        contact_email = self.partner_id.email if self.partner_id else (self.user_id.email if self.user_id else '')
+        contact_name = self.partner_id.name or ''
+        contact_email = self.partner_id.email or ''
 
         if not contact_email:
             _logger.warning("No email for order confirmation - skipping")
@@ -603,7 +594,6 @@ class UserStep(models.Model):
         'user.profile', string='User Profile', required=True, ondelete='cascade')
     step_id = fields.Many2one(
         'profile.step', string='Step', required=True, ondelete='cascade')
-    user_id = fields.Many2one('res.users', string='User')
 
     # Step Details
     cost = fields.Float(string='Cost', related='step_id.cost', store=True)
@@ -798,7 +788,7 @@ class UserStep(models.Model):
                 user_id=manager.id,
                 summary=_('Step Completion Approval Required'),
                 note=_('Step "%s" completed by %s needs approval.') % (
-                    self.name, self.user_profile_id.partner_id.name or (self.user_id.name if self.user_id else ''))
+                    self.name, self.user_profile_id.partner_id.name or '')
             )
 
 # External Service Integrations and Utilities
