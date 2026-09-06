@@ -43,7 +43,10 @@
         <field name="arch" type="xml">
             <xpath expr="//sheet/group[1]/group[1]" position="replace">
                 <group string="Order Information">
-                    <field name="user_id" readonly="state != 'not_started'"/>
+                    <field name="user_id" readonly="state != 'not_started'"
+                           groups="isd_profile_management.group_profile_manager"/>
+                    <field name="partner_id" string="Customer"
+                           groups="isd_profile_management.group_profile_manager"/>
                     <field name="profile_id" string="Product" readonly="state != 'not_started'"/>
                     <field name="state" widget="badge"/>
                     <field name="progress_percentage" widget="progressbar"/>
@@ -63,7 +66,8 @@
         <field name="arch" type="xml">
             <xpath expr="//list" position="replace">
                 <list string="Orders" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='not_yet_paid'" decoration-primary="state=='paid'" decoration-muted="state=='new'">
-                    <field name="user_id"/>
+                    <field name="user_id" optional="hide"/>
+                    <field name="partner_id" string="Customer"/>
                     <field name="profile_id"/>
                     <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='paid'"/>
                     <field name="progress_percentage" widget="progressbar"/>
@@ -147,7 +151,8 @@
         <field name="inherit_id" ref="view_step_selection_simple_form"/>
         <field name="arch" type="xml">
             <xpath expr="//h2" position="replace">
-                <h2>Order Selection for <field name="user_id" options="{'no_quick_create': True}"/></h2>
+                <h2>Order Selection for <field name="partner_id" options="{'no_quick_create': True}"/></h2>
+                <field name="user_id" invisible="1"/>
             </xpath>
             <xpath expr="//button[@name='action_confirm_selection']" position="attributes">
                 <attribute name="string">Confirm Order</attribute>
