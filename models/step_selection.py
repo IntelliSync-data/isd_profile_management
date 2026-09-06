@@ -174,9 +174,17 @@ class StepSelection(models.Model):
             ('profile_id', '=', self.profile_id.id)
         ], limit=1)
         
+        # Calculate locked cost at time of order
+        if self.profile_id.use_promotional_price:
+            locked_cost = self.profile_id.promotional_cost
+        else:
+            package_cost = self.profile_id.package_cost or 0.0
+            locked_cost = sum(self.selected_step_ids.mapped('cost')) + package_cost
+
         if existing_profile:
             # Update existing profile with new steps
             user_profile = existing_profile
+            user_profile.write({'locked_cost': locked_cost})
             # Delete existing user steps to replace with selected ones
             existing_profile.user_step_ids.unlink()
         else:
@@ -187,6 +195,7 @@ class StepSelection(models.Model):
                 'state': 'new',
                 'assigned_date': fields.Datetime.now(),
                 'assigned_by': self.user_id.id,
+                'locked_cost': locked_cost,
             })
         
         # Create user step instances ONLY for selected steps

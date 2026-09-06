@@ -67,6 +67,9 @@ class UserProfile(models.Model):
     )
 
     # Costs
+    locked_cost = fields.Float(
+        string='Locked Cost',
+        help='Frozen total cost at time of first payment confirmation')
     total_cost = fields.Float(
         string='Total Cost', compute='_compute_costs', store=True)
     paid_amount = fields.Float(
@@ -105,15 +108,18 @@ class UserProfile(models.Model):
             else:
                 record.progress_percentage = 0.0
 
-    @api.depends('user_step_ids.is_selected', 'user_step_ids.cost', 'profile_id.package_cost', 'profile_id.use_promotional_price', 'profile_id.promotional_cost', 'payment_status')
+    @api.depends('locked_cost', 'user_step_ids.is_selected', 'user_step_ids.cost', 'profile_id.package_cost', 'profile_id.use_promotional_price', 'profile_id.promotional_cost', 'payment_status')
     def _compute_costs(self):
         for record in self:
-            selected_steps = record.user_step_ids.filtered('is_selected')
-            if record.profile_id and record.profile_id.use_promotional_price:
-                record.total_cost = record.profile_id.promotional_cost
+            if record.locked_cost:
+                record.total_cost = record.locked_cost
             else:
-                package_cost = record.profile_id.package_cost if record.profile_id else 0.0
-                record.total_cost = sum(selected_steps.mapped('cost')) + package_cost
+                selected_steps = record.user_step_ids.filtered('is_selected')
+                if record.profile_id and record.profile_id.use_promotional_price:
+                    record.total_cost = record.profile_id.promotional_cost
+                else:
+                    package_cost = record.profile_id.package_cost if record.profile_id else 0.0
+                    record.total_cost = sum(selected_steps.mapped('cost')) + package_cost
 
             # paid_amount: combine payment records + payment_status override
             # First, get actual paid from confirmed payments

@@ -154,16 +154,6 @@ class ExternalProfileAPIController(http.Controller):
                     'groups_id': [(6, 0, [request.env.ref('base.group_portal').id])]
                 })
 
-            # Always create a new user profile (each purchase is a separate order)
-            user_profile = request.env['user.profile'].sudo().with_context(skip_create_steps=True).create({
-                'user_id': user.id,
-                'profile_id': package.id,
-                'state': 'new',
-                'assigned_date': fields.Datetime.now(),
-                'assigned_by': user.id,
-                'notes': notes,
-            })
-
             # Get all active steps from package
             active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
 
@@ -174,6 +164,25 @@ class ExternalProfileAPIController(http.Controller):
                     'error': 'Package has no active steps configured',
                     'error_code': 'NO_STEPS'
                 }
+
+            # Calculate and lock total cost at time of order
+            if package.use_promotional_price:
+                total_amount = package.promotional_cost
+            else:
+                total_amount = sum(active_steps.mapped('cost')) + (package.package_cost or 0)
+            if total_amount <= 0:
+                total_amount = package.total_cost or 0
+
+            # Always create a new user profile (each purchase is a separate order)
+            user_profile = request.env['user.profile'].sudo().with_context(skip_create_steps=True).create({
+                'user_id': user.id,
+                'profile_id': package.id,
+                'state': 'new',
+                'assigned_date': fields.Datetime.now(),
+                'assigned_by': user.id,
+                'notes': notes,
+                'locked_cost': total_amount,
+            })
 
             # Create user step instances for all steps
             user_step_ids = []
@@ -191,14 +200,6 @@ class ExternalProfileAPIController(http.Controller):
 
             # Flush to database to ensure user_step records exist
             request.env.cr.flush()
-
-            # Calculate total cost
-            if package.use_promotional_price:
-                total_amount = package.promotional_cost
-            else:
-                total_amount = sum(active_steps.mapped('cost')) + (package.package_cost or 0)
-            if total_amount <= 0:
-                total_amount = package.total_cost or 0
 
             # Validate total amount
             if total_amount <= 0:
