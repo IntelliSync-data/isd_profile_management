@@ -7,7 +7,8 @@
         <field name="arch" type="xml">
             <list string="Payments" decoration-success="state=='confirmed'" decoration-info="state=='pending'" decoration-danger="state=='rejected'">
                 <field name="name"/>
-                <field name="user_id"/>
+                <field name="partner_id"/>
+                <field name="user_id" optional="hide"/>
                 <field name="profile_id"/>
                 <field name="amount" widget="monetary"/>
                 <field name="payment_date"/>
@@ -34,8 +35,9 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="user_id" readonly="state != 'draft'"/>
-                            <field name="user_profile_id" readonly="state != 'draft'" domain="[('user_id', '=', user_id)]"/>
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="user_id" readonly="state != 'draft'" groups="isd_profile_management.group_profile_manager"/>
+                            <field name="user_profile_id" readonly="state != 'draft'"/>
                             <field name="profile_id"/>
                         </group>
                         <group>
@@ -87,6 +89,7 @@
         <field name="arch" type="xml">
             <kanban default_group_by="state">
                 <field name="name"/>
+                <field name="partner_id"/>
                 <field name="user_id"/>
                 <field name="amount"/>
                 <field name="payment_date"/>
@@ -104,7 +107,7 @@
                                 </div>
                                 <div>
                                     <div>
-                                        <i/> <field name="user_id"/>
+                                        <i/> <field name="partner_id"/>
                                     </div>
                                     <div>
                                         <i/> <field name="payment_date"/>
@@ -132,6 +135,7 @@
         <field name="arch" type="xml">
             <search string="Search Payments">
                 <field name="name" string="Payment" filter_domain="[('name','ilike',self)]"/>
+                <field name="partner_id"/>
                 <field name="user_id"/>
                 <field name="profile_id"/>
                 <separator/>

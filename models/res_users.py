@@ -2,6 +2,18 @@
 from odoo import models, fields, api
 
 
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    profile_ids = fields.One2many('user.profile', 'partner_id', string='Profiles')
+    profile_count = fields.Integer(string='Profile Count', compute='_compute_profile_count')
+
+    @api.depends('profile_ids')
+    def _compute_profile_count(self):
+        for partner in self:
+            partner.profile_count = len(partner.profile_ids)
+
+
 class ResUsers(models.Model):
     _inherit = 'res.users'
 

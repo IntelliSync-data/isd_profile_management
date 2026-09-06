@@ -140,18 +140,13 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'PAYMENT_METHOD_NOT_FOUND'
                 }
 
-            # Find or create user by email
-            user = request.env['res.users'].sudo().search([('login', '=', email)], limit=1)
-            if not user:
-                # Create new user.
-                # no_reset_password stops auth_signup from emailing the
-                # "invites you to connect to Odoo" signup invitation.
-                user = request.env['res.users'].sudo().with_context(no_reset_password=True).create({
-                    'name': email.split('@')[0],  # Use email prefix as name
-                    'login': email,
+            # Find or create contact by email
+            partner = request.env['res.partner'].sudo().search([('email', '=', email)], limit=1)
+            if not partner:
+                partner = request.env['res.partner'].sudo().create({
+                    'name': email.split('@')[0],
                     'email': email,
-                    'active': True,
-                    'groups_id': [(6, 0, [request.env.ref('base.group_portal').id])]
+                    'customer_rank': 1,
                 })
 
             # Get all active steps from package
@@ -175,11 +170,10 @@ class ExternalProfileAPIController(http.Controller):
 
             # Always create a new user profile (each purchase is a separate order)
             user_profile = request.env['user.profile'].sudo().with_context(skip_create_steps=True).create({
-                'user_id': user.id,
+                'partner_id': partner.id,
                 'profile_id': package.id,
                 'state': 'new',
                 'assigned_date': fields.Datetime.now(),
-                'assigned_by': user.id,
                 'notes': notes,
                 'locked_cost': total_amount,
             })
@@ -188,7 +182,6 @@ class ExternalProfileAPIController(http.Controller):
             user_step_ids = []
             for step in active_steps:
                 user_step = request.env['user.step'].sudo().create({
-                    'user_id': user.id,
                     'step_id': step.id,
                     'user_profile_id': user_profile.id,
                     'state': 'not_started',
@@ -216,7 +209,7 @@ class ExternalProfileAPIController(http.Controller):
             # Create profile payment (link to user_step records that were just created)
             profile_payment = request.env['profile.payment'].sudo().create({
                 'user_profile_id': user_profile.id,
-                'user_id': user.id,
+                'partner_id': partner.id,
                 'amount': total_amount,
                 'step_ids': [(6, 0, user_step_ids)],
                 'state': 'draft',

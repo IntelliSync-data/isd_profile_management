@@ -9,7 +9,8 @@ class StepSelection(models.Model):
     _rec_name = 'profile_id'
     
     # User and Profile
-    user_id = fields.Many2one('res.users', string='User', required=True)
+    user_id = fields.Many2one('res.users', string='User')
+    partner_id = fields.Many2one('res.partner', string='Customer')
     profile_id = fields.Many2one('profile.management', string='Profile', required=True)
     
     # Selection Details
@@ -50,11 +51,12 @@ class StepSelection(models.Model):
     # Notes
     notes = fields.Text(string='Notes', help='Additional notes for this profile assignment')
     
-    @api.depends('user_id', 'profile_id')
+    @api.depends('user_id', 'partner_id', 'profile_id')
     def _compute_name(self):
         for record in self:
-            if record.user_id and record.profile_id:
-                record.name = f"{record.user_id.name} - {record.profile_id.name}"
+            contact_name = record.partner_id.name if record.partner_id else (record.user_id.name if record.user_id else None)
+            if contact_name and record.profile_id:
+                record.name = f"{contact_name} - {record.profile_id.name}"
             else:
                 record.name = "New Selection"
     
@@ -169,10 +171,12 @@ class StepSelection(models.Model):
     def _create_user_profile_from_selection(self):
         """Create user profile from step selection"""
         # Check if user already has a profile for this package
-        existing_profile = self.env['user.profile'].search([
-            ('user_id', '=', self.user_id.id),
-            ('profile_id', '=', self.profile_id.id)
-        ], limit=1)
+        domain = [('profile_id', '=', self.profile_id.id)]
+        if self.partner_id:
+            domain.append(('partner_id', '=', self.partner_id.id))
+        elif self.user_id:
+            domain.append(('user_id', '=', self.user_id.id))
+        existing_profile = self.env['user.profile'].search(domain, limit=1)
         
         # Calculate locked cost at time of order
         if self.profile_id.use_promotional_price:
@@ -188,27 +192,32 @@ class StepSelection(models.Model):
             # Delete existing user steps to replace with selected ones
             existing_profile.user_step_ids.unlink()
         else:
-            # Create new user profile without triggering automatic step creation
-            user_profile = self.env['user.profile'].with_context(skip_create_steps=True).create({
-                'user_id': self.user_id.id,
+            vals = {
                 'profile_id': self.profile_id.id,
                 'state': 'new',
                 'assigned_date': fields.Datetime.now(),
-                'assigned_by': self.user_id.id,
                 'locked_cost': locked_cost,
-            })
+            }
+            if self.partner_id:
+                vals['partner_id'] = self.partner_id.id
+            if self.user_id:
+                vals['user_id'] = self.user_id.id
+                vals['assigned_by'] = self.user_id.id
+            user_profile = self.env['user.profile'].with_context(skip_create_steps=True).create(vals)
         
         # Create user step instances ONLY for selected steps
         for step in self.selected_step_ids:
-            self.env['user.step'].create({
-                'user_id': self.user_id.id,
+            step_vals = {
                 'step_id': step.id,
                 'user_profile_id': user_profile.id,
                 'state': 'not_started',
                 'payment_status': 'not_paid',
                 'is_selected': True,
                 'cost': step.cost,
-            })
+            }
+            if self.user_id:
+                step_vals['user_id'] = self.user_id.id
+            self.env['user.step'].create(step_vals)
         
         # Link the created profile back to this selection
         self.created_profile_id = user_profile.id
@@ -245,13 +254,17 @@ class StepSelection(models.Model):
         if not self.selected_step_ids:
             raise ValidationError(_("No steps selected for payment."))
         
-        payment = self.env['profile.payment'].create({
-            'user_id': self.user_id.id,
+        payment_vals = {
             'amount': self.total_cost,
             'step_ids': [(6, 0, self.selected_step_ids.ids)],
             'step_selection_id': self.id,
             'notes': f"Payment for {self.profile_id.name} - {self.total_steps} steps selected",
-        })
+        }
+        if self.user_id:
+            payment_vals['user_id'] = self.user_id.id
+        if self.partner_id:
+            payment_vals['partner_id'] = self.partner_id.id
+        payment = self.env['profile.payment'].create(payment_vals)
         
         return {
             'type': 'ir.actions.act_window',

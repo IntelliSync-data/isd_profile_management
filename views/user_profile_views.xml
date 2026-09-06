@@ -6,7 +6,8 @@
         <field name="model">user.profile</field>
         <field name="arch" type="xml">
             <list string="User Profiles" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-muted="state=='new'">
-                <field name="user_id"/>
+                <field name="user_id" optional="hide"/>
+                <field name="partner_id"/>
                 <field name="profile_id"/>
                 <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='pending'"/>
                 <field name="payment_status" widget="badge"
@@ -66,7 +67,10 @@
                     
                     <group>
                         <group string="Profile Information">
-                            <field name="user_id" readonly="state != 'not_started'"/>
+                            <field name="user_id" readonly="state != 'not_started'"
+                                   groups="isd_profile_management.group_profile_manager"/>
+                            <field name="partner_id"
+                                   groups="isd_profile_management.group_profile_manager"/>
                             <field name="profile_id" readonly="state != 'not_started'"/>
                             <field name="state" widget="badge"/>
                             <field name="progress_percentage" widget="progressbar"/>
@@ -81,6 +85,9 @@
                                    decoration-success="payment_status == 'paid'"
                                    decoration-info="payment_status == 'returned'"
                                    groups="isd_profile_management.group_profile_student_only"/>
+                            <field name="locked_cost" widget="monetary"
+                                   groups="isd_profile_management.group_profile_manager"
+                                   string="Adjust Price"/>
                             <field name="total_cost" widget="monetary"/>
                             <field name="paid_amount" widget="monetary"/>
                             <field name="remaining_amount" widget="monetary"/>
@@ -189,6 +196,7 @@
         <field name="arch" type="xml">
             <kanban default_group_by="state">
                 <field name="user_id"/>
+                <field name="partner_id"/>
                 <field name="profile_id"/>
                 <field name="state"/>
                 <field name="progress_percentage"/>
@@ -201,7 +209,7 @@
                                 <div>
                                     <div>
                                         <strong>
-                                            <field name="user_id"/>
+                                            <field name="partner_id"/>
                                         </strong>
                                         <div>
                                             <field name="profile_id"/>
@@ -284,6 +292,7 @@
         <field name="model">user.profile</field>
         <field name="arch" type="xml">
             <search string="Search User Profiles">
+                <field name="partner_id"/>
                 <field name="user_id"/>
                 <field name="profile_id"/>
                 <separator/>
@@ -335,8 +344,8 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">user.profile</field>
         <field name="view_mode">list,kanban,form</field>
-        <field name="domain">[('user_id', '=', uid)]</field>
-        <field name="context">{'default_user_id': uid, 'create': False}</field>
+        <field name="domain">['|', ('user_id', '=', uid), ('partner_id.user_ids', 'in', [uid])]</field>
+        <field name="context">{'create': False}</field>
         <field name="search_view_id" ref="view_user_profile_search"/>
         <field name="help" type="html">
             <p>

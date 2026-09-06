@@ -20,7 +20,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <h2>Profile Progress Report</h2>
-                                <p><strong>User:</strong> <span t-field="profile.user_id.name"/></p>
+                                <p><strong>Customer:</strong> <span t-if="profile.partner_id" t-field="profile.partner_id.name"/><span t-if="not profile.partner_id and profile.user_id" t-field="profile.user_id.name"/></p>
                                 <p><strong>Profile:</strong> <span t-field="profile.profile_id.name"/></p>
                                 <p><strong>Status:</strong> <span t-field="profile.state"/></p>
                                 <p><strong>Progress:</strong> <span t-field="profile.progress_percentage"/>%</p>
@@ -89,7 +89,7 @@
                             <div class="col-12">
                                 <h2>Payment Receipt</h2>
                                 <p><strong>Payment Reference:</strong> <span t-field="payment.name"/></p>
-                                <p><strong>User:</strong> <span t-field="payment.user_id.name"/></p>
+                                <p><strong>Customer:</strong> <span t-if="payment.partner_id" t-field="payment.partner_id.name"/><span t-if="not payment.partner_id and payment.user_id" t-field="payment.user_id.name"/></p>
                                 <p><strong>Profile:</strong> <span t-field="payment.profile_id.name"/></p>
                                 <p><strong>Amount:</strong> <span t-field="payment.amount" t-options="{'widget': 'monetary'}"/></p>
                                 <p><strong>Payment Date:</strong> <span t-field="payment.payment_date"/></p>
