@@ -67,11 +67,11 @@
                     
                     <group>
                         <group string="Profile Information">
-                            <field name="user_id" readonly="state != 'not_started'"
+                            <field name="user_id"
                                    groups="isd_profile_management.group_profile_manager"/>
                             <field name="partner_id"
                                    groups="isd_profile_management.group_profile_manager"/>
-                            <field name="profile_id" readonly="state != 'not_started'"/>
+                            <field name="profile_id" readonly="state != 'new'"/>
                             <field name="state" widget="badge"/>
                             <field name="progress_percentage" widget="progressbar"/>
                         </group>
