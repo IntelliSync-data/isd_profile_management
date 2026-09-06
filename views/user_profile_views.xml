@@ -301,7 +301,7 @@
                 <filter string="Paid" name="paid" domain="[('payment_status','=','paid')]"/>
                 <filter string="Returned" name="returned" domain="[('payment_status','=','returned')]"/>
                 <separator/>
-                <filter string="My Profiles" name="my_profiles" domain="[('partner_id','=',user.partner_id.id)]"/>
+                <filter string="My Profiles" name="my_profiles" domain="[('partner_id.user_ids', 'in', [uid])]"/>
                 <filter string="Payment Due" name="payment_due" domain="[('remaining_amount','>',0)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Customer" name="group_customer" context="{'group_by':'partner_id'}"/>
