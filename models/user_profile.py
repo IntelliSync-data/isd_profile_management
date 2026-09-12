@@ -779,19 +779,33 @@ class UserStep(models.Model):
         }
 
     def action_open_print_wizard(self):
-        """Open print label wizard for this step"""
+        """Open print label dialog via JS client action"""
         if not self.step_id.is_printable:
             raise ValidationError(_("This step is not configured for printing."))
         return {
-            'type': 'ir.actions.act_window',
-            'name': _('Print Label'),
-            'res_model': 'print.label.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_user_step_id': self.id,
-                'default_tracking_number': self.tracking_number or '',
+            'type': 'ir.actions.client',
+            'tag': 'isd_print_label',
+            'params': {
+                'step_id': self.id,
+                'step_name': self.step_id.name or '',
+                'tracking_number': self.tracking_number or '',
             },
+        }
+
+    def action_print_label(self, tracking_number):
+        """Save tracking number and return print data for JS rendering"""
+        self.ensure_one()
+        if not self.step_id.is_printable:
+            raise ValidationError(_("This step is not configured for printing."))
+        self.write({'tracking_number': tracking_number})
+        step = self.step_id
+        return {
+            'template': step.print_template or '',
+            'width': step.print_width or 100,
+            'height': step.print_height or 60,
+            'code_type': step.print_code_type or 'none',
+            'tracking_number': tracking_number,
+            'data': self._get_print_data(),
         }
 
     def _get_print_data(self):
