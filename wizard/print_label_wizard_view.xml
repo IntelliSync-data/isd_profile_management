@@ -7,7 +7,7 @@
             <form string="Print Label">
                 <group>
                     <field name="user_step_id" invisible="1"/>
-                    <field name="step_name" string="Step"/>
+                    <field name="step_name" string="Step" readonly="1"/>
                     <field name="tracking_number" placeholder="Enter tracking/shipping number..."/>
                     <field name="print_code_type" string="Code Type"/>
                     <field name="print_width" string="Width (mm)"/>
