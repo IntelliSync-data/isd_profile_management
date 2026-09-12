@@ -787,7 +787,6 @@ class UserStep(models.Model):
             'name': _('Print Label'),
             'res_model': 'print.label.wizard',
             'view_mode': 'form',
-            'view_id': self.env.ref('isd_profile_management.view_print_label_wizard_form').id,
             'target': 'new',
             'context': {
                 'default_user_step_id': self.id,
