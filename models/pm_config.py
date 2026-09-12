@@ -16,7 +16,8 @@ class ResConfigSettings(models.TransientModel):
             'isd_profile_management.pm_payment_method_ids', default=''
         )
         ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
-        res['pm_payment_method_ids'] = [(6, 0, ids)]
+        existing = self.env['isd_payment.method'].sudo().browse(ids).exists().ids
+        res['pm_payment_method_ids'] = [(6, 0, existing)]
         return res
 
     def set_values(self):
