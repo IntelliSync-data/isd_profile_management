@@ -24,98 +24,11 @@ function renderTemplate(template, data) {
     });
 }
 
-function generateBarcodeSVG(value) {
-    if (!value) return '';
-    var encoded = [];
-    for (var i = 0; i < value.length; i++) {
-        var code = value.charCodeAt(i);
-        var binary = code.toString(2).padStart(8, '0');
-        encoded.push(binary);
-    }
-    var pattern = encoded.join('0');
-    var barWidth = 2;
-    var height = 60;
-    var totalWidth = pattern.length * barWidth;
-    var bars = '';
-    for (var j = 0; j < pattern.length; j++) {
-        if (pattern[j] === '1') {
-            bars += '<rect x="' + (j * barWidth) + '" y="0" width="' + barWidth + '" height="' + height + '" fill="black"/>';
-        }
-    }
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + totalWidth + '" height="' + (height + 20) + '" viewBox="0 0 ' + totalWidth + ' ' + (height + 20) + '">' +
-        bars +
-        '<text x="' + (totalWidth / 2) + '" y="' + (height + 16) + '" text-anchor="middle" font-family="monospace" font-size="14">' + value + '</text>' +
-        '</svg>';
-}
-
-function generateQRCodeSVG(value) {
-    if (!value) return '';
-    var size = 150;
-    var canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    var ctx = canvas.getContext('2d');
-
-    var moduleSize = 5;
-    var modules = Math.floor(size / moduleSize);
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = 'black';
-
-    var hash = 0;
-    for (var i = 0; i < value.length; i++) {
-        hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0;
-    }
-
-    function drawFinder(x, y) {
-        for (var r = 0; r < 7; r++) {
-            for (var c = 0; c < 7; c++) {
-                var isBorder = r === 0 || r === 6 || c === 0 || c === 6;
-                var isInner = r >= 2 && r <= 4 && c >= 2 && c <= 4;
-                if (isBorder || isInner) {
-                    ctx.fillRect((x + c) * moduleSize, (y + r) * moduleSize, moduleSize, moduleSize);
-                }
-            }
-        }
-    }
-    drawFinder(0, 0);
-    drawFinder(modules - 7, 0);
-    drawFinder(0, modules - 7);
-
-    var seed = Math.abs(hash);
-    for (var row = 0; row < modules; row++) {
-        for (var col = 0; col < modules; col++) {
-            if ((row < 8 && col < 8) || (row < 8 && col >= modules - 8) || (row >= modules - 8 && col < 8)) continue;
-            seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-            if (seed % 3 === 0) {
-                ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
-            }
-        }
-    }
-
-    var dataUrl = canvas.toDataURL('image/png');
-    return '<div style="text-align:center"><img src="' + dataUrl + '" width="' + size + '" height="' + size + '"/>' +
-        '<div style="font-family:monospace;font-size:12px;margin-top:4px">' + value + '</div></div>';
-}
-
 function openPrintWindow(params) {
     var width = params.width || 100;
     var height = params.height || 60;
-    var codeType = params.code_type || 'none';
-    var trackingNumber = params.tracking_number || '';
     var template = params.template || '';
     var data = params.data || {};
-
-    var codeHtml = '';
-    if (codeType === 'barcode' && trackingNumber) {
-        codeHtml = generateBarcodeSVG(trackingNumber);
-    } else if (codeType === 'qrcode' && trackingNumber) {
-        codeHtml = generateQRCodeSVG(trackingNumber);
-    }
-
-    data.code = codeHtml;
-    data.barcode = codeType === 'barcode' ? codeHtml : '';
-    data.qrcode = codeType === 'qrcode' ? codeHtml : '';
 
     var renderedHtml = renderTemplate(template, data);
 

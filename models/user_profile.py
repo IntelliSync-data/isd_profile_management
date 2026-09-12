@@ -799,14 +799,50 @@ class UserStep(models.Model):
             raise ValidationError(_("This step is not configured for printing."))
         self.write({'tracking_number': tracking_number})
         step = self.step_id
+        data = self._get_print_data()
+        code_type = step.print_code_type or 'none'
+        if tracking_number and code_type != 'none':
+            code_img = self._generate_code_image(tracking_number, code_type)
+            data['code'] = code_img
+            data['barcode'] = code_img if code_type == 'barcode' else ''
+            data['qrcode'] = code_img if code_type == 'qrcode' else ''
         return {
             'template': step.print_template or '',
             'width': step.print_width or 100,
             'height': step.print_height or 60,
-            'code_type': step.print_code_type or 'none',
+            'code_type': code_type,
             'tracking_number': tracking_number,
-            'data': self._get_print_data(),
+            'data': data,
         }
+
+    def _generate_code_image(self, value, code_type):
+        """Generate barcode or QR code as an HTML img tag with base64 data"""
+        buf = io.BytesIO()
+        if code_type == 'qrcode':
+            try:
+                import qrcode
+                qr = qrcode.QRCode(version=1, box_size=6, border=2)
+                qr.add_data(value)
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="black", back_color="white")
+                img.save(buf, format='PNG')
+            except ImportError:
+                _logger.warning("qrcode library not installed, using fallback")
+                return '<div style="font-family:monospace;font-size:14px;">' + value + '</div>'
+        elif code_type == 'barcode':
+            try:
+                import barcode as python_barcode
+                from barcode.writer import ImageWriter
+                code128 = python_barcode.get_barcode_class('code128')
+                bc = code128(value, writer=ImageWriter())
+                bc.write(buf, options={'module_height': 10, 'font_size': 10, 'text_distance': 2})
+            except ImportError:
+                _logger.warning("python-barcode library not installed, using fallback")
+                return '<div style="font-family:monospace;font-size:14px;">' + value + '</div>'
+        else:
+            return ''
+        b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+        return '<img src="data:image/png;base64,' + b64 + '" style="max-width:100%;" />'
 
     def _get_print_data(self):
         """Build template variable dict for print label rendering"""
