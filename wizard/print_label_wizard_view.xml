@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_print_label_wizard_form" model="ir.ui.view">
+        <field name="name">print.label.wizard.form</field>
+        <field name="model">print.label.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Label">
+                <group>
+                    <field name="user_step_id" invisible="1"/>
+                    <field name="step_name" string="Step"/>
+                    <field name="tracking_number" placeholder="Enter tracking/shipping number..."/>
+                    <field name="print_code_type" string="Code Type"/>
+                    <field name="print_width" string="Width (mm)"/>
+                    <field name="print_height" string="Height (mm)"/>
+                </group>
+                <footer>
+                    <button name="action_print" type="object" string="Print" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

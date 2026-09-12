@@ -40,6 +40,17 @@ class ProfileStep(models.Model):
         help="Steps that must be completed before this step"
     )
     
+    # Print Label
+    is_printable = fields.Boolean(string='Printable', default=False)
+    print_width = fields.Integer(string='Print Width (mm)', default=100)
+    print_height = fields.Integer(string='Print Height (mm)', default=60)
+    print_template = fields.Text(string='Print Template (HTML)')
+    print_code_type = fields.Selection([
+        ('none', 'None'),
+        ('barcode', 'Barcode'),
+        ('qrcode', 'QR Code'),
+    ], string='Code Type', default='none')
+
     # User Steps
     user_step_ids = fields.One2many('user.step', 'step_id', string='User Steps')
     

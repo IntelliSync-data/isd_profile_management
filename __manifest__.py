@@ -46,6 +46,7 @@
         'wizard/qr_popup_wizard_view.xml',
         'wizard/profile_api_doc_wizard_view.xml',
         'wizard/payment_method_select_wizard_view.xml',
+        'wizard/print_label_wizard_view.xml',
         'reports/profile_report.xml',
     ],
     'assets': {
@@ -56,6 +57,7 @@
         'web.assets_backend': [
             'isd_profile_management/static/src/js/qr_poll.js',
             'isd_profile_management/static/src/js/payment_method_picker.js',
+            'isd_profile_management/static/src/js/print_label.js',
             'isd_profile_management/static/src/css/payment_method_picker.css',
         ],
     },

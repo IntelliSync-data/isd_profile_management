@@ -644,6 +644,10 @@ class UserStep(models.Model):
     # Computed from profile
     is_advanced = fields.Boolean(string='Advanced', related='user_profile_id.profile_id.is_advanced', store=True)
 
+    # Print / Shipping
+    tracking_number = fields.Char(string='Tracking Number')
+    is_printable = fields.Boolean(related='step_id.is_printable', store=True)
+
     # Manager Updates
     manager_notes = fields.Text(string='Manager Notes')
     result = fields.Text(
@@ -773,6 +777,48 @@ class UserStep(models.Model):
                 'result': self.result,
                 'form_view_initial_mode': 'edit',
             }
+        }
+
+    def action_open_print_wizard(self):
+        """Open print label wizard for this step"""
+        if not self.step_id.is_printable:
+            raise ValidationError(_("This step is not configured for printing."))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Print Label'),
+            'res_model': 'print.label.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_user_step_id': self.id,
+                'default_tracking_number': self.tracking_number or '',
+            },
+        }
+
+    def _get_print_data(self):
+        """Build template variable dict for print label rendering"""
+        profile = self.user_profile_id
+        partner = profile.partner_id
+        return {
+            'order_name': profile.name or '',
+            'customer_name': partner.name or '',
+            'customer_phone': partner.phone or partner.mobile or '',
+            'customer_email': partner.email or '',
+            'customer_address': ', '.join(filter(None, [
+                partner.street, partner.street2, partner.city,
+                partner.state_id.name if partner.state_id else '',
+                partner.country_id.name if partner.country_id else '',
+            ])),
+            'product_name': profile.profile_id.name or '',
+            'total_cost': f'{profile.total_cost:,.0f}',
+            'paid_amount': f'{profile.paid_amount:,.0f}',
+            'remaining_amount': f'{profile.remaining_amount:,.0f}',
+            'payment_status': dict(profile._fields['payment_status'].selection).get(profile.payment_status, ''),
+            'order_date': str(profile.create_date.date()) if profile.create_date else '',
+            'step_name': self.step_id.name or '',
+            'step_cost': f'{self.cost:,.0f}',
+            'tracking_number': self.tracking_number or '',
+            'print_date': str(fields.Date.today()),
         }
 
     def _check_auto_complete_profile(self):

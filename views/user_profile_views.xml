@@ -139,6 +139,12 @@
                                     <button name="action_show_result" string="Result" type="object"
                                             invisible="state != 'completed'"
                                             groups="isd_profile_management.group_profile_manager"/>
+                                    <!-- Print label button -->
+                                    <field name="is_printable" column_invisible="1"/>
+                                    <button name="action_open_print_wizard" string="Print" type="object"
+                                            icon="fa-print"
+                                            invisible="state != 'completed' or not is_printable"
+                                            groups="isd_profile_management.group_profile_manager"/>
                                 </list>
                             </field>
                         </page>

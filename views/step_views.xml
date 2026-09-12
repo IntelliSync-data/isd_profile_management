@@ -59,6 +59,31 @@
                                 <field name="instructions" widget="html" placeholder="Enter detailed instructions..." nolabel="1"/>
                             </group>
                         </page>
+                        <page string="Print Label" name="print_label">
+                            <group>
+                                <group>
+                                    <field name="is_printable" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                            <group invisible="not is_printable">
+                                <group string="Dimensions">
+                                    <field name="print_width" string="Width (mm)"/>
+                                    <field name="print_height" string="Height (mm)"/>
+                                    <field name="print_code_type"/>
+                                </group>
+                            </group>
+                            <group string="HTML Template" invisible="not is_printable">
+                                <div class="alert alert-info" role="alert">
+                                    <strong>Available keys:</strong>
+                                    {{customer_name}}, {{customer_phone}}, {{customer_email}}, {{customer_address}},
+                                    {{product_name}}, {{order_name}}, {{total_cost}}, {{paid_amount}}, {{remaining_amount}},
+                                    {{payment_status}}, {{order_date}}, {{step_name}}, {{step_cost}},
+                                    {{tracking_number}}, {{code}}, {{barcode}}, {{qrcode}}, {{print_date}}
+                                </div>
+                                <field name="print_template" widget="ace" nolabel="1"
+                                       options="{'mode': 'html'}"/>
+                            </group>
+                        </page>
                         <page string="Prerequisites" name="prerequisites">
                             <group>
                                 <field name="prerequisite_step_ids" widget="many2many_tags"
