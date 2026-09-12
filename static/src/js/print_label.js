@@ -1,7 +1,22 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
-import { rpc } from "@web/core/network/rpc";
+
+function callRpc(model, method, args) {
+    return fetch("/web/dataset/call_kw/" + model + "/" + method, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        credentials: "same-origin",
+        body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "call",
+            params: {model: model, method: method, args: args, kwargs: {}},
+        }),
+    }).then(function (r) { return r.json(); }).then(function (resp) {
+        if (resp.error) throw new Error(resp.error.data && resp.error.data.message || resp.error.message || "RPC Error");
+        return resp.result;
+    });
+}
 
 function renderTemplate(template, data) {
     return template.replace(/\{\{(\w+)\}\}/g, function (match, key) {
@@ -186,12 +201,7 @@ function showPrintDialog(params) {
         btn.textContent = 'Loading...';
 
         try {
-            var result = await rpc("/web/dataset/call_kw/user.step/action_print_label", {
-                model: "user.step",
-                method: "action_print_label",
-                args: [[stepId], tn],
-                kwargs: {},
-            });
+            var result = await callRpc("user.step", "action_print_label", [[stepId], tn]);
 
             if (result && result.template) {
                 var ok = openPrintWindow(result);
