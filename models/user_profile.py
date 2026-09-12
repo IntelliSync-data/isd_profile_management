@@ -152,14 +152,14 @@ class UserProfile(models.Model):
     @api.onchange('profile_id')
     def _onchange_profile_id(self):
         if self.profile_id and not self._origin.id:
-            new_steps = self.env['user.step']
+            steps = []
             for step in self.profile_id.step_ids.filtered(lambda s: s.state == 'active'):
-                new_steps += new_steps.new({
+                steps.append((0, 0, {
                     'step_id': step.id,
                     'state': 'not_started',
                     'is_selected': True,
-                })
-            self.user_step_ids = new_steps
+                }))
+            self.user_step_ids = steps
 
     @api.model_create_multi
     def create(self, vals_list):
