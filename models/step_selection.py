@@ -169,12 +169,6 @@ class StepSelection(models.Model):
     
     def _create_user_profile_from_selection(self):
         """Create user profile from step selection"""
-        # Check if user already has a profile for this package
-        domain = [('profile_id', '=', self.profile_id.id)]
-        if self.partner_id:
-            domain.append(('partner_id', '=', self.partner_id.id))
-        existing_profile = self.env['user.profile'].search(domain, limit=1)
-        
         # Calculate locked cost at time of order
         if self.profile_id.use_promotional_price:
             locked_cost = self.profile_id.promotional_cost
@@ -182,22 +176,15 @@ class StepSelection(models.Model):
             package_cost = self.profile_id.package_cost or 0.0
             locked_cost = sum(self.selected_step_ids.mapped('cost')) + package_cost
 
-        if existing_profile:
-            # Update existing profile with new steps
-            user_profile = existing_profile
-            user_profile.write({'locked_cost': locked_cost})
-            # Delete existing user steps to replace with selected ones
-            existing_profile.user_step_ids.unlink()
-        else:
-            vals = {
-                'profile_id': self.profile_id.id,
-                'state': 'new',
-                'assigned_date': fields.Datetime.now(),
-                'locked_cost': locked_cost,
-            }
-            if self.partner_id:
-                vals['partner_id'] = self.partner_id.id
-            user_profile = self.env['user.profile'].with_context(skip_create_steps=True).create(vals)
+        vals = {
+            'profile_id': self.profile_id.id,
+            'state': 'new',
+            'assigned_date': fields.Datetime.now(),
+            'locked_cost': locked_cost,
+        }
+        if self.partner_id:
+            vals['partner_id'] = self.partner_id.id
+        user_profile = self.env['user.profile'].with_context(skip_create_steps=True).create(vals)
         
         # Create user step instances ONLY for selected steps
         for step in self.selected_step_ids:

@@ -135,28 +135,29 @@
         return null;
     }
 
+    function isInsideModal(el) {
+        return el && el.closest && (el.closest('.modal') || el.closest('.o_dialog') || el.closest('.o_modal_full'));
+    }
+
     function inspectNode(node) {
         try {
             if (!node.querySelector) return;
-            console.info('Inspecting node for transaction_id:', node);
-            // Look for any element with name="transaction_id" (input or widget)
             var el = node.querySelector('[name="transaction_id"]');
             if (el) {
+                var modalRoot = isInsideModal(el);
+                if (!modalRoot) return;
                 var tx = extractTransactionIdFromElement(el);
                 if (tx) {
-                    console.info('Found transaction_id in modal (any element):', tx);
-                    var modalRoot = (el.closest && (el.closest('.modal') || el.closest('.o_dialog') || el.closest('.o_modal_full'))) || node;
                     startPollingForModal(modalRoot, tx);
                     return;
                 }
             }
-            // Also try to find readonly widget by class that may contain the id in a span
             var widget = node.querySelector('.o_field_widget[name="transaction_id"]');
             if (widget) {
+                var modalRoot2 = isInsideModal(widget);
+                if (!modalRoot2) return;
                 var tx2 = extractTransactionIdFromElement(widget);
                 if (tx2) {
-                    console.info('Found transaction_id in field widget:', tx2);
-                    var modalRoot2 = (widget.closest && (widget.closest('.modal') || widget.closest('.o_dialog') || widget.closest('.o_modal_full'))) || node;
                     startPollingForModal(modalRoot2, tx2);
                 }
             }
@@ -228,10 +229,10 @@
             if (els && els.length) {
                 els.forEach(function (el) {
                     try {
-                        var root = (el.closest && (el.closest('.modal') || el.closest('.o_dialog') || el.closest('.o_modal_full') || el.closest('.o_form_renderer'))) || document.body;
-                        // If there's no active poll for this root, inspect it and potentially start polling
-                        if (!root || !root.__qrPollStarted) {
-                            console.info('QR poll scanner: found transaction element, inspecting root', root);
+                        var root = el.closest && (el.closest('.modal') || el.closest('.o_dialog') || el.closest('.o_modal_full'));
+                        if (!root) return;
+                        if (!root.__qrPollStarted) {
+                            console.info('QR poll scanner: found transaction element in modal, inspecting root', root);
                             inspectNode(root);
                         }
                     } catch (e) { console.debug(e); }

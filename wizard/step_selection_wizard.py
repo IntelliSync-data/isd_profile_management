@@ -15,15 +15,6 @@ class StepSelectionWizard(models.TransientModel):
 
     def action_confirm(self):
         """Create step selection and close wizard"""
-        existing = self.env['step.selection'].search([
-            ('partner_id', '=', self.partner_id.id),
-            ('profile_id', '=', self.profile_id.id),
-            ('state', '=', 'draft')
-        ], limit=1)
-
-        if existing:
-            existing.unlink()
-
         selection = self.env['step.selection'].create({
             'partner_id': self.partner_id.id,
             'profile_id': self.profile_id.id,
