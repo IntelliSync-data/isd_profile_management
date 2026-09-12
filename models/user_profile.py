@@ -149,13 +149,26 @@ class UserProfile(models.Model):
             record.selected_step_ids = record.user_step_ids.filtered(
                 'is_selected')
 
+    @api.onchange('profile_id')
+    def _onchange_profile_id(self):
+        if self.profile_id:
+            steps = []
+            for step in self.profile_id.step_ids.filtered(lambda s: s.state == 'active'):
+                steps.append((0, 0, {
+                    'step_id': step.id,
+                    'state': 'not_started',
+                    'is_selected': True,
+                    'cost': step.cost,
+                }))
+            self.user_step_ids = [(5, 0, 0)] + steps
+
     @api.model_create_multi
     def create(self, vals_list):
         records = super(UserProfile, self).create(vals_list)
-        # Only create steps automatically if not explicitly skipped
         if not self.env.context.get('skip_create_steps', False):
             for record in records:
-                record._create_user_steps()
+                if not record.user_step_ids:
+                    record._create_user_steps()
         return records
 
     def _create_user_steps(self):
