@@ -309,6 +309,12 @@
                 <separator/>
                 <filter string="My Profiles" name="my_profiles" domain="[('partner_id.user_ids', 'in', [uid])]"/>
                 <filter string="Payment Due" name="payment_due" domain="[('remaining_amount','>',0)]"/>
+                <separator/>
+                <filter string="Today" name="created_today" domain="[('create_date','&gt;=',context_today())]"/>
+                <filter string="Yesterday" name="created_yesterday" domain="[('create_date','&gt;=', context_today() - relativedelta(days=1)), ('create_date','&lt;',context_today())]"/>
+                <filter string="This Week" name="created_this_week" domain="[('create_date','&gt;=', (context_today() - relativedelta(weeks=1)))]"/>
+                <filter string="This Month" name="created_this_month" domain="[('create_date','&gt;=', (context_today() - relativedelta(months=1)))]"/>
+                <filter string="This Year" name="created_this_year" domain="[('create_date','&gt;=', (context_today() - relativedelta(years=1)))]"/>
                 <group expand="0" string="Group By">
                     <filter string="Customer" name="group_customer" context="{'group_by':'partner_id'}"/>
                     <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
@@ -342,7 +348,7 @@
         <field name="res_model">user.profile</field>
         <field name="view_mode">list,kanban,pivot,form</field>
         <field name="path">pm-orders</field>
-        <field name="context">{'default_assigned_to': uid}</field>
+        <field name="context">{'default_assigned_to': uid, 'search_default_created_today': 1}</field>
         <field name="search_view_id" ref="view_user_profile_search"/>
         <field name="help" type="html">
             <p>
@@ -362,7 +368,7 @@
         <field name="view_mode">list,kanban,pivot,form</field>
         <field name="path">pm-my-orders</field>
         <field name="domain">[('partner_id.user_ids', 'in', [uid])]</field>
-        <field name="context">{'create': False}</field>
+        <field name="context">{'create': False, 'search_default_created_today': 1}</field>
         <field name="search_view_id" ref="view_user_profile_search"/>
         <field name="help" type="html">
             <p>
