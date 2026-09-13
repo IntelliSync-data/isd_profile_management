@@ -71,18 +71,18 @@ class UserProfile(models.Model):
         'res.currency', string='Currency',
         default=lambda self: self.env.company.currency_id,
         readonly=True)
-    locked_cost = fields.Monetary(
-        string='Locked Cost', currency_field='currency_id',
+    locked_cost = fields.Float(
+        string='Locked Cost',
         help='Frozen total cost at time of first payment confirmation')
-    total_cost = fields.Monetary(
-        string='Total Cost', currency_field='currency_id',
-        compute='_compute_costs', store=True)
-    paid_amount = fields.Monetary(
-        string='Paid Amount', currency_field='currency_id',
-        compute='_compute_costs', store=True)
-    remaining_amount = fields.Monetary(
-        string='Remaining Amount', currency_field='currency_id',
-        compute='_compute_costs', store=True)
+    total_cost = fields.Float(
+        string='Total Cost', compute='_compute_costs', store=True,
+        group_operator='sum')
+    paid_amount = fields.Float(
+        string='Paid Amount', compute='_compute_costs', store=True,
+        group_operator='sum')
+    remaining_amount = fields.Float(
+        string='Remaining Amount', compute='_compute_costs', store=True,
+        group_operator='sum')
 
     # Manager Assignment
     assigned_to = fields.Many2one(
