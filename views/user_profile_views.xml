@@ -15,9 +15,9 @@
                        decoration-success="payment_status == 'paid'"
                        decoration-info="payment_status == 'returned'"/>
                 <field name="progress_percentage" widget="progressbar"/>
-                <field name="total_cost" widget="monetary"/>
-                <field name="paid_amount" widget="monetary"/>
-                <field name="remaining_amount" widget="monetary"/>
+                <field name="total_cost" widget="monetary" sum="Total"/>
+                <field name="paid_amount" widget="monetary" sum="Paid"/>
+                <field name="remaining_amount" widget="monetary" sum="Remaining"/>
                 <field name="start_date"/>
                 <field name="assigned_to"/>
                 <field name="assigned_date"/>
@@ -320,12 +320,27 @@
         </field>
     </record>
 
+    <!-- User Profile Pivot View -->
+    <record id="view_user_profile_pivot" model="ir.ui.view">
+        <field name="name">user.profile.pivot</field>
+        <field name="model">user.profile</field>
+        <field name="arch" type="xml">
+            <pivot string="Orders Analysis">
+                <field name="profile_id" type="row"/>
+                <field name="state" type="col"/>
+                <field name="total_cost" type="measure"/>
+                <field name="paid_amount" type="measure"/>
+                <field name="remaining_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
     <!-- User Profile Action -->
     <record id="action_user_profile" model="ir.actions.act_window">
         <field name="name">User Profiles</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">user.profile</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">list,kanban,pivot,form</field>
         <field name="path">pm-orders</field>
         <field name="context">{'default_assigned_to': uid}</field>
         <field name="search_view_id" ref="view_user_profile_search"/>
@@ -344,7 +359,7 @@
         <field name="name">My Profiles</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">user.profile</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">list,kanban,pivot,form</field>
         <field name="path">pm-my-orders</field>
         <field name="domain">[('partner_id.user_ids', 'in', [uid])]</field>
         <field name="context">{'create': False}</field>
