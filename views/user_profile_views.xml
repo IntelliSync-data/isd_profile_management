@@ -15,9 +15,9 @@
                        decoration-success="payment_status == 'paid'"
                        decoration-info="payment_status == 'returned'"/>
                 <field name="progress_percentage" widget="progressbar"/>
-                <field name="total_cost" widget="monetary" sum="Total"/>
-                <field name="paid_amount" widget="monetary" sum="Paid"/>
-                <field name="remaining_amount" widget="monetary" sum="Remaining"/>
+                <field name="total_cost" widget="monetary" aggregator="sum"/>
+                <field name="paid_amount" widget="monetary" aggregator="sum"/>
+                <field name="remaining_amount" widget="monetary" aggregator="sum"/>
                 <field name="start_date"/>
                 <field name="assigned_to"/>
                 <field name="assigned_date"/>
