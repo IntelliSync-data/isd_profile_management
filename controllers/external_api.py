@@ -141,13 +141,17 @@ class ExternalProfileAPIController(http.Controller):
                 }
 
             # Find or create contact by email
-            partner = request.env['res.partner'].sudo().search([('email', '=', email)], limit=1)
+            Partner = request.env['res.partner'].sudo()
+            partner = Partner.search([('email', '=', email)], limit=1)
             if not partner:
-                partner = request.env['res.partner'].sudo().create({
+                partner_vals = {
                     'name': email.split('@')[0],
                     'email': email,
-                    'customer_rank': 1,
-                })
+                }
+                # customer_rank only exists when the 'account' module is installed
+                if 'customer_rank' in Partner._fields:
+                    partner_vals['customer_rank'] = 1
+                partner = Partner.create(partner_vals)
 
             # Get all active steps from package
             active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
