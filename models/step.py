@@ -45,11 +45,10 @@ class ProfileStep(models.Model):
     print_width = fields.Integer(string='Print Width (mm)', default=100)
     print_height = fields.Integer(string='Print Height (mm)', default=60)
     print_template = fields.Text(string='Print Template (HTML)')
-    print_code_type = fields.Selection([
-        ('none', 'None'),
-        ('barcode', 'Barcode'),
-        ('qrcode', 'QR Code'),
-    ], string='Code Type', default='none')
+    print_barcode = fields.Boolean(string='Barcode', default=False,
+                                   help='Ask for a barcode value when printing')
+    print_qrcode = fields.Boolean(string='QR Code', default=False,
+                                  help='Ask for a QR code value when printing')
 
     # User Steps
     user_step_ids = fields.One2many('user.step', 'step_id', string='User Steps')

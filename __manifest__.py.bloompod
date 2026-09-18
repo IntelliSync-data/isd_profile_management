@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'ISD Order Management',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.1.0',
     'summary': 'Order Management System with Product Fulfillment Steps',
     'description': """
         Order Management System for Odoo 18.0

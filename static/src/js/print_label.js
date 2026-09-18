@@ -18,6 +18,14 @@ function callRpc(model, method, args) {
     });
 }
 
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 function renderTemplate(template, data) {
     return template.replace(/\{\{(\w+)\}\}/g, function (match, key) {
         return data.hasOwnProperty(key) ? data[key] : match;
@@ -52,10 +60,30 @@ function openPrintWindow(params) {
     return true;
 }
 
+function codeInputHtml(id, label, value, placeholder) {
+    return '<div style="margin-bottom:12px;">' +
+        '<label for="' + id + '" style="display:block;font-weight:600;margin-bottom:4px;">' + label + '</label>' +
+        '<input type="text" id="' + id + '" class="form-control isd-code-input" style="width:100%;padding:6px 12px;border:1px solid #ced4da;border-radius:4px;" ' +
+        'value="' + escapeHtml(value) + '" placeholder="' + placeholder + '"/>' +
+        '</div>';
+}
+
 function showPrintDialog(params) {
     var stepId = params.step_id;
     var stepName = params.step_name || '';
-    var trackingNumber = params.tracking_number || '';
+    var printBarcode = !!params.print_barcode;
+    var printQrcode = !!params.print_qrcode;
+
+    var inputsHtml = '';
+    if (printBarcode) {
+        inputsHtml += codeInputHtml('isd_barcode_input', 'Barcode', params.barcode_value, 'Enter barcode value...');
+    }
+    if (printQrcode) {
+        inputsHtml += codeInputHtml('isd_qrcode_input', 'QR Code', params.qrcode_value, 'Enter QR code value...');
+    }
+    if (!inputsHtml) {
+        inputsHtml = '<div style="color:#6c757d;">This step has no barcode or QR code configured.</div>';
+    }
 
     var backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop fade show';
@@ -72,13 +100,9 @@ function showPrintDialog(params) {
             '<div style="padding:20px;">' +
                 '<div style="margin-bottom:16px;">' +
                     '<label style="display:block;font-weight:600;margin-bottom:4px;">Step</label>' +
-                    '<div style="padding:6px 12px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;">' + (stepName ? stepName.replace(/</g,'&lt;') : '') + '</div>' +
+                    '<div style="padding:6px 12px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;">' + escapeHtml(stepName) + '</div>' +
                 '</div>' +
-                '<div style="margin-bottom:8px;">' +
-                    '<label for="isd_tracking_input" style="display:block;font-weight:600;margin-bottom:4px;">Tracking Number</label>' +
-                    '<input type="text" id="isd_tracking_input" class="form-control" style="width:100%;padding:6px 12px;border:1px solid #ced4da;border-radius:4px;" ' +
-                    'value="' + (trackingNumber ? trackingNumber.replace(/"/g,'&quot;') : '') + '" placeholder="Enter tracking/shipping number..."/>' +
-                '</div>' +
+                inputsHtml +
             '</div>' +
             '<div style="padding:12px 20px;border-top:1px solid #dee2e6;display:flex;justify-content:flex-end;gap:8px;">' +
                 '<button class="isd-print-cancel btn btn-secondary" style="padding:6px 20px;">Cancel</button>' +
@@ -89,8 +113,10 @@ function showPrintDialog(params) {
     document.body.appendChild(backdrop);
     document.body.appendChild(modal);
 
-    var input = modal.querySelector('#isd_tracking_input');
-    if (input) input.focus();
+    var barcodeInput = modal.querySelector('#isd_barcode_input');
+    var qrcodeInput = modal.querySelector('#isd_qrcode_input');
+    var firstInput = barcodeInput || qrcodeInput;
+    if (firstInput) firstInput.focus();
 
     function closeDialog() {
         try { document.body.removeChild(modal); } catch (e) {}
@@ -101,49 +127,64 @@ function showPrintDialog(params) {
     modal.querySelector('.isd-print-cancel').addEventListener('click', closeDialog);
     backdrop.addEventListener('click', closeDialog);
 
-    modal.querySelector('.isd-print-submit').addEventListener('click', async function () {
-        var tn = input.value.trim();
-        if (!tn) {
-            input.style.borderColor = '#dc3545';
-            input.focus();
+    function requireValue(input) {
+        if (!input) return true;
+        if (input.value.trim()) {
+            input.style.borderColor = '#ced4da';
+            return true;
+        }
+        input.style.borderColor = '#dc3545';
+        return false;
+    }
+
+    var submitBtn = modal.querySelector('.isd-print-submit');
+
+    function resetButton() {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Print';
+    }
+
+    submitBtn.addEventListener('click', async function () {
+        var barcodeOk = requireValue(barcodeInput);
+        var qrcodeOk = requireValue(qrcodeInput);
+        if (!barcodeOk || !qrcodeOk) {
+            (!barcodeOk ? barcodeInput : qrcodeInput).focus();
             return;
         }
 
-        var btn = modal.querySelector('.isd-print-submit');
-        btn.disabled = true;
-        btn.textContent = 'Loading...';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Loading...';
+
+        var barcodeValue = barcodeInput ? barcodeInput.value.trim() : '';
+        var qrcodeValue = qrcodeInput ? qrcodeInput.value.trim() : '';
 
         try {
-            var result = await callRpc("user.step", "action_print_label", [[stepId], tn]);
+            var result = await callRpc("user.step", "action_print_label", [[stepId], barcodeValue, qrcodeValue]);
 
             if (result && result.template) {
-                var ok = openPrintWindow(result);
-                if (!ok) {
+                if (!openPrintWindow(result)) {
                     alert("Pop-up blocked. Please allow pop-ups for this site.");
-                    btn.disabled = false;
-                    btn.textContent = 'Print';
+                    resetButton();
                     return;
                 }
                 closeDialog();
             } else {
                 alert("No print template configured for this step.");
-                btn.disabled = false;
-                btn.textContent = 'Print';
+                resetButton();
             }
         } catch (e) {
-            alert("Error: " + (e.message || e.data?.message || String(e)));
-            btn.disabled = false;
-            btn.textContent = 'Print';
+            alert("Error: " + (e.message || String(e)));
+            resetButton();
         }
     });
 
-    if (input) {
+    modal.querySelectorAll('.isd-code-input').forEach(function (input) {
         input.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
-                modal.querySelector('.isd-print-submit').click();
+                submitBtn.click();
             }
         });
-    }
+    });
 }
 
 async function printLabelAction(env, action) {

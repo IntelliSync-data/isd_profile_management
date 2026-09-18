@@ -7,7 +7,10 @@
             <form>
                 <group>
                     <field name="user_step_id" readonly="1" force_save="1"/>
-                    <field name="tracking_number"/>
+                    <field name="print_barcode" invisible="1"/>
+                    <field name="print_qrcode" invisible="1"/>
+                    <field name="barcode_value" invisible="not print_barcode" required="print_barcode"/>
+                    <field name="qrcode_value" invisible="not print_qrcode" required="print_qrcode"/>
                 </group>
                 <footer>
                     <button name="action_print" type="object" string="Print" class="btn-primary"/>

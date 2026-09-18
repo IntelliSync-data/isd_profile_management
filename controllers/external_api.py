@@ -73,6 +73,7 @@ class ExternalProfileAPIController(http.Controller):
             "package_id": 123,
             "email": "user@example.com",
             "notes": "Customer info: Name, Phone, Address",
+            "address": "123 Nguyen Hue, District 1, Ho Chi Minh City",  (optional)
             "payment_method_id": 1
         }
 
@@ -90,8 +91,16 @@ class ExternalProfileAPIController(http.Controller):
             package_id = kwargs.get('package_id')
             email = kwargs.get('email')
             notes = kwargs.get('notes', '')
+            address = kwargs.get('address') or ''
             payment_method_id = kwargs.get('payment_method_id')
             half_payment = kwargs.get('half_payment', False)
+
+            if not isinstance(address, str):
+                return {
+                    'success': False,
+                    'error': 'Address must be a string',
+                    'error_code': 'INVALID_ADDRESS'
+                }
 
             # Validate input
             if not package_id:
@@ -179,6 +188,7 @@ class ExternalProfileAPIController(http.Controller):
                 'state': 'new',
                 'assigned_date': fields.Datetime.now(),
                 'notes': notes,
+                'address': address or False,
                 'locked_cost': total_amount,
             })
 

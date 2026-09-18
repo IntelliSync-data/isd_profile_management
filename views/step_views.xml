@@ -69,16 +69,24 @@
                                 <group string="Dimensions">
                                     <field name="print_width" string="Width (mm)"/>
                                     <field name="print_height" string="Height (mm)"/>
-                                    <field name="print_code_type"/>
+                                </group>
+                                <group string="Codes">
+                                    <field name="print_barcode" widget="boolean_toggle"/>
+                                    <field name="print_qrcode" widget="boolean_toggle"/>
                                 </group>
                             </group>
                             <group string="HTML Template" invisible="not is_printable">
-                                <div class="alert alert-info" role="alert">
+                                <div class="alert alert-info" role="alert" colspan="2">
                                     <strong>Available keys:</strong>
-                                    {{customer_name}}, {{customer_phone}}, {{customer_email}}, {{customer_address}},
-                                    {{product_name}}, {{order_name}}, {{total_cost}}, {{paid_amount}}, {{remaining_amount}},
-                                    {{payment_status}}, {{order_date}}, {{step_name}}, {{step_cost}},
-                                    {{tracking_number}}, {{code}}, {{barcode}}, {{qrcode}}, {{print_date}}
+                                    <div><strong>Order:</strong> {{order_name}}, {{order_date}}, {{product_name}}, {{payment_status}},
+                                        {{total_cost}}, {{paid_amount}}, {{remaining_amount}}, {{address}}, {{order_notes}}, {{order_result}}</div>
+                                    <div><strong>Customer:</strong> {{customer_name}}, {{customer_phone}}, {{customer_email}}, {{customer_address}}</div>
+                                    <div><strong>Step:</strong> {{step_name}}, {{step_cost}}, {{step_description}},
+                                        {{step_progress_notes}}, {{step_manager_notes}}, {{step_result}}</div>
+                                    <div><strong>Codes:</strong> {{barcode}}, {{qrcode}} (images), {{barcode_value}}, {{qrcode_value}} (text).
+                                        For older templates: {{code}} and {{tracking_number}} use the barcode if enabled, otherwise the QR code.</div>
+                                    <div><strong>Other:</strong> {{print_date}}</div>
+                                    <div class="mt-1 small">Text values are HTML-escaped and line breaks become &lt;br/&gt;. Unknown keys are printed as-is.</div>
                                 </div>
                                 <field name="print_template" widget="ace" nolabel="1"
                                        options="{'mode': 'html'}"/>

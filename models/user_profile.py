@@ -96,6 +96,10 @@ class UserProfile(models.Model):
     # Notes
     notes = fields.Text(string='Notes', help='Additional notes for this profile assignment')
 
+    # Address
+    address = fields.Text(string='Address')
+    accept_address = fields.Boolean(related='profile_id.accept_address')
+
     @api.depends('partner_id', 'profile_id')
     def _compute_name(self):
         for record in self:
@@ -652,6 +656,8 @@ class UserStep(models.Model):
 
     # Print / Shipping
     tracking_number = fields.Char(string='Tracking Number')
+    barcode_value = fields.Char(string='Barcode Value')
+    qrcode_value = fields.Char(string='QR Code Value')
     is_printable = fields.Boolean(related='step_id.is_printable', store=True)
 
     # Manager Updates
@@ -795,57 +801,82 @@ class UserStep(models.Model):
             'params': {
                 'step_id': self.id,
                 'step_name': self.step_id.name or '',
-                'tracking_number': self.tracking_number or '',
+                'print_barcode': self.step_id.print_barcode,
+                'print_qrcode': self.step_id.print_qrcode,
+                'barcode_value': self.barcode_value or '',
+                'qrcode_value': self.qrcode_value or '',
             },
         }
 
-    def action_print_label(self, tracking_number):
-        """Save tracking number and return print data for JS rendering"""
+    def action_print_label(self, barcode_value=None, qrcode_value=None):
+        """Save barcode/QR code values and return print data for JS rendering"""
         self.ensure_one()
-        if not self.step_id.is_printable:
-            raise ValidationError(_("This step is not configured for printing."))
-        self.write({'tracking_number': tracking_number})
         step = self.step_id
+        if not step.is_printable:
+            raise ValidationError(_("This step is not configured for printing."))
+
+        barcode_value = (barcode_value or '').strip() if step.print_barcode else ''
+        qrcode_value = (qrcode_value or '').strip() if step.print_qrcode else ''
+        if step.print_barcode and not barcode_value:
+            raise ValidationError(_("Please enter the barcode value."))
+        if step.print_qrcode and not qrcode_value:
+            raise ValidationError(_("Please enter the QR code value."))
+
+        vals = {}
+        if step.print_barcode:
+            vals['barcode_value'] = barcode_value
+        if step.print_qrcode:
+            vals['qrcode_value'] = qrcode_value
+        if barcode_value or qrcode_value:
+            vals['tracking_number'] = barcode_value or qrcode_value
+        if vals:
+            self.write(vals)
+
         data = self._get_print_data()
-        code_type = step.print_code_type or 'none'
-        if tracking_number and code_type != 'none':
-            code_img = self._generate_code_image(tracking_number, code_type)
-            data['code'] = code_img
-            data['barcode'] = code_img if code_type == 'barcode' else ''
-            data['qrcode'] = code_img if code_type == 'qrcode' else ''
+        barcode_img = self._generate_code_image(barcode_value, 'barcode') if barcode_value else ''
+        qrcode_img = self._generate_code_image(qrcode_value, 'qrcode') if qrcode_value else ''
+        data.update({
+            'barcode': barcode_img,
+            'qrcode': qrcode_img,
+            # {{code}} predates multi-code support; keep it working for existing templates
+            'code': barcode_img or qrcode_img,
+        })
         return {
             'template': step.print_template or '',
             'width': step.print_width or 100,
             'height': step.print_height or 60,
-            'code_type': code_type,
-            'tracking_number': tracking_number,
             'data': data,
         }
 
     def _generate_code_image(self, value, code_type):
         """Generate barcode or QR code as an HTML img tag with base64 data"""
+        from markupsafe import escape
         buf = io.BytesIO()
+        fallback = '<div style="font-family:monospace;font-size:14px;">%s</div>' % escape(value)
         if code_type == 'qrcode':
             try:
                 import qrcode
-                qr = qrcode.QRCode(version=1, box_size=6, border=2)
-                qr.add_data(value)
-                qr.make(fit=True)
-                img = qr.make_image(fill_color="black", back_color="white")
-                img.save(buf, format='PNG')
             except ImportError:
                 _logger.warning("qrcode library not installed, using fallback")
-                return '<div style="font-family:monospace;font-size:14px;">' + value + '</div>'
+                return fallback
+            qr = qrcode.QRCode(version=1, box_size=6, border=2)
+            qr.add_data(value)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            img.save(buf, format='PNG')
         elif code_type == 'barcode':
             try:
                 import barcode as python_barcode
                 from barcode.writer import ImageWriter
+            except ImportError:
+                _logger.warning("python-barcode library not installed, using fallback")
+                return fallback
+            try:
                 code128 = python_barcode.get_barcode_class('code128')
                 bc = code128(value, writer=ImageWriter())
                 bc.write(buf, options={'module_height': 10, 'font_size': 10, 'text_distance': 2})
-            except ImportError:
-                _logger.warning("python-barcode library not installed, using fallback")
-                return '<div style="font-family:monospace;font-size:14px;">' + value + '</div>'
+            except Exception as e:
+                raise ValidationError(_("Cannot generate a barcode for '%s': %s") % (value, e))
         else:
             return ''
         b64 = base64.b64encode(buf.getvalue()).decode('ascii')
@@ -853,9 +884,10 @@ class UserStep(models.Model):
 
     def _get_print_data(self):
         """Build template variable dict for print label rendering"""
+        from markupsafe import escape
         profile = self.user_profile_id
         partner = profile.partner_id
-        return {
+        raw = {
             'order_name': profile.name or '',
             'customer_name': partner.name or '',
             'customer_phone': partner.phone or partner.mobile or '',
@@ -871,11 +903,23 @@ class UserStep(models.Model):
             'remaining_amount': f'{profile.remaining_amount:,.0f}',
             'payment_status': dict(profile._fields['payment_status'].selection).get(profile.payment_status, ''),
             'order_date': str(profile.create_date.date()) if profile.create_date else '',
+            'address': profile.address or '',
+            'order_notes': profile.notes or '',
+            'order_result': profile.result or '',
             'step_name': self.step_id.name or '',
             'step_cost': f'{self.cost:,.0f}',
+            'step_description': self.description or '',
+            'step_progress_notes': self.progress_notes or '',
+            'step_manager_notes': self.manager_notes or '',
+            'step_result': self.result or '',
             'tracking_number': self.tracking_number or '',
+            'barcode_value': self.barcode_value or '',
+            'qrcode_value': self.qrcode_value or '',
             'print_date': str(fields.Date.today()),
         }
+        # address/notes arrive through the public order API and are rendered in the
+        # staff user's print window, so every text value must be escaped
+        return {key: str(escape(value)).replace('\n', '<br/>') for key, value in raw.items()}
 
     def _check_auto_complete_profile(self):
         """Auto complete user.profile if is_auto_complete is enabled and all selected steps are completed"""

@@ -54,10 +54,11 @@
             <field name="perm_unlink" eval="True"/>
         </record>
 
+        <!-- Managers see orders of products they are assigned to, or of products with no assigned users -->
         <record id="rule_user_profile_manager" model="ir.rule">
-            <field name="name">Manager: All User Profiles</field>
+            <field name="name">Manager: Orders of Assigned Products</field>
             <field name="model_id" ref="model_user_profile"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">['|', ('profile_id.assigned_user_ids', '=', False), ('profile_id.assigned_user_ids', 'in', [user.id])]</field>
             <field name="groups" eval="[(4, ref('group_profile_manager'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -66,9 +67,9 @@
         </record>
 
         <record id="rule_user_step_manager" model="ir.rule">
-            <field name="name">Manager: All User Steps</field>
+            <field name="name">Manager: Order Steps of Assigned Products</field>
             <field name="model_id" ref="model_user_step"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">['|', ('user_profile_id.profile_id.assigned_user_ids', '=', False), ('user_profile_id.profile_id.assigned_user_ids', 'in', [user.id])]</field>
             <field name="groups" eval="[(4, ref('group_profile_manager'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -77,10 +78,44 @@
         </record>
 
         <record id="rule_payment_manager" model="ir.rule">
-            <field name="name">Manager: All Payments</field>
+            <field name="name">Manager: Payments of Assigned Products</field>
+            <field name="model_id" ref="model_profile_payment"/>
+            <field name="domain_force">['|', ('user_profile_id.profile_id.assigned_user_ids', '=', False), ('user_profile_id.profile_id.assigned_user_ids', 'in', [user.id])]</field>
+            <field name="groups" eval="[(4, ref('group_profile_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Admins see every order regardless of product assignment -->
+        <record id="rule_user_profile_admin" model="ir.rule">
+            <field name="name">Admin: All User Profiles</field>
+            <field name="model_id" ref="model_user_profile"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_profile_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <record id="rule_user_step_admin" model="ir.rule">
+            <field name="name">Admin: All User Steps</field>
+            <field name="model_id" ref="model_user_step"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_profile_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <record id="rule_payment_admin" model="ir.rule">
+            <field name="name">Admin: All Payments</field>
             <field name="model_id" ref="model_profile_payment"/>
             <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(4, ref('group_profile_manager'))]"/>
+            <field name="groups" eval="[(4, ref('group_profile_admin'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>

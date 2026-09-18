@@ -33,9 +33,6 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_users" type="object" class="oe_stat_button" icon="fa-users">
-                            <field name="assigned_user_count" widget="statinfo" string="Users"/>
-                        </button>
                         <button name="action_view_steps" type="object" class="oe_stat_button" icon="fa-tasks">
                             <field name="total_steps" widget="statinfo" string="Steps"/>
                         </button>
@@ -51,14 +48,15 @@
                     <group>
                         <group>
                             <field name="description" placeholder="Profile description..."/>
-                        </group>
-                        <group>
                             <field name="package_cost" widget="monetary"/>
                             <field name="use_promotional_price"/>
                             <field name="promotional_cost" widget="monetary" invisible="not use_promotional_price"/>
                             <field name="total_cost" widget="monetary"/>
+                        </group>
+                        <group>
                             <field name="is_advanced"/>
                             <field name="is_auto_complete"/>
+                            <field name="accept_address"/>
                             <field name="create_uid"/>
                             <field name="create_date"/>
                         </group>
@@ -78,13 +76,13 @@
                             </field>
                         </page>
                         <page string="Assigned Users" name="users">
-                            <field name="user_profile_ids">
+                            <div class="text-muted mb-2">
+                                Managers only see orders of products they are assigned to. Leave empty to let every manager see this product's orders.
+                            </div>
+                            <field name="assigned_user_ids" options="{'no_create': True}">
                                 <list>
-                                    <field name="partner_id"/>
-                                    <field name="state" widget="badge"/>
-                                    <field name="progress_percentage" widget="progressbar"/>
-                                    <field name="start_date"/>
-                                    <field name="assigned_date"/>
+                                    <field name="name"/>
+                                    <field name="login"/>
                                 </list>
                             </field>
                         </page>

@@ -29,8 +29,14 @@ class ProfileManagement(models.Model):
     # Options
     is_advanced = fields.Boolean(string='Advanced', default=False, help="Enable advanced step flow (Start → Complete → Approve)")
     is_auto_complete = fields.Boolean(string='Auto Complete', default=False, help="Automatically mark profile as completed when all selected steps are approved")
+    accept_address = fields.Boolean(string='Accept Address', default=False, help="Show an Address field on orders of this product")
 
     # Users
+    assigned_user_ids = fields.Many2many(
+        'res.users', 'profile_management_assigned_user_rel', 'profile_id', 'user_id',
+        string='Assigned Users', domain=[('share', '=', False)],
+        help="Managers only see orders of products they are assigned to. "
+             "Products without assigned users stay visible to every manager.")
     user_profile_ids = fields.One2many('user.profile', 'profile_id', string='User Profiles')
     assigned_user_count = fields.Integer(string='Assigned Users', compute='_compute_user_counts', store=True)
     
@@ -70,17 +76,6 @@ class ProfileManagement(models.Model):
         """Deactivate the profile"""
         self.write({'state': 'inactive'})
         self.message_post(body=_("Profile deactivated"))
-    
-    def action_view_users(self):
-        """View users assigned to this profile"""
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Assigned Users'),
-            'res_model': 'user.profile',
-            'view_mode': 'list,form',
-            'domain': [('profile_id', '=', self.id)],
-            'context': {'default_profile_id': self.id},
-        }
     
     def action_view_steps(self):
         """View steps for this profile"""
