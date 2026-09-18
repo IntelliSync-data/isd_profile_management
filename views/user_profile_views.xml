@@ -18,6 +18,7 @@
                 <field name="total_cost" sum="Total Cost"/>
                 <field name="paid_amount" sum="Paid"/>
                 <field name="remaining_amount" sum="Remaining"/>
+                <field name="payment_method_id" optional="show"/>
                 <field name="start_date"/>
                 <field name="assigned_to"/>
                 <field name="assigned_date"/>
@@ -300,6 +301,7 @@
             <search string="Search User Profiles">
                 <field name="partner_id"/>
                 <field name="profile_id"/>
+                <field name="payment_method_id"/>
                 <separator/>
                 <filter string="New" name="new" domain="[('state','=','new')]"/>
                 <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
@@ -325,6 +327,7 @@
                     <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
                     <filter string="Stage" name="group_state" context="{'group_by':'state'}"/>
                     <filter string="Payment Status" name="group_payment_status" context="{'group_by':'payment_status'}"/>
+                    <filter string="Payment Method" name="group_payment_method" context="{'group_by':'payment_method_id'}"/>
                     <filter string="Assigned To" name="group_assigned_to" context="{'group_by':'assigned_to'}"/>
                 </group>
             </search>

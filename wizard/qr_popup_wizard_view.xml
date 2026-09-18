@@ -6,16 +6,29 @@
         <field name="priority" eval="1"/>
         <field name="arch" type="xml">
             <form string="Popup Form">
-                <field name="transaction_id" invisible="1"/>
-                <!-- Debug: visible transaction id for troubleshooting -->
+                <!-- qr_poll.js polls the payment status using this transaction id -->
                 <div class="alert alert-info" style="text-align: center; margin-bottom: 0.8rem;">
                     <div class="o_form_label" style="font-weight: 600; display: inline-block; margin-right: .5rem;">Transaction ID:</div>
                     <field name="transaction_id" readonly="1"/>
+                    <div invisible="not payment_method_name">
+                        <field name="payment_method_name" readonly="1" nolabel="1"/>
+                        <field name="amount" readonly="1" nolabel="1" class="ms-2"/>
+                    </div>
                 </div>
-                <!-- Use widget="image" with the URL -->
+
                 <div class="d-flex justify-content-center" style="text-align: center;">
                     <field name="qr_image" widget="image" style="width: 100%; height: auto;"/>
                 </div>
+
+                <div class="mt-3" invisible="not payment_url">
+                    <label for="payment_url" string="Link here"/>
+                    <field name="payment_url" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
+                </div>
+
+                <div class="text-muted text-center mt-3">
+                    Waiting for payment... this window closes by itself once the payment is confirmed.
+                </div>
+
                 <footer>
                     <button string="Close" class="btn-secondary" special="cancel"/>
                 </footer>

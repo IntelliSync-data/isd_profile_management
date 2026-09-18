@@ -71,6 +71,7 @@
                     <field name="total_cost" sum="Total Cost"/>
                     <field name="paid_amount" sum="Paid"/>
                     <field name="remaining_amount" sum="Remaining"/>
+                    <field name="payment_method_id" optional="show"/>
                     <field name="start_date"/>
                     <field name="assigned_to"/>
                     <field name="assigned_date"/>

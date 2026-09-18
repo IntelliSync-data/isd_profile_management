@@ -100,6 +100,38 @@ class UserProfile(models.Model):
     address = fields.Text(string='Address')
     accept_address = fields.Boolean(related='profile_id.accept_address')
 
+    # Payments
+    payment_ids = fields.One2many('profile.payment', 'user_profile_id', string='Payments')
+    payment_method_id = fields.Many2one(
+        'isd_payment.method', string='Payment Method',
+        compute='_compute_payment_method_id', store=True, index=True,
+        help='Payment method of the first payment created for this order')
+
+    @api.depends('payment_ids.payment_method_id')
+    def _compute_payment_method_id(self):
+        for record in self:
+            first_payment = record.payment_ids.sorted('id')[:1]
+            record.payment_method_id = first_payment.payment_method_id
+
+    def write(self, vals):
+        res = super().write(vals)
+        if vals.get('payment_status') == 'paid' and not self.env.context.get('isd_skip_cash_confirm'):
+            self._confirm_pending_cash_payments()
+        return res
+
+    def _confirm_pending_cash_payments(self):
+        """Confirm cash payments and their isd_payment transaction once the order is marked paid"""
+        for record in self:
+            cash_payments = record.payment_ids.filtered(
+                lambda p: p.state in ('draft', 'pending')
+                and p.payment_method_id.payment_provider == 'cash'
+            )
+            for payment in cash_payments:
+                isd_tx = payment.isd_transaction_id
+                if isd_tx and isd_tx.status != 'confirmed':
+                    isd_tx.sudo().mark_as_confirmed_cash(collected_by=self.env.user)
+                payment.with_context(isd_skip_cash_confirm=True).action_confirm()
+
     @api.depends('partner_id', 'profile_id')
     def _compute_name(self):
         for record in self:
@@ -433,19 +465,40 @@ class UserProfile(models.Model):
         isd_tx = self.env['isd_payment.transaction'].sudo().search(
             [('transaction_id', '=', transaction_id)], limit=1)
 
+        payment_vals = {
+            'user_profile_id': self.id,
+            'partner_id': self.partner_id.id if self.partner_id else False,
+            'amount': total_amount,
+            'step_ids': [(6, 0, selected_steps.ids)],
+            'transaction_id': transaction_id,
+            'payment_method_id': payment_method.id,
+            'isd_transaction_id': isd_tx.id if isd_tx else False,
+            'metadata': {"action_id": action_id},
+        }
+        wizard_vals = {
+            'transaction_id': transaction_id,
+            'amount': total_amount,
+            'payment_method_name': payment_method.name or '',
+        }
+
+        if payment_method.payment_provider == 'cash':
+            # Nothing to scan: the money is collected by hand and confirmed when the
+            # order is marked as paid
+            self.env['profile.payment'].create(dict(payment_vals, state='pending'))
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Cash payment created'),
+                    'message': _("Transaction %s is waiting. Mark the order as Paid once you collect the money.") % transaction_id,
+                    'type': 'success',
+                    'next': {'type': 'ir.actions.act_window_close'},
+                },
+            }
+
         if qr_url:
             # QR-based flow (e.g. SePay) — create profile payment in draft state
-            profile_payment = self.env['profile.payment'].create({
-                'user_profile_id': self.id,
-                'partner_id': self.partner_id.id if self.partner_id else False,
-                'amount': total_amount,
-                'step_ids': [(6, 0, selected_steps.ids)],
-                'state': 'draft',
-                'transaction_id': transaction_id,
-                'payment_method_id': payment_method.id,
-                'isd_transaction_id': isd_tx.id if isd_tx else False,
-                'metadata': {"action_id": action_id},
-            })
+            self.env['profile.payment'].create(dict(payment_vals, state='draft'))
 
             try:
                 img_response = http_requests.get(qr_url, timeout=10)
@@ -454,48 +507,46 @@ class UserProfile(models.Model):
                 resized_img = img.resize((400, 400))
                 buffer = io.BytesIO()
                 resized_img.save(buffer, format='PNG')
-                qr_image = base64.b64encode(buffer.getvalue()).decode('ascii')
+                wizard_vals['qr_image'] = base64.b64encode(buffer.getvalue()).decode('ascii')
             except http_requests.exceptions.RequestException as e:
                 raise ValidationError(
                     _("Could not retrieve QR code. Please try again later. Error: %s") % e)
 
-            wizard = self.env['qr.popup.wizard'].create({
-                'qr_image': qr_image,
-                'transaction_id': transaction_id,
-            })
-            return {
-                'type': 'ir.actions.act_window',
-                'name': 'QR Checkout',
-                'res_model': 'qr.popup.wizard',
-                'view_mode': 'form',
-                'view_id': self.env.ref('isd_profile_management.view_qr_code_checkout').id,
-                'res_id': wizard.id,
-                'target': 'new',
-                'context': {'form_view_initial_mode': 'edit'},
-            }
-
         elif redirect_url:
-            # Redirect-based flow (e.g. VTCPay, PayPal)
-            self.env['profile.payment'].create({
-                'user_profile_id': self.id,
-                'partner_id': self.partner_id.id if self.partner_id else False,
-                'amount': total_amount,
-                'step_ids': [(6, 0, selected_steps.ids)],
-                'state': 'pending',
-                'transaction_id': transaction_id,
-                'payment_method_id': payment_method.id,
-                'isd_transaction_id': isd_tx.id if isd_tx else False,
-                'metadata': {"action_id": action_id},
-            })
-
-            return {
-                'type': 'ir.actions.act_url',
-                'url': redirect_url,
-                'target': 'new',
-            }
+            # Staff shows the screen to the customer, so render the payment link as a
+            # QR code instead of opening the provider page in the staff browser
+            self.env['profile.payment'].create(dict(payment_vals, state='pending'))
+            wizard_vals['qr_image'] = self._generate_payment_qr(redirect_url)
+            wizard_vals['payment_url'] = redirect_url
 
         else:
             raise ValidationError(_("Payment service returned no QR or redirect URL."))
+
+        wizard = self.env['qr.popup.wizard'].create(wizard_vals)
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'QR Checkout',
+            'res_model': 'qr.popup.wizard',
+            'view_mode': 'form',
+            'view_id': self.env.ref('isd_profile_management.view_qr_code_checkout').id,
+            'res_id': wizard.id,
+            'target': 'new',
+            'context': {'form_view_initial_mode': 'edit'},
+        }
+
+    def _generate_payment_qr(self, url):
+        """Render a payment link as a QR code image the customer can scan"""
+        try:
+            import qrcode
+        except ImportError:
+            _logger.warning("qrcode library not installed, showing the payment link only")
+            return False
+        qr = qrcode.QRCode(box_size=8, border=2)
+        qr.add_data(url)
+        qr.make(fit=True)
+        buffer = io.BytesIO()
+        qr.make_image(fill_color="black", back_color="white").save(buffer, format='PNG')
+        return base64.b64encode(buffer.getvalue()).decode('ascii')
 
     def action_open_checkout_wizard(self):
         """Open wizard to select payment method and proceed to checkout."""
