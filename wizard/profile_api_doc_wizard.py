@@ -135,7 +135,9 @@ Content-Type: application/json</pre>
     "params": {{
         "package_id": {wizard.package_id.id},
         "email": "customer@example.com",
-        "notes": "Nguyen Van A, 0123456789, Ho Chi Minh City",
+        "name": "Nguyen Van A",
+        "phone": "0901234567",
+        "notes": "Extra information about this order",
         "address": "123 Nguyen Hue, District 1, Ho Chi Minh City",
         "payment_method_id": 1,
         "half_payment": false
@@ -150,8 +152,10 @@ Content-Type: application/json</pre>
     <h4>Parameters:</h4>
     <ul>
         <li><strong>package_id</strong> (required): Package ID = <code>{wizard.package_id.id}</code></li>
-        <li><strong>email</strong> (required): Customer email</li>
-        <li><strong>notes</strong> (optional): Additional customer information (name, phone, etc.)</li>
+        <li><strong>email</strong> (required): Customer email, used to find or create the contact</li>
+        <li><strong>name</strong> (optional): Customer name. Used when creating the contact; on an existing contact it only fills a missing name. Without it the contact is named after the email.</li>
+        <li><strong>phone</strong> (optional): Customer phone. Used when creating the contact; on an existing contact it only fills a missing phone.</li>
+        <li><strong>notes</strong> (optional): Additional information saved on the order</li>
         <li><strong>address</strong> (optional): Delivery address, saved to the order's Address field. Shown on the order when the product has <em>Accept Address</em> enabled, or whenever an address is saved.</li>
         <li><strong>payment_method_id</strong> (required): Payment method ID from ISD Payment module</li>
         <li><strong>half_payment</strong> (optional, default: false): If <code>true</code>, only pay 50% of the total amount. Payment status will be set to <code>half_paid</code>. Call this API again to pay the remaining 50%.</li>
@@ -190,7 +194,8 @@ curl -X POST '{wizard.base_url}/api/profile/create' \\
     "params": {{
       "package_id": {wizard.package_id.id},
       "email": "customer@example.com",
-      "notes": "Customer Name, Phone",
+      "name": "Nguyen Van A",
+      "phone": "0901234567",
       "address": "123 Nguyen Hue, District 1, Ho Chi Minh City",
       "payment_method_id": 1
     }}
@@ -205,7 +210,8 @@ curl -X POST '{wizard.base_url}/api/profile/create' \\
     "params": {{
       "package_id": {wizard.package_id.id},
       "email": "customer@example.com",
-      "notes": "Customer Name, Phone",
+      "name": "Nguyen Van A",
+      "phone": "0901234567",
       "address": "123 Nguyen Hue, District 1, Ho Chi Minh City",
       "payment_method_id": 1,
       "half_payment": true

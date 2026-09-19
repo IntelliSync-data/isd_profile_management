@@ -72,6 +72,8 @@ class ExternalProfileAPIController(http.Controller):
         {
             "package_id": 123,
             "email": "user@example.com",
+            "name": "Nguyen Van A",  (optional)
+            "phone": "0901234567",  (optional)
             "notes": "Customer info: Name, Phone, Address",
             "address": "123 Nguyen Hue, District 1, Ho Chi Minh City",  (optional)
             "payment_method_id": 1
@@ -92,15 +94,24 @@ class ExternalProfileAPIController(http.Controller):
             email = kwargs.get('email')
             notes = kwargs.get('notes', '')
             address = kwargs.get('address') or ''
+            name = kwargs.get('name') or ''
+            phone = kwargs.get('phone') or ''
             payment_method_id = kwargs.get('payment_method_id')
             half_payment = kwargs.get('half_payment', False)
 
-            if not isinstance(address, str):
-                return {
-                    'success': False,
-                    'error': 'Address must be a string',
-                    'error_code': 'INVALID_ADDRESS'
-                }
+            for label, value, code in (
+                ('Address', address, 'INVALID_ADDRESS'),
+                ('Name', name, 'INVALID_NAME'),
+                ('Phone', phone, 'INVALID_PHONE'),
+            ):
+                if not isinstance(value, str):
+                    return {
+                        'success': False,
+                        'error': '%s must be a string' % label,
+                        'error_code': code
+                    }
+            name = name.strip()
+            phone = phone.strip()
 
             # Validate input
             if not package_id:
@@ -149,18 +160,40 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'PAYMENT_METHOD_NOT_FOUND'
                 }
 
+            # The website posts full contact details to isd_chatbot's /api/inquiry, so
+            # reuse them when this API is called with the email only. Guarded because
+            # isd_chatbot is not a dependency of this module.
+            if (not name or not phone) and 'customer.inquiry' in request.env:
+                inquiry = request.env['customer.inquiry'].sudo().search(
+                    [('email', '=', email)], order='id desc', limit=1)
+                if inquiry:
+                    name = name or inquiry.name or ''
+                    phone = phone or inquiry.phone or ''
+
             # Find or create contact by email
             Partner = request.env['res.partner'].sudo()
             partner = Partner.search([('email', '=', email)], limit=1)
             if not partner:
                 partner_vals = {
-                    'name': email.split('@')[0],
+                    # fall back to the email local part when the caller sends no name
+                    'name': name or email.split('@')[0],
                     'email': email,
                 }
+                if phone:
+                    partner_vals['phone'] = phone
                 # customer_rank only exists when the 'account' module is installed
                 if 'customer_rank' in Partner._fields:
                     partner_vals['customer_rank'] = 1
                 partner = Partner.create(partner_vals)
+            else:
+                # Complete an existing contact without overwriting what it already has
+                missing_vals = {}
+                if name and (not partner.name or partner.name == email.split('@')[0]):
+                    missing_vals['name'] = name
+                if phone and not partner.phone:
+                    missing_vals['phone'] = phone
+                if missing_vals:
+                    partner.write(missing_vals)
 
             # Get all active steps from package
             active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
