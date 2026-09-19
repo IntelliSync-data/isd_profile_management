@@ -436,14 +436,19 @@ class UserProfile(models.Model):
         if not payment_method.exists():
             raise ValidationError(_("Payment method not found."))
 
-        # Call isd_payment REST API to create the payment
+        # Call isd_payment REST API to create the payment. The endpoint is a JSON-RPC
+        # route: arguments go inside "params" and the payload comes back under "result".
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         try:
             response = http_requests.post(
                 f"{base_url}/api/payment/{payment_method_id}/create",
                 json={
-                    "amount": total_amount,
-                    "description": f"Profile Payment - {self.name}",
+                    "jsonrpc": "2.0",
+                    "method": "call",
+                    "params": {
+                        "amount": total_amount,
+                        "description": f"Profile Payment - {self.name}",
+                    },
                 },
                 timeout=30,
             )
@@ -452,9 +457,14 @@ class UserProfile(models.Model):
             raise ValidationError(
                 _("Could not reach payment service. Please try again later. Error: %s") % e)
 
-        result = response.json()
+        body = response.json()
+        if body.get('error'):
+            raise ValidationError(
+                _("Payment service error: %s") % body['error'].get('message', body['error']))
+
+        result = body.get('result') or {}
         if not result.get('success'):
-            raise ValidationError(result.get('error', _('Payment creation failed')))
+            raise ValidationError(result.get('error') or _('Payment creation failed'))
 
         data = result['data']
         transaction_id = data['transaction_id']
