@@ -44,6 +44,7 @@ class ExternalProfileAPIController(http.Controller):
                 'payment_methods': [{
                     'id': method.id,
                     'name': method.name,
+                    'type': method.payment_provider or '',
                     # guarded: isd_payment may still be running a version without it
                     'description': (method.description or '') if 'description' in method._fields else '',
                     'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
