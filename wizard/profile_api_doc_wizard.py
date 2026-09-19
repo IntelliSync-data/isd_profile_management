@@ -80,7 +80,7 @@ Content-Type: application/json</pre>
     "result": {{
         "success": true,
         "payment_methods": [
-            {{"id": 1, "name": "SePay Main", "description": "Bank transfer via QR code", "image_url": "{wizard.base_url}/web/image/isd_payment.method/1/image"}},
+            {{"id": 1, "name": "SePay Main", "type": "sepay", "description": "Bank transfer via QR code", "image_url": "{wizard.base_url}/web/image/isd_payment.method/1/image"}},
             ...
         ],
         "package": {{
