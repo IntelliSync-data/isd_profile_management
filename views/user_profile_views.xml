@@ -9,19 +9,19 @@
                 <field name="partner_id"/>
                 <field name="profile_id"/>
                 <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='pending'"/>
+                <field name="progress_percentage" widget="progressbar"/>
+                <field name="total_cost" sum="Total Cost"/>
+                <field name="paid_amount" sum="Paid" optional="hide"/>
+                <field name="remaining_amount" sum="Remaining" optional="hide"/>
                 <field name="payment_status" widget="badge"
                        decoration-danger="payment_status == 'not_yet_paid'"
                        decoration-warning="payment_status == 'half_paid'"
                        decoration-success="payment_status == 'paid'"
                        decoration-info="payment_status == 'returned'"/>
-                <field name="progress_percentage" widget="progressbar"/>
-                <field name="total_cost" sum="Total Cost"/>
-                <field name="paid_amount" sum="Paid"/>
-                <field name="remaining_amount" sum="Remaining" optional="hide"/>
                 <field name="payment_method_id" optional="show"/>
                 <field name="start_date"/>
                 <field name="assigned_to"/>
-                <field name="assigned_date"/>
+                <field name="assigned_date" optional="hide"/>
             </list>
         </field>
     </record>

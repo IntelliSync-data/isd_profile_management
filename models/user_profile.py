@@ -131,6 +131,14 @@ class UserProfile(models.Model):
                 cash_payments = record._create_cash_payment_for_manual_order()
             for payment in cash_payments:
                 isd_tx = payment.isd_transaction_id
+                if not isd_tx and payment.transaction_id:
+                    # The transaction is created by the isd_payment API in its own
+                    # request, so it may not have been visible when the payment was saved
+                    isd_tx = self.env['isd_payment.transaction'].sudo().search([
+                        ('transaction_id', '=', payment.transaction_id),
+                    ], limit=1)
+                    if isd_tx:
+                        payment.isd_transaction_id = isd_tx.id
                 if isd_tx and isd_tx.status != 'confirmed':
                     isd_tx.sudo().mark_as_confirmed_cash(collected_by=self.env.user)
                 payment.with_context(isd_skip_cash_confirm=True).action_confirm()
