@@ -36,7 +36,7 @@
                 <header>
                     <button name="action_open_checkout_wizard" string="Checkout" type="object"
                             class="btn-primary" invisible="payment_status == 'paid'"
-                            groups="isd_profile_management.group_profile_student_only"/>
+                            groups="isd_profile_management.group_profile_student_only,isd_profile_management.group_profile_manager"/>
                     <button name="action_start_profile" string="Start Progress" type="object"
                             class="btn-primary" invisible="state != 'new'"
                             groups="isd_profile_management.group_profile_manager"/>
