@@ -104,4 +104,11 @@ class PaymentMethodPickerField extends Component {
     }
 }
 
-registry.category("fields").add("payment_method_picker", PaymentMethodPickerField);
+// The fields registry expects a descriptor, not the component class itself:
+// registering the class leaves field.component undefined and breaks form rendering
+export const paymentMethodPickerField = {
+    component: PaymentMethodPickerField,
+    supportedTypes: ["many2one"],
+};
+
+registry.category("fields").add("payment_method_picker", paymentMethodPickerField);
