@@ -126,11 +126,68 @@ class UserProfile(models.Model):
                 lambda p: p.state in ('draft', 'pending')
                 and p.payment_method_id.payment_provider == 'cash'
             )
+            if not cash_payments:
+                # Order marked as paid without going through checkout (manual order)
+                cash_payments = record._create_cash_payment_for_manual_order()
             for payment in cash_payments:
                 isd_tx = payment.isd_transaction_id
                 if isd_tx and isd_tx.status != 'confirmed':
                     isd_tx.sudo().mark_as_confirmed_cash(collected_by=self.env.user)
                 payment.with_context(isd_skip_cash_confirm=True).action_confirm()
+
+    def _get_cash_payment_method(self):
+        """Cash method picked from the configured checkout methods, else any active one"""
+        param = self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_payment_method_ids', default=''
+        )
+        ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
+        methods = self.env['isd_payment.method'].sudo().browse(ids).filtered(
+            lambda m: m.exists() and m.active and m.payment_provider == 'cash'
+        )
+        if methods:
+            return methods[0]
+        return self.env['isd_payment.method'].sudo().search(
+            [('payment_provider', '=', 'cash'), ('active', '=', True)], limit=1
+        )
+
+    def _create_cash_payment_for_manual_order(self):
+        """Create a cash transaction for an order marked as paid without going through checkout"""
+        self.ensure_one()
+        Payment = self.env['profile.payment']
+        confirmed_amount = sum(
+            self.payment_ids.filtered(lambda p: p.state == 'confirmed').mapped('amount')
+        )
+        amount = (self.total_cost or 0.0) - confirmed_amount
+        if amount <= 0:
+            return Payment
+
+        method = self._get_cash_payment_method()
+        if not method:
+            self.message_post(body=_(
+                "Marked as paid, but no active Cash payment method exists, "
+                "so no payment transaction was created."))
+            return Payment
+
+        Transaction = self.env['isd_payment.transaction'].sudo()
+        transaction_id = Transaction.generate_transaction_id(method.prefix)
+        isd_tx = Transaction.create({
+            'payment_method_id': method.id,
+            'transaction_id': transaction_id,
+            'amount': amount,
+            'description': _("Cash payment - %s") % (self.name or ''),
+            'branch': self.profile_id.name or '',
+            'status': 'pending',
+        })
+        return Payment.create({
+            'user_profile_id': self.id,
+            'partner_id': self.partner_id.id if self.partner_id else False,
+            'amount': amount,
+            'step_ids': [(6, 0, self.user_step_ids.filtered('is_selected').ids)],
+            'state': 'pending',
+            'transaction_id': transaction_id,
+            'payment_method_id': method.id,
+            'isd_transaction_id': isd_tx.id,
+        })
 
     @api.depends('partner_id', 'profile_id')
     def _compute_name(self):
@@ -448,6 +505,7 @@ class UserProfile(models.Model):
                     "params": {
                         "amount": total_amount,
                         "description": f"Profile Payment - {self.name}",
+                        "branch": self.profile_id.name or '',
                     },
                 },
                 timeout=30,
