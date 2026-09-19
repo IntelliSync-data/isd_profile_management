@@ -65,7 +65,7 @@
             <xpath expr="//list" position="replace">
                 <list string="Orders" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='not_yet_paid'" decoration-primary="state=='paid'" decoration-muted="state=='new'">
                     <field name="partner_id" string="Customer"/>
-                    <field name="profile_id"/>
+                    <field name="profile_id" string="Product"/>
                     <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='paid'"/>
                     <field name="progress_percentage" widget="progressbar"/>
                     <field name="total_cost" sum="Total Cost"/>
