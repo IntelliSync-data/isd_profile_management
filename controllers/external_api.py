@@ -35,8 +35,19 @@ class ExternalProfileAPIController(http.Controller):
 
             active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
 
+            # Same list the Odoo checkout popup offers, so both stay in sync
+            methods = request.env['payment.method.select.wizard'].sudo()._get_available_methods()
+            base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
+
             return {
                 'success': True,
+                'payment_methods': [{
+                    'id': method.id,
+                    'name': method.name,
+                    # guarded: isd_payment may still be running a version without it
+                    'description': (method.description or '') if 'description' in method._fields else '',
+                    'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
+                } for method in methods],
                 'package': {
                     'id': package.id,
                     'name': package.name,

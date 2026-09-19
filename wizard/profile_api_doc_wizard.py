@@ -68,12 +68,21 @@ Content-Type: application/json</pre>
         <li><strong>package_id</strong> (required): Package ID = <code>{wizard.package_id.id}</code></li>
     </ul>
 
+    <h4>Response Notes:</h4>
+    <ul>
+        <li><strong>payment_methods</strong>: methods enabled in Settings of this module. Use one of these <code>id</code> values as <code>payment_method_id</code> when calling <code>/api/profile/create</code>. <code>image_url</code> is empty when the method has no logo.</li>
+    </ul>
+
     <h4>Success Response (200 OK):</h4>
     <pre style="background-color: white; padding: 10px; border-left: 3px solid #27ae60;">
 {{
     "jsonrpc": "2.0",
     "result": {{
         "success": true,
+        "payment_methods": [
+            {{"id": 1, "name": "SePay Main", "description": "Bank transfer via QR code", "image_url": "{wizard.base_url}/web/image/isd_payment.method/1/image"}},
+            ...
+        ],
         "package": {{
             "id": {wizard.package_id.id},
             "name": "{wizard.package_id.name}",
