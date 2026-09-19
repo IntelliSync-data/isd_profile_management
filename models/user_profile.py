@@ -36,7 +36,8 @@ class UserProfile(models.Model):
         ('pending', 'Pending'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-    ], string='Stage', default='new', tracking=True)
+    ], string='Stage', default='new', tracking=True,
+        group_expand='_group_expand_state')
 
     # Payment Status
     payment_status = fields.Selection([
@@ -106,6 +107,14 @@ class UserProfile(models.Model):
         'isd_payment.method', string='Payment Method',
         compute='_compute_payment_method_id', store=True, index=True,
         help='Payment method of the first payment created for this order')
+
+    @api.model
+    def _group_expand_state(self, values, domain):
+        """Order the Stage groups as declared instead of alphabetically by value"""
+        order = [key for key, _label in self._fields['state'].selection]
+        if not values:
+            return order
+        return [key for key in order if key in values]
 
     @api.depends('payment_ids.payment_method_id')
     def _compute_payment_method_id(self):
