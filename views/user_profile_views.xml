@@ -35,7 +35,8 @@
             <form string="User Profile">
                 <header>
                     <button name="action_open_checkout_wizard" string="Checkout" type="object"
-                            class="btn-primary" invisible="payment_status == 'paid'"
+                            class="btn-primary"
+                            invisible="not id or payment_status == 'paid' or payment_method_id"
                             groups="isd_profile_management.group_profile_student_only,isd_profile_management.group_profile_manager"/>
                     <button name="action_start_profile" string="Start Progress" type="object"
                             class="btn-primary" invisible="state != 'new'"
@@ -89,6 +90,7 @@
                             <field name="total_cost" widget="monetary"/>
                             <field name="paid_amount" widget="monetary"/>
                             <field name="remaining_amount" widget="monetary"/>
+                            <field name="payment_method_id" readonly="1"/>
                         </group>
                     </group>
                     
