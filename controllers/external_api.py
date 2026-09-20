@@ -45,8 +45,9 @@ class ExternalProfileAPIController(http.Controller):
                     'id': method.id,
                     'name': method.name,
                     'type': method.payment_provider or '',
-                    # guarded: isd_payment may still be running a version without it
+                    # guarded: isd_payment may still be running a version without them
                     'description': (method.description or '') if 'description' in method._fields else '',
+                    'environment': (method.environment or '') if 'environment' in method._fields else '',
                     'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
                 } for method in methods],
                 'package': {
