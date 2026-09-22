@@ -2433,3 +2433,14 @@ msgstr "Giao dịch đã huỷ này vẫn nhận được tiền: khách đã d�
 #: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__api_order_doc
 msgid "Order Info API"
 msgstr "API thông tin đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__checkout_state
+msgid "Closed"
+msgstr "Đã đóng"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+#, python-format
+msgid "This order is cancelled and cannot be paid."
+msgstr "Đơn hàng đã huỷ, không thể thanh toán."

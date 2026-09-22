@@ -118,6 +118,7 @@ class UserProfile(models.Model):
         ('new', 'Not checked out'),
         ('retry', 'Waiting for payment'),
         ('done', 'Paid'),
+        ('closed', 'Closed'),
     ], compute='_compute_checkout_state',
         help='Drives the Checkout / Re-checkout buttons')
 
@@ -155,10 +156,14 @@ class UserProfile(models.Model):
             latest = (live_payments or record.payment_ids).sorted('id')[-1:]
             record.payment_method_id = latest.payment_method_id
 
-    @api.depends('payment_status', 'payment_ids.state',
+    @api.depends('state', 'payment_status', 'payment_ids.state',
                  'payment_ids.isd_transaction_id.status')
     def _compute_checkout_state(self):
         for record in self:
+            if record.state == 'cancelled':
+                # Nothing left to collect on an order nobody will deliver
+                record.checkout_state = 'closed'
+                continue
             confirmed = record.payment_ids.filtered(
                 lambda p: p.state == 'confirmed'
                 or p.isd_transaction_id.status == 'confirmed')
@@ -570,6 +575,10 @@ class UserProfile(models.Model):
         Returns:
             Odoo action dict — either act_url (redirect) or act_window (QR wizard).
         """
+        if self.state == 'cancelled':
+            raise ValidationError(
+                _("This order is cancelled and cannot be paid."))
+
         if self.payment_status == 'paid':
             raise ValidationError(
                 _("This profile is already fully paid."))
@@ -761,6 +770,8 @@ class UserProfile(models.Model):
     def action_open_checkout_wizard(self):
         """Open wizard to select payment method and proceed to checkout."""
         self.ensure_one()
+        if self.state == 'cancelled':
+            raise ValidationError(_("This order is cancelled and cannot be paid."))
         if self.payment_status == 'paid':
             raise ValidationError(_("This profile is already fully paid."))
         wizard = self.env['payment.method.select.wizard'].create({
