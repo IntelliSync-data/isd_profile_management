@@ -75,6 +75,7 @@
                                     <div class="alert alert-secondary mt-2 small" role="alert">
                                         <strong>Available variables for template Variable Keys:</strong><br/>
                                         <code>order_code</code> - Order code (e.g. transaction ID shown at checkout)<br/>
+                                        <code>user_profile_id</code> - Order ID, use it to call the order-info API<br/>
                                         <code>user_name</code> - Customer name<br/>
                                         <code>user_email</code> - Customer email<br/>
                                         <code>package_name</code> - Package name<br/>
@@ -108,7 +109,9 @@
                                         <code>state</code> - Payment state (draft, pending, confirmed, ...)<br/>
                                         <code>payment_date</code> - Payment date<br/>
                                         <code>package_name</code> - Package name<br/>
-                                        <code>profile_name</code> - Profile assignment name
+                                        <code>profile_name</code> - Profile assignment name<br/>
+                                        <code>user_profile_id</code> - Order ID, use it to call the order-info API<br/>
+                                        <code>order_code</code> - Order code (transaction ID, else payment reference)
                                     </div>
                                 </div>
                             </div>

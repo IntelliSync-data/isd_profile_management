@@ -402,19 +402,23 @@ class ExternalProfileAPIController(http.Controller):
         """
         Everything a checkout page needs about one order and its current payment.
 
-        Input JSON (one of the two references is required):
+        Input JSON (one of the references is required):
         {
             "user_profile_id": 456,
-            "transaction_code": "TEST_ABC123",
+            "order_code": "TEST_ABC123",
             "refresh": false
         }
+
+        `order_code` is the code the customer sees, which is the gateway
+        transaction id or, when there is none, the payment reference.
+        `transaction_code` is accepted as an alias for it.
 
         `refresh` asks the payment provider for the live status before answering,
         which is slower but authoritative.
         """
         try:
             user_profile_id = kwargs.get('user_profile_id')
-            transaction_code = kwargs.get('transaction_code')
+            order_code = kwargs.get('order_code') or kwargs.get('transaction_code')
             refresh = bool(kwargs.get('refresh'))
 
             Payment = request.env['profile.payment'].sudo()
@@ -430,14 +434,17 @@ class ExternalProfileAPIController(http.Controller):
                         'error_code': 'INVALID_USER_PROFILE_ID'
                     }
                 user_profile = request.env['user.profile'].sudo().browse(user_profile_id)
-            elif transaction_code:
+            elif order_code:
+                # The code the customer sees falls back to the payment reference
+                # when the gateway did not give a transaction id
                 payment = Payment.search(
-                    [('transaction_id', '=', transaction_code)], limit=1)
+                    ['|', ('transaction_id', '=', order_code),
+                     ('name', '=', order_code)], limit=1)
                 user_profile = payment.user_profile_id
             else:
                 return {
                     'success': False,
-                    'error': 'Either user_profile_id or transaction_code is required',
+                    'error': 'Either user_profile_id or order_code is required',
                     'error_code': 'MISSING_ORDER_REFERENCE'
                 }
 

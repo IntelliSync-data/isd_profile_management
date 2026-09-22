@@ -349,12 +349,15 @@ curl -X POST '{wizard.base_url}/api/profile/check-payment' \\
 
     <h4>Parameters:</h4>
     <ul>
-        <li><strong>user_profile_id</strong>: order ID returned by API 1. Required unless transaction_code is sent.</li>
-        <li><strong>transaction_code</strong>: transaction code returned by API 1. Use it when you only kept the code.</li>
+        <li><strong>user_profile_id</strong>: order ID returned by API 1, also available in email templates
+            as the <code>user_profile_id</code> variable. Required unless order_code is sent.</li>
+        <li><strong>order_code</strong>: the code the customer sees — the gateway transaction id, or the
+            payment reference when the gateway gave none. Same value as the <code>order_code</code> email
+            variable. <code>transaction_code</code> is accepted as an alias.</li>
         <li><strong>refresh</strong> (optional, default false): ask the payment provider for the live status first.
             Slower, but authoritative. Leave it false while polling often.</li>
     </ul>
-    <p>Without a transaction_code the answer describes the latest payment that was not cancelled.</p>
+    <p>Without an order_code the answer describes the latest payment that was not cancelled.</p>
 
     <h4>Success Response (200 OK):</h4>
     <pre style="background-color: white; padding: 10px; border-left: 3px solid #27ae60;">

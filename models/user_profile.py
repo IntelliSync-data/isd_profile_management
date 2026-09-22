@@ -855,6 +855,7 @@ class UserProfile(models.Model):
 
         variables = {
             'order_code': order_code,
+            'user_profile_id': str(self.id),
             'profile_name': self.name or '',
             'user_name': contact_name,
             'user_email': contact_email,

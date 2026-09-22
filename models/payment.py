@@ -251,6 +251,8 @@ class ProfilePayment(models.Model):
             'payment_date': fields.Datetime.to_string(fields.Datetime.now()),
             'package_name': self.user_profile_id.profile_id.name if self.user_profile_id else '',
             'profile_name': self.user_profile_id.name if self.user_profile_id else '',
+            'user_profile_id': str(self.user_profile_id.id) if self.user_profile_id else '',
+            'order_code': self.transaction_id or self.name or '',
         }
 
         try:
