@@ -27,3 +27,4 @@ access_profile_management_public,profile.management.public,isd_profile_managemen
 access_user_profile_public,user.profile.public,isd_profile_management.model_user_profile,base.group_public,1,1,1,0
 access_profile_payment_public,profile.payment.public,isd_profile_management.model_profile_payment,base.group_public,1,1,1,0
 access_user_step_public,user.step.public,isd_profile_management.model_user_step,base.group_public,1,1,1,0
+access_profile_invoice_wizard,profile.invoice.wizard,isd_profile_management.model_profile_invoice_wizard,isd_profile_management.group_profile_manager,1,1,1,1

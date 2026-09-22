@@ -43,6 +43,17 @@
                                     <field name="pm_exchange_rate" class="mt-2"/>
                                 </div>
                             </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane">
+                                    <field name="pm_enable_invoiced_stage"/>
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_enable_invoiced_stage"/>
+                                    <div class="text-muted">
+                                        Adds the Invoiced stage after Completed, plus a Mark Invoiced button on completed orders
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

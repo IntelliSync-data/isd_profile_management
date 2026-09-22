@@ -8,7 +8,7 @@
             <list string="User Profiles" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-muted="state=='new'">
                 <field name="partner_id"/>
                 <field name="profile_id"/>
-                <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='pending'"/>
+                <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='pending'" decoration-primary="state=='invoiced'"/>
                 <field name="progress_percentage" widget="progressbar"/>
                 <field name="total_cost" sum="Total Cost"/>
                 <field name="paid_amount" sum="Paid" optional="hide"/>
@@ -22,6 +22,7 @@
                 <field name="start_date"/>
                 <field name="assigned_to"/>
                 <field name="assigned_date" optional="hide"/>
+                <field name="invoice_number" optional="hide"/>
             </list>
         </field>
     </record>
@@ -56,10 +57,19 @@
                     <button name="action_mark_returned" string="Mark Returned" type="object"
                             class="btn-warning" invisible="payment_status not in ['half_paid', 'paid']"
                             groups="isd_profile_management.group_profile_manager"/>
-                    <button name="action_cancel_profile" string="Cancel" type="object"
-                            class="btn-danger" invisible="state in ['completed', 'cancelled']"
+                    <button name="action_open_invoice_wizard" string="Mark Invoiced" type="object"
+                            class="btn-success"
+                            invisible="not show_invoiced_stage or state != 'completed'"
                             groups="isd_profile_management.group_profile_manager"/>
-                    <field name="state" widget="statusbar" statusbar_visible="new,in_progress,pending,completed,cancelled"/>
+                    <button name="action_cancel_profile" string="Cancel" type="object"
+                            class="btn-danger" invisible="state in ['completed', 'invoiced', 'cancelled']"
+                            groups="isd_profile_management.group_profile_manager"/>
+                    <field name="show_invoiced_stage" invisible="1"/>
+                    <!-- statusbar_visible is static, so one node per Invoiced setting state -->
+                    <field name="state" widget="statusbar" statusbar_visible="new,in_progress,pending,completed,cancelled"
+                           invisible="show_invoiced_stage"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,in_progress,pending,completed,invoiced,cancelled"
+                           invisible="not show_invoiced_stage"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -103,6 +113,10 @@
                         <group string="Completion">
                             <field name="expected_completion_date"/>
                             <field name="actual_completion_date"/>
+                        </group>
+                        <group string="Invoice" invisible="not show_invoiced_stage">
+                            <field name="invoice_number" placeholder="Optional"/>
+                            <field name="invoice_date"/>
                         </group>
                     </group>
 
@@ -309,6 +323,7 @@
                 <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
                 <filter string="Pending" name="pending" domain="[('state','=','pending')]"/>
                 <filter string="Completed" name="completed" domain="[('state','=','completed')]"/>
+                <filter string="Invoiced" name="invoiced" domain="[('state','=','invoiced')]"/>
                 <filter string="Cancelled" name="cancelled" domain="[('state','=','cancelled')]"/>
                 <separator/>
                 <filter string="Not Yet Paid" name="not_yet_paid" domain="[('payment_status','=','not_yet_paid')]"/>

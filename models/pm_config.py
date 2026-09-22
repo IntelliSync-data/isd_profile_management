@@ -65,3 +65,11 @@ class ResConfigSettings(models.TransientModel):
         default=False,
         help='If unchecked, assignment and activity emails will only be sent to internal users/managers, not to end users'
     )
+
+    # Invoicing
+    pm_enable_invoiced_stage = fields.Boolean(
+        string='Enable Invoiced Stage',
+        config_parameter='isd_profile_management.pm_enable_invoiced_stage',
+        default=False,
+        help='Adds the Invoiced stage after Completed, plus the Mark Invoiced button on orders'
+    )

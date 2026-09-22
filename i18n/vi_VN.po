@@ -1499,6 +1499,8 @@ msgstr "Tìm kiếm bước"
 
 #. module: isd_profile_management
 #: model:ir.ui.view,arch_db:isd_profile_management.view_step_search
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_invoice_wizard_form
 msgid "Optional"
 msgstr "Tùy chọn"
 
@@ -2316,3 +2318,81 @@ msgstr "Cài đặt tích hợp đối tác"
 #: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form
 msgid "Save"
 msgstr "Lưu"
+
+#. module: isd_profile_management
+#: model:ir.model,name:isd_profile_management.model_profile_invoice_wizard
+msgid "Mark Order Invoiced"
+msgstr "Đánh dấu đơn hàng đã xuất hóa đơn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__state
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_search
+msgid "Invoiced"
+msgstr "Đã xuất hóa đơn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+#: model:ir.ui.view,arch_db:isd_profile_management.view_profile_invoice_wizard_form
+msgid "Mark Invoiced"
+msgstr "Đánh dấu đã xuất hóa đơn"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Invoice"
+msgstr "Hóa đơn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__invoice_number
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_invoice_wizard__invoice_number
+msgid "Invoice Number"
+msgstr "Số hóa đơn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__invoice_date
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_invoice_wizard__invoice_date
+msgid "Invoice Date"
+msgstr "Ngày xuất hóa đơn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_invoice_wizard__user_profile_id
+msgid "Order"
+msgstr "Đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_enable_invoiced_stage
+msgid "Enable Invoiced Stage"
+msgstr "Bật giai đoạn Đã xuất hóa đơn"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_res_config_settings__pm_enable_invoiced_stage
+msgid "Adds the Invoiced stage after Completed, plus the Mark Invoiced button on orders"
+msgstr "Thêm giai đoạn Đã xuất hóa đơn sau Hoàn thành, kèm nút Đánh dấu đã xuất hóa đơn trên đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form_inherit_pm
+msgid "Adds the Invoiced stage after Completed, plus a Mark Invoiced button on completed orders"
+msgstr "Thêm giai đoạn Đã xuất hóa đơn sau Hoàn thành, kèm nút Đánh dấu đã xuất hóa đơn trên các đơn đã hoàn thành"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+#, python-format
+msgid "Only completed orders can be marked as invoiced."
+msgstr "Chỉ đơn hàng đã hoàn thành mới có thể đánh dấu đã xuất hóa đơn."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+#, python-format
+msgid "The Invoiced stage is disabled in Profile Management settings."
+msgstr "Giai đoạn Đã xuất hóa đơn đang được tắt trong cấu hình Profile Management."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+#, python-format
+msgid "Order invoiced"
+msgstr "Đơn hàng đã xuất hóa đơn"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+#, python-format
+msgid "Order invoiced (invoice %s)"
+msgstr "Đơn hàng đã xuất hóa đơn (hóa đơn %s)"

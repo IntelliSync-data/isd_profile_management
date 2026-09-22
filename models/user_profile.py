@@ -35,9 +35,15 @@ class UserProfile(models.Model):
         ('in_progress', 'In Progress'),
         ('pending', 'Pending'),
         ('completed', 'Completed'),
+        ('invoiced', 'Invoiced'),
         ('cancelled', 'Cancelled'),
     ], string='Stage', default='new', tracking=True,
         group_expand='_group_expand_state')
+
+    # Invoicing (only used when the Invoiced stage is enabled in Settings)
+    invoice_number = fields.Char(string='Invoice Number', tracking=True, copy=False)
+    invoice_date = fields.Date(string='Invoice Date', tracking=True, copy=False)
+    show_invoiced_stage = fields.Boolean(compute='_compute_show_invoiced_stage')
 
     # Payment Status
     payment_status = fields.Selection([
@@ -112,9 +118,25 @@ class UserProfile(models.Model):
     def _group_expand_state(self, values, domain):
         """Order the Stage groups as declared instead of alphabetically by value"""
         order = [key for key, _label in self._fields['state'].selection]
+        # Keep Invoiced out of the groups unless the setting is on, but never drop
+        # it when orders already sit in that stage
+        if not self._invoiced_stage_enabled() and 'invoiced' not in (values or []):
+            order = [key for key in order if key != 'invoiced']
         if not values:
             return order
         return [key for key in order if key in values]
+
+    @api.model
+    def _invoiced_stage_enabled(self):
+        """Whether the Invoiced stage is enabled in Profile Management settings"""
+        value = self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_enable_invoiced_stage', 'False')
+        return str(value).lower() in ('true', '1')
+
+    def _compute_show_invoiced_stage(self):
+        enabled = self._invoiced_stage_enabled()
+        for record in self:
+            record.show_invoiced_stage = enabled
 
     @api.depends('payment_ids.payment_method_id')
     def _compute_payment_method_id(self):
@@ -362,6 +384,53 @@ class UserProfile(models.Model):
             'actual_completion_date': fields.Date.today(),
         })
         self.message_post(body=_("Profile completed"))
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+
+    def action_open_invoice_wizard(self):
+        """Ask for the (optional) invoice details before moving to the Invoiced stage"""
+        self.ensure_one()
+        if not self._invoiced_stage_enabled():
+            raise ValidationError(
+                _("The Invoiced stage is disabled in Profile Management settings."))
+        if self.state != 'completed':
+            raise ValidationError(
+                _("Only completed orders can be marked as invoiced."))
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Mark Invoiced'),
+            'res_model': 'profile.invoice.wizard',
+            'view_mode': 'form',
+            'views': [(self.env.ref(
+                'isd_profile_management.view_profile_invoice_wizard_form').id, 'form')],
+            'target': 'new',
+            'context': {'default_user_profile_id': self.id},
+        }
+
+    def action_mark_invoiced(self, invoice_number=None, invoice_date=None):
+        """Move a completed order to the Invoiced stage, the final stage"""
+        for record in self:
+            if record.state != 'completed':
+                raise ValidationError(
+                    _("Only completed orders can be marked as invoiced."))
+
+            vals = {'state': 'invoiced'}
+            if invoice_number:
+                vals['invoice_number'] = invoice_number
+            if invoice_date:
+                vals['invoice_date'] = invoice_date
+            record.write(vals)
+
+            if invoice_number:
+                from markupsafe import escape
+                record.message_post(
+                    body=_("Order invoiced (invoice %s)") % escape(invoice_number))
+            else:
+                record.message_post(body=_("Order invoiced"))
 
         return {
             'type': 'ir.actions.client',
@@ -1062,7 +1131,7 @@ class UserStep(models.Model):
         profile = self.user_profile_id
         if not profile or not profile.profile_id.is_auto_complete:
             return
-        if profile.state == 'completed':
+        if profile.state in ('completed', 'invoiced'):
             return
         selected_steps = profile.user_step_ids.filtered('is_selected')
         if selected_steps and all(s.state == 'completed' for s in selected_steps):
