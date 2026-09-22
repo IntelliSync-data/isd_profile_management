@@ -47,6 +47,7 @@
         'wizard/profile_api_doc_wizard_view.xml',
         'wizard/payment_method_select_wizard_view.xml',
         'wizard/print_label_wizard_view.xml',
+        'wizard/profile_invoice_wizard_view.xml',
         'reports/profile_report.xml',
     ],
     'assets': {
