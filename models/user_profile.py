@@ -112,7 +112,14 @@ class UserProfile(models.Model):
     payment_method_id = fields.Many2one(
         'isd_payment.method', string='Payment Method',
         compute='_compute_payment_method_id', store=True, index=True,
-        help='Payment method of the first payment created for this order')
+        help='Payment method of the latest payment that was not cancelled')
+
+    checkout_state = fields.Selection([
+        ('new', 'Not checked out'),
+        ('retry', 'Waiting for payment'),
+        ('done', 'Paid'),
+    ], compute='_compute_checkout_state',
+        help='Drives the Checkout / Re-checkout buttons')
 
     @api.model
     def _group_expand_state(self, values, domain):
@@ -138,11 +145,29 @@ class UserProfile(models.Model):
         for record in self:
             record.show_invoiced_stage = enabled
 
-    @api.depends('payment_ids.payment_method_id')
+    @api.depends('payment_ids.payment_method_id', 'payment_ids.state')
     def _compute_payment_method_id(self):
         for record in self:
-            first_payment = record.payment_ids.sorted('id')[:1]
-            record.payment_method_id = first_payment.payment_method_id
+            # A re-checkout cancels the previous payment, so the method that counts
+            # is the latest one still alive
+            live_payments = record.payment_ids.filtered(
+                lambda p: p.state != 'cancelled')
+            latest = (live_payments or record.payment_ids).sorted('id')[-1:]
+            record.payment_method_id = latest.payment_method_id
+
+    @api.depends('payment_status', 'payment_ids.state',
+                 'payment_ids.isd_transaction_id.status')
+    def _compute_checkout_state(self):
+        for record in self:
+            confirmed = record.payment_ids.filtered(
+                lambda p: p.state == 'confirmed'
+                or p.isd_transaction_id.status == 'confirmed')
+            if record.payment_status == 'paid' or confirmed:
+                record.checkout_state = 'done'
+            elif record.payment_ids.filtered(lambda p: p.state != 'cancelled'):
+                record.checkout_state = 'retry'
+            else:
+                record.checkout_state = 'new'
 
     def write(self, vals):
         res = super().write(vals)
@@ -619,6 +644,10 @@ class UserProfile(models.Model):
         isd_tx = self.env['isd_payment.transaction'].sudo().search(
             [('transaction_id', '=', transaction_id)], limit=1)
 
+        # The new transaction exists now, so the previous attempt can go. Doing it
+        # here and not earlier keeps the old payment usable if the API call failed.
+        self._cancel_open_payments()
+
         payment_vals = {
             'user_profile_id': self.id,
             'partner_id': self.partner_id.id if self.partner_id else False,
@@ -701,6 +730,33 @@ class UserProfile(models.Model):
         buffer = io.BytesIO()
         qr.make_image(fill_color="black", back_color="white").save(buffer, format='PNG')
         return base64.b64encode(buffer.getvalue()).decode('ascii')
+
+    def _cancel_open_payments(self):
+        """Drop the payments still waiting, so a re-checkout starts clean.
+
+        Only ACB can revoke its QR on the provider side. Elsewhere the old QR or
+        link keeps working, so cron_sync_cancelled_payments picks the money up if
+        a customer pays it anyway.
+        """
+        self.ensure_one()
+        open_payments = self.payment_ids.filtered(
+            lambda p: p.state not in ('confirmed', 'cancelled'))
+
+        for payment in open_payments:
+            isd_tx = payment.isd_transaction_id
+            if not isd_tx and payment.transaction_id:
+                isd_tx = self.env['isd_payment.transaction'].sudo().search(
+                    [('transaction_id', '=', payment.transaction_id)], limit=1)
+
+            if isd_tx and isd_tx.status == 'confirmed':
+                # Money arrived while the user was starting over: keep it
+                payment.action_confirm()
+                continue
+
+            if isd_tx and isd_tx.status not in ('cancelled',):
+                isd_tx.sudo().mark_as_cancelled(
+                    reason=_("Replaced by a new checkout on order %s") % self.name)
+            payment.action_cancel()
 
     def action_open_checkout_wizard(self):
         """Open wizard to select payment method and proceed to checkout."""

@@ -34,6 +34,10 @@
                             <field name="api_confirm_doc" widget="html" nolabel="1"/>
                         </page>
 
+                        <page string="📋 API 4: Order Info" name="api_order">
+                            <field name="api_order_doc" widget="html" nolabel="1"/>
+                        </page>
+
                         <page string="📋 Integration Flow" name="integration_flow">
                             <div style="font-family: sans-serif; padding: 20px;">
                                 <h3>Complete Integration Flow:</h3>

@@ -2396,3 +2396,40 @@ msgstr "Đơn hàng đã xuất hóa đơn"
 #, python-format
 msgid "Order invoiced (invoice %s)"
 msgstr "Đơn hàng đã xuất hóa đơn (hóa đơn %s)"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Re-checkout"
+msgstr "Thanh toán lại"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__checkout_state
+msgid "Checkout State"
+msgstr "Trạng thái thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__checkout_state
+msgid "Not checked out"
+msgstr "Chưa thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,selection:isd_profile_management.field_user_profile__checkout_state
+msgid "Waiting for payment"
+msgstr "Đang chờ thanh toán"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+#, python-format
+msgid "Replaced by a new checkout on order %s"
+msgstr "Được thay thế bằng lần thanh toán mới của đơn %s"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/payment.py:0
+#, python-format
+msgid "Money was received on this cancelled transaction: an old QR code or payment link was used. Confirming the payment."
+msgstr "Giao dịch đã huỷ này vẫn nhận được tiền: khách đã dùng mã QR hoặc link thanh toán cũ. Hệ thống xác nhận thanh toán."
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__api_order_doc
+msgid "Order Info API"
+msgstr "API thông tin đơn hàng"

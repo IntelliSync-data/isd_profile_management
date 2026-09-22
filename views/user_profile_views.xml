@@ -35,9 +35,14 @@
         <field name="arch" type="xml">
             <form string="User Profile">
                 <header>
+                    <!-- Same action, two labels: a button string cannot depend on a field -->
                     <button name="action_open_checkout_wizard" string="Checkout" type="object"
                             class="btn-primary"
-                            invisible="not id or payment_status == 'paid' or payment_method_id"
+                            invisible="not id or checkout_state != 'new'"
+                            groups="isd_profile_management.group_profile_student_only,isd_profile_management.group_profile_manager"/>
+                    <button name="action_open_checkout_wizard" string="Re-checkout" type="object"
+                            class="btn-warning"
+                            invisible="not id or checkout_state != 'retry'"
                             groups="isd_profile_management.group_profile_student_only,isd_profile_management.group_profile_manager"/>
                     <button name="action_start_profile" string="Start Progress" type="object"
                             class="btn-primary" invisible="state != 'new'"
@@ -65,6 +70,7 @@
                             class="btn-danger" invisible="state in ['completed', 'invoiced', 'cancelled']"
                             groups="isd_profile_management.group_profile_manager"/>
                     <field name="show_invoiced_stage" invisible="1"/>
+                    <field name="checkout_state" invisible="1"/>
                     <!-- statusbar_visible is static, so one node per Invoiced setting state -->
                     <field name="state" widget="statusbar" statusbar_visible="new,in_progress,pending,completed,cancelled"
                            invisible="show_invoiced_stage"/>

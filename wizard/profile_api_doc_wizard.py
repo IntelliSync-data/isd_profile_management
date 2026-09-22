@@ -15,6 +15,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
     api_create_doc = fields.Html(string='Create Package API', compute='_compute_api_documentation')
     api_check_doc = fields.Html(string='Check Payment Status API', compute='_compute_api_documentation')
     api_confirm_doc = fields.Html(string='Confirm Payment API', compute='_compute_api_documentation')
+    api_order_doc = fields.Html(string='Order Info API', compute='_compute_api_documentation')
 
     @api.depends('package_id')
     def _compute_base_url(self):
@@ -31,6 +32,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
                 wizard.api_create_doc = ''
                 wizard.api_check_doc = ''
                 wizard.api_confirm_doc = ''
+                wizard.api_order_doc = ''
                 continue
 
             # Get payment methods for documentation
@@ -318,6 +320,135 @@ curl -X POST '{wizard.base_url}/api/profile/check-payment' \\
             <li><code>not_yet_paid</code> → <code>half_paid</code> (if half payment was used)</li>
             <li><code>not_yet_paid</code> or <code>half_paid</code> → <code>paid</code> (if fully paid)</li>
         </ul>
+    </div>
+</div>
+'''
+
+            # API 4: Order Info
+            wizard.api_order_doc = f'''
+<div style="font-family: monospace; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+    <h3 style="color: #2c3e50;">📋 API 4: Order Info</h3>
+    <p>One call that returns the order, its current transaction and what to do next.
+    Use it to render an order page, to re-open a checkout page after a reload, or to
+    decide whether the customer still has to pay.</p>
+
+    <h4>Endpoint:</h4>
+    <div style="background-color: #34495e; color: #ecf0f1; padding: 10px; border-radius: 3px; margin-bottom: 10px;">
+        POST {wizard.base_url}/api/profile/order-info
+    </div>
+
+    <h4>Request Body:</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #3498db;">
+{{
+    "jsonrpc": "2.0",
+    "params": {{
+        "user_profile_id": 456,
+        "refresh": false
+    }}
+}}</pre>
+
+    <h4>Parameters:</h4>
+    <ul>
+        <li><strong>user_profile_id</strong>: order ID returned by API 1. Required unless transaction_code is sent.</li>
+        <li><strong>transaction_code</strong>: transaction code returned by API 1. Use it when you only kept the code.</li>
+        <li><strong>refresh</strong> (optional, default false): ask the payment provider for the live status first.
+            Slower, but authoritative. Leave it false while polling often.</li>
+    </ul>
+    <p>Without a transaction_code the answer describes the latest payment that was not cancelled.</p>
+
+    <h4>Success Response (200 OK):</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #27ae60;">
+{{
+    "jsonrpc": "2.0",
+    "result": {{
+        "success": true,
+        "next_action": "wait",
+        "order": {{
+            "id": 456,
+            "name": "John Doe - {wizard.package_id.name}",
+            "state": "new",
+            "state_label": "New",
+            "payment_status": "not_yet_paid",
+            "payment_status_label": "Not Yet Paid",
+            "total_cost": 500000.0,
+            "paid_amount": 0.0,
+            "remaining_amount": 500000.0,
+            "progress_percentage": 0.0,
+            "address": "12 Nguyen Hue, District 1",
+            "created_at": "2026-09-22 09:15:00",
+            "start_date": "",
+            "customer": {{"name": "John Doe", "email": "john@example.com", "phone": "0900000000"}},
+            "package": {{"id": {wizard.package_id.id}, "name": "{wizard.package_id.name}"}},
+            "services": [
+                {{"id": 1, "name": "Service A", "cost": 500000.0, "state": "not_started", "is_selected": true}}
+            ]
+        }},
+        "transaction": {{
+            "transaction_id": "TEST_ABC123",
+            "payment_state": "pending",
+            "amount": 500000.0,
+            "status": "pending",
+            "is_expired": false,
+            "expired_at": "2026-09-22 10:15:00",
+            "confirmed_at": "",
+            "qr_url": "https://qr.sepay.vn/img?acc=...",
+            "payment_url": "",
+            "payment_method": {{
+                "id": 3, "name": "SePay", "type": "sepay",
+                "environment": "live", "image_url": "{wizard.base_url}/web/image/isd_payment.method/3/image"
+            }}
+        }}
+    }}
+}}</pre>
+
+    <h4>next_action — what your page should do:</h4>
+    <ul>
+        <li><code>checkout</code> — the order has no payment yet, send the customer to checkout</li>
+        <li><code>wait</code> — a transaction is waiting: show <code>qr_url</code> (scan) or <code>payment_url</code>
+            (send the customer to the provider), then poll API 2</li>
+        <li><code>recheckout</code> — the transaction is expired, failed or cancelled: create a new one</li>
+        <li><code>done</code> — already paid, move the customer to your thank-you page</li>
+    </ul>
+
+    <h4>transaction.status values (from the payment system):</h4>
+    <ul>
+        <li><code>pending</code> / <code>processing</code> — waiting for the money</li>
+        <li><code>confirmed</code> — paid</li>
+        <li><code>cancelled</code> — replaced by a newer checkout, or cancelled by staff</li>
+        <li><code>expired</code> / <code>failed</code> — unusable, start a new payment</li>
+    </ul>
+    <p><code>transaction</code> is <code>null</code> when the order has no payment at all.</p>
+
+    <h4>Error Response:</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #e74c3c;">
+{{
+    "jsonrpc": "2.0",
+    "result": {{
+        "success": false,
+        "error": "Order not found",
+        "error_code": "ORDER_NOT_FOUND"
+    }}
+}}</pre>
+    <p>Error codes: <code>MISSING_ORDER_REFERENCE</code>, <code>INVALID_USER_PROFILE_ID</code>,
+    <code>ORDER_NOT_FOUND</code>, <code>INTERNAL_ERROR</code>.</p>
+
+    <h4>Example cURL:</h4>
+    <pre style="background-color: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 3px;">
+curl -X POST '{wizard.base_url}/api/profile/order-info' \\
+  -H 'Content-Type: application/json' \\
+  -d '{{
+    "jsonrpc": "2.0",
+    "params": {{
+      "user_profile_id": 456
+    }}
+  }}'</pre>
+
+    <h4 style="color: #e67e22;">⚠️ Note:</h4>
+    <div style="background-color: #fff3cd; padding: 10px; border-left: 3px solid #e67e22; margin-top: 10px;">
+        A cancelled QR code or payment link can still be paid at every provider except ACB.
+        If that happens the money is picked up automatically within the hour and the order
+        turns to <code>done</code> — so treat <code>recheckout</code> as "offer a new payment",
+        not as "the old money is lost".
     </div>
 </div>
 '''

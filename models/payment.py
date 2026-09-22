@@ -161,6 +161,30 @@ class ProfilePayment(models.Model):
         """Cancel payment"""
         self.write({'state': 'cancelled'})
         self.message_post(body=_("Payment cancelled"))
+
+    @api.model
+    def cron_sync_cancelled_payments(self):
+        """Confirm cancelled payments whose money arrived anyway.
+
+        A re-checkout cancels the previous payment, but the old QR code or payment
+        link stays payable at every provider except ACB. When that happens the
+        transaction is confirmed on the isd_payment side while the payment here is
+        still cancelled, so the order would never show the money.
+        """
+        stale = self.search([
+            ('state', '=', 'cancelled'),
+            ('isd_transaction_id', '!=', False),
+            ('isd_transaction_id.status', '=', 'confirmed'),
+        ])
+        for payment in stale:
+            _logger.warning(
+                "Payment %s was cancelled but transaction %s is confirmed, "
+                "confirming it back", payment.name, payment.transaction_id)
+            payment.message_post(body=_(
+                "Money was received on this cancelled transaction: an old QR code "
+                "or payment link was used. Confirming the payment."))
+            payment.action_confirm()
+        return True
     
     def _notify_managers(self):
         """Notify managers about new payment submission"""

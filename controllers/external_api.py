@@ -397,6 +397,165 @@ class ExternalProfileAPIController(http.Controller):
                 'error_code': 'INTERNAL_ERROR'
             }
 
+    @http.route('/api/profile/order-info', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
+    def get_order_info(self, **kwargs):
+        """
+        Everything a checkout page needs about one order and its current payment.
+
+        Input JSON (one of the two references is required):
+        {
+            "user_profile_id": 456,
+            "transaction_code": "TEST_ABC123",
+            "refresh": false
+        }
+
+        `refresh` asks the payment provider for the live status before answering,
+        which is slower but authoritative.
+        """
+        try:
+            user_profile_id = kwargs.get('user_profile_id')
+            transaction_code = kwargs.get('transaction_code')
+            refresh = bool(kwargs.get('refresh'))
+
+            Payment = request.env['profile.payment'].sudo()
+            payment = Payment.browse()
+
+            if user_profile_id:
+                try:
+                    user_profile_id = int(user_profile_id)
+                except (TypeError, ValueError):
+                    return {
+                        'success': False,
+                        'error': 'user_profile_id must be an integer',
+                        'error_code': 'INVALID_USER_PROFILE_ID'
+                    }
+                user_profile = request.env['user.profile'].sudo().browse(user_profile_id)
+            elif transaction_code:
+                payment = Payment.search(
+                    [('transaction_id', '=', transaction_code)], limit=1)
+                user_profile = payment.user_profile_id
+            else:
+                return {
+                    'success': False,
+                    'error': 'Either user_profile_id or transaction_code is required',
+                    'error_code': 'MISSING_ORDER_REFERENCE'
+                }
+
+            if not user_profile or not user_profile.exists():
+                return {
+                    'success': False,
+                    'error': 'Order not found',
+                    'error_code': 'ORDER_NOT_FOUND'
+                }
+
+            # Without an explicit transaction code, report the payment that is
+            # actually in play: the latest one that was not cancelled
+            if not payment:
+                live_payments = user_profile.payment_ids.filtered(
+                    lambda p: p.state != 'cancelled')
+                payment = (live_payments or user_profile.payment_ids).sorted('id')[-1:]
+
+            if payment and refresh and payment.state != 'confirmed':
+                try:
+                    payment.action_check_payment_status()
+                except Exception:
+                    # A provider hiccup must not break the whole response
+                    _logger.exception(
+                        "order-info: could not refresh payment %s", payment.transaction_id)
+
+            isd_tx = payment.isd_transaction_id
+            if payment and not isd_tx and payment.transaction_id:
+                isd_tx = request.env['isd_payment.transaction'].sudo().search(
+                    [('transaction_id', '=', payment.transaction_id)], limit=1)
+
+            base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
+            partner = user_profile.partner_id
+            state_labels = dict(user_profile._fields['state'].selection)
+            payment_labels = dict(user_profile._fields['payment_status'].selection)
+
+            order_data = {
+                'id': user_profile.id,
+                'name': user_profile.name or '',
+                'state': user_profile.state,
+                'state_label': state_labels.get(user_profile.state, ''),
+                'payment_status': user_profile.payment_status,
+                'payment_status_label': payment_labels.get(user_profile.payment_status, ''),
+                'total_cost': user_profile.total_cost,
+                'paid_amount': user_profile.paid_amount,
+                'remaining_amount': user_profile.remaining_amount,
+                'progress_percentage': user_profile.progress_percentage,
+                'address': user_profile.address or '',
+                'created_at': fields.Datetime.to_string(user_profile.create_date) or '',
+                'start_date': fields.Date.to_string(user_profile.start_date) or '',
+                'customer': {
+                    'name': partner.name or '',
+                    'email': partner.email or '',
+                    'phone': partner.phone or '',
+                },
+                'package': {
+                    'id': user_profile.profile_id.id,
+                    'name': user_profile.profile_id.name or '',
+                },
+                'services': [{
+                    'id': step.id,
+                    'name': step.name or '',
+                    'cost': step.cost,
+                    'state': step.state,
+                    'is_selected': step.is_selected,
+                } for step in user_profile.user_step_ids],
+            }
+
+            transaction_data = None
+            if payment:
+                method = payment.payment_method_id
+                transaction_data = {
+                    'transaction_id': payment.transaction_id or '',
+                    'payment_state': payment.state,
+                    'amount': payment.amount,
+                    'status': isd_tx.status if isd_tx else '',
+                    'is_expired': bool(isd_tx.is_expired) if isd_tx else False,
+                    'expired_at': fields.Datetime.to_string(isd_tx.expired_at) if isd_tx else '',
+                    'confirmed_at': fields.Datetime.to_string(isd_tx.confirmed_at) if isd_tx else '',
+                    'qr_url': (isd_tx.qr_url or '') if isd_tx else '',
+                    # PayPal and VNPay send the customer to their own page instead
+                    'payment_url': ((isd_tx.paypal_redirect_url or isd_tx.vnpay_redirect_url or '')
+                                    if isd_tx else ''),
+                    'payment_method': {
+                        'id': method.id,
+                        'name': method.name or '',
+                        'type': method.payment_provider or '',
+                        'environment': (method.environment or '') if 'environment' in method._fields else '',
+                        'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
+                    } if method else None,
+                }
+
+            # What the caller should do next, so the page does not have to guess
+            tx_status = transaction_data['status'] if transaction_data else ''
+            if user_profile.payment_status == 'paid' or tx_status == 'confirmed' \
+                    or (payment and payment.state == 'confirmed'):
+                next_action = 'done'
+            elif not payment:
+                next_action = 'checkout'
+            elif tx_status in ('cancelled', 'failed', 'expired') or transaction_data['is_expired']:
+                next_action = 'recheckout'
+            else:
+                next_action = 'wait'
+
+            return {
+                'success': True,
+                'next_action': next_action,
+                'order': order_data,
+                'transaction': transaction_data,
+            }
+
+        except Exception as e:
+            _logger.exception("Error getting order info via external API")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_code': 'INTERNAL_ERROR'
+            }
+
     @http.route('/api/profile/check-payment', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
     def check_payment_status(self, **kwargs):
         """
