@@ -16,6 +16,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
     api_check_doc = fields.Html(string='Check Payment Status API', compute='_compute_api_documentation')
     api_confirm_doc = fields.Html(string='Confirm Payment API', compute='_compute_api_documentation')
     api_order_doc = fields.Html(string='Order Info API', compute='_compute_api_documentation')
+    api_create_payment_doc = fields.Html(string='Create Payment API', compute='_compute_api_documentation')
 
     @api.depends('package_id')
     def _compute_base_url(self):
@@ -33,6 +34,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
                 wizard.api_check_doc = ''
                 wizard.api_confirm_doc = ''
                 wizard.api_order_doc = ''
+                wizard.api_create_payment_doc = ''
                 continue
 
             # Get payment methods for documentation
@@ -453,6 +455,81 @@ curl -X POST '{wizard.base_url}/api/profile/order-info' \\
         turns to <code>done</code> — so treat <code>recheckout</code> as "offer a new payment",
         not as "the old money is lost".
     </div>
+</div>
+'''
+
+            # API 5: Create Payment on an existing order
+            wizard.api_create_payment_doc = f'''
+<div style="font-family: monospace; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+    <h3 style="color: #2c3e50;">🔁 API 5: Create Payment</h3>
+    <p>Starts a new payment on an order that already exists. Use it when API 4 answers
+    <code>recheckout</code>, or when the customer picks another payment method.</p>
+
+    <h4>Endpoint:</h4>
+    <div style="background-color: #34495e; color: #ecf0f1; padding: 10px; border-radius: 3px; margin-bottom: 10px;">
+        POST {wizard.base_url}/api/profile/create-payment
+    </div>
+
+    <h4>Request Body:</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #3498db;">
+{{
+    "jsonrpc": "2.0",
+    "params": {{
+        "order_code": "BP_XXX",
+        "payment_method_id": 3
+    }}
+}}</pre>
+
+    <h4>Parameters:</h4>
+    <ul>
+        <li><strong>order_code</strong>: the code the customer sees. <code>user_profile_id</code> is accepted instead.</li>
+        <li><strong>payment_method_id</strong> (required): from <code>payment_methods</code> in the Package Info API.</li>
+    </ul>
+
+    <div style="background-color: #fff3cd; padding: 10px; border-left: 3px solid #e67e22; margin: 10px 0;">
+        <strong>The previous transaction is cancelled first</strong>, so the customer never
+        holds two live QR codes. No new order is created: the payment is attached to the
+        order you named, for its remaining amount.
+    </div>
+
+    <h4>Success Response (200 OK):</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #27ae60;">
+{{
+    "jsonrpc": "2.0",
+    "result": {{
+        "success": true,
+        "user_profile_id": 456,
+        "transaction_id": "BP_YYY",
+        "amount": 1650000,
+        "qr_url": "https://qr.sepay.vn/img?acc=..."
+    }}
+}}</pre>
+    <p><code>qr_url</code> comes back for QR gateways, <code>redirect_url</code> for PayPal and VNPay,
+    and <code>amount_usd</code> when the gateway charges in USD. Same shape as API 1.</p>
+
+    <h4>Error Codes:</h4>
+    <ul>
+        <li><code>MISSING_ORDER_REFERENCE</code> — neither order_code nor user_profile_id was sent</li>
+        <li><code>ORDER_NOT_FOUND</code> — no order matches</li>
+        <li><code>ORDER_CANCELLED</code> — the order was cancelled and cannot be paid</li>
+        <li><code>ALREADY_PAID</code> — nothing left to pay, send the customer to your thank-you page</li>
+        <li><code>PAYMENT_METHOD_NOT_FOUND</code> — unknown payment_method_id</li>
+        <li><code>PAYMENT_METHOD_NOT_ALLOWED</code> — that method belongs to the other environment
+            (live methods serve an active package, test methods a draft or inactive one)</li>
+        <li><code>INVALID_AMOUNT</code> — the remaining amount is zero or negative</li>
+    </ul>
+
+    <h4>Example cURL:</h4>
+    <pre style="background-color: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 3px;">
+curl -X POST '{wizard.base_url}/api/profile/create-payment' \\
+  -H 'Content-Type: application/json' \\
+  -d '{{
+    "jsonrpc": "2.0",
+    "params": {{
+      "order_code": "BP_XXX",
+      "payment_method_id": 3
+    }}
+  }}'</pre>
 </div>
 '''
 

@@ -408,6 +408,149 @@ class ExternalProfileAPIController(http.Controller):
                 'error_code': 'INTERNAL_ERROR'
             }
 
+    def _find_order(self, user_profile_id=None, order_code=None):
+        """Resolve an order from its id or from the code the customer sees.
+
+        Returns (user_profile, error_dict); exactly one of them is filled.
+        """
+        if user_profile_id:
+            try:
+                user_profile_id = int(user_profile_id)
+            except (TypeError, ValueError):
+                return None, {
+                    'success': False,
+                    'error': 'user_profile_id must be an integer',
+                    'error_code': 'INVALID_USER_PROFILE_ID'
+                }
+            user_profile = request.env['user.profile'].sudo().browse(user_profile_id)
+        elif order_code:
+            payment = request.env['profile.payment'].sudo().search(
+                ['|', ('transaction_id', '=', order_code),
+                 ('name', '=', order_code)], limit=1)
+            user_profile = payment.user_profile_id
+        else:
+            return None, {
+                'success': False,
+                'error': 'Either user_profile_id or order_code is required',
+                'error_code': 'MISSING_ORDER_REFERENCE'
+            }
+
+        if not user_profile or not user_profile.exists():
+            return None, {
+                'success': False,
+                'error': 'Order not found',
+                'error_code': 'ORDER_NOT_FOUND'
+            }
+        return user_profile, None
+
+    @http.route('/api/profile/create-payment', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
+    def create_payment(self, **kwargs):
+        """
+        Start a new payment on an order that already exists.
+
+        Input JSON:
+        {
+            "order_code": "BP_XXX",
+            "payment_method_id": 3
+        }
+
+        `user_profile_id` is accepted in place of `order_code`. Any transaction
+        still waiting on this order is cancelled first, so the customer is never
+        left with two live QR codes.
+        """
+        try:
+            user_profile, error = self._find_order(
+                kwargs.get('user_profile_id'),
+                kwargs.get('order_code') or kwargs.get('transaction_code'))
+            if error:
+                return error
+
+            if user_profile.state == 'cancelled':
+                return {
+                    'success': False,
+                    'error': 'Order is cancelled',
+                    'error_code': 'ORDER_CANCELLED'
+                }
+
+            if user_profile.payment_status == 'paid':
+                return {
+                    'success': False,
+                    'error': 'Order is already paid',
+                    'error_code': 'ALREADY_PAID'
+                }
+
+            payment_method_id = kwargs.get('payment_method_id')
+            payment_method = request.env['isd_payment.method'].sudo().browse(
+                payment_method_id) if payment_method_id else None
+            if not payment_method or not payment_method.exists():
+                return {
+                    'success': False,
+                    'error': 'Payment method not found',
+                    'error_code': 'PAYMENT_METHOD_NOT_FOUND'
+                }
+
+            # Same rule as /api/profile/create: a draft or inactive package is a
+            # test package and must not reach a live gateway
+            Wizard = request.env['payment.method.select.wizard'].sudo()
+            if payment_method not in Wizard._get_available_methods(user_profile.profile_id):
+                return {
+                    'success': False,
+                    'error': 'This payment method cannot be used for this package',
+                    'error_code': 'PAYMENT_METHOD_NOT_ALLOWED'
+                }
+
+            # Drop whatever was still waiting, gateway side included
+            user_profile._cancel_open_payments()
+
+            amount = user_profile.remaining_amount or user_profile.total_cost
+            if amount <= 0:
+                return {
+                    'success': False,
+                    'error': 'Order has nothing left to pay',
+                    'error_code': 'INVALID_AMOUNT'
+                }
+
+            profile_payment = request.env['profile.payment'].sudo().create({
+                'user_profile_id': user_profile.id,
+                'partner_id': user_profile.partner_id.id if user_profile.partner_id else False,
+                'amount': amount,
+                'step_ids': [(6, 0, user_profile.user_step_ids.ids)],
+                'state': 'draft',
+            })
+
+            payment_response = profile_payment.with_context(
+                payment_method_id=payment_method.id
+            ).action_create_isd_payment_external(payment_method)
+
+            user_profile.message_post(
+                body=_("New payment started via external API: %s") % (
+                    payment_response.get('transaction_id') or ''),
+                message_type='comment',
+                subtype_xmlid='mail.mt_note'
+            )
+
+            result = {
+                'success': True,
+                'user_profile_id': user_profile.id,
+                'transaction_id': payment_response.get('transaction_id'),
+                'amount': amount,
+            }
+            if payment_response.get('redirect_url'):
+                result['redirect_url'] = payment_response['redirect_url']
+            if payment_response.get('amount_usd'):
+                result['amount_usd'] = payment_response['amount_usd']
+            if payment_response.get('qr_url'):
+                result['qr_url'] = payment_response['qr_url']
+            return result
+
+        except Exception as e:
+            _logger.exception("Error creating a payment via external API")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_code': 'INTERNAL_ERROR'
+            }
+
     @http.route('/api/profile/order-info', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
     def get_order_info(self, **kwargs):
         """
@@ -435,36 +578,17 @@ class ExternalProfileAPIController(http.Controller):
             Payment = request.env['profile.payment'].sudo()
             payment = Payment.browse()
 
-            if user_profile_id:
-                try:
-                    user_profile_id = int(user_profile_id)
-                except (TypeError, ValueError):
-                    return {
-                        'success': False,
-                        'error': 'user_profile_id must be an integer',
-                        'error_code': 'INVALID_USER_PROFILE_ID'
-                    }
-                user_profile = request.env['user.profile'].sudo().browse(user_profile_id)
-            elif order_code:
-                # The code the customer sees falls back to the payment reference
-                # when the gateway did not give a transaction id
-                payment = Payment.search(
-                    ['|', ('transaction_id', '=', order_code),
-                     ('name', '=', order_code)], limit=1)
-                user_profile = payment.user_profile_id
-            else:
-                return {
-                    'success': False,
-                    'error': 'Either user_profile_id or order_code is required',
-                    'error_code': 'MISSING_ORDER_REFERENCE'
-                }
+            user_profile, error = self._find_order(user_profile_id, order_code)
+            if error:
+                return error
 
-            if not user_profile or not user_profile.exists():
-                return {
-                    'success': False,
-                    'error': 'Order not found',
-                    'error_code': 'ORDER_NOT_FOUND'
-                }
+            if order_code:
+                # Report the transaction the caller asked about, not the latest one,
+                # as long as it really belongs to this order
+                payment = Payment.search(
+                    ['&', ('user_profile_id', '=', user_profile.id),
+                     '|', ('transaction_id', '=', order_code),
+                     ('name', '=', order_code)], limit=1)
 
             # Without an explicit transaction code, report the payment that is
             # actually in play: the latest one that was not cancelled

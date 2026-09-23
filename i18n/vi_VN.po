@@ -2483,3 +2483,14 @@ msgstr "Link trang đơn hàng cho khách"
 #: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form_inherit_pm
 msgid "Page where customers open their own order, e.g. https://bloompod.vn/order.html."
 msgstr "Trang để khách tự mở đơn hàng của mình, ví dụ https://bloompod.vn/order.html."
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__api_create_payment_doc
+msgid "Create Payment API"
+msgstr "API tạo thanh toán"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/controllers/external_api.py:0
+#, python-format
+msgid "New payment started via external API: %s"
+msgstr "Đã tạo thanh toán mới qua API: %s"

@@ -38,6 +38,10 @@
                             <field name="api_order_doc" widget="html" nolabel="1"/>
                         </page>
 
+                        <page string="🔁 API 5: Create Payment" name="api_create_payment">
+                            <field name="api_create_payment_doc" widget="html" nolabel="1"/>
+                        </page>
+
                         <page string="📋 Integration Flow" name="integration_flow">
                             <div style="font-family: sans-serif; padding: 20px;">
                                 <h3>Complete Integration Flow:</h3>
