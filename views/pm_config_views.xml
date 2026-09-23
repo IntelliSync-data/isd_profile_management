@@ -44,6 +44,18 @@
                                 </div>
                             </div>
                             <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_order_link"/>
+                                    <div class="text-muted">
+                                        Page where customers open their own order, e.g. https://bloompod.vn/order.html.
+                                        <code>?order=&lt;order code&gt;</code> is appended automatically and the result is
+                                        shown under the QR code at checkout
+                                    </div>
+                                    <field name="pm_order_link" class="mt-2" placeholder="https://bloompod.vn/order.html"/>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
                                 <div class="o_setting_left_pane">
                                     <field name="pm_enable_invoiced_stage"/>
                                 </div>

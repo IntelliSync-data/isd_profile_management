@@ -35,8 +35,9 @@ class ExternalProfileAPIController(http.Controller):
 
             active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
 
-            # Same list the Odoo checkout popup offers, so both stay in sync
-            methods = request.env['payment.method.select.wizard'].sudo()._get_available_methods()
+            # Same list the Odoo checkout popup offers, so both stay in sync:
+            # live methods for an active package, test methods for draft/inactive
+            methods = request.env['payment.method.select.wizard'].sudo()._get_available_methods(package)
             base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
 
             return {
@@ -171,6 +172,16 @@ class ExternalProfileAPIController(http.Controller):
                     'success': False,
                     'error': 'Payment method not found',
                     'error_code': 'PAYMENT_METHOD_NOT_FOUND'
+                }
+
+            # An inactive or draft package is a test package: it must not be paid
+            # with a live method, and the reverse holds for an active one
+            Wizard = request.env['payment.method.select.wizard'].sudo()
+            if payment_method not in Wizard._get_available_methods(package):
+                return {
+                    'success': False,
+                    'error': 'This payment method cannot be used for this package',
+                    'error_code': 'PAYMENT_METHOD_NOT_ALLOWED'
                 }
 
             # The website posts full contact details to isd_chatbot's /api/inquiry, so

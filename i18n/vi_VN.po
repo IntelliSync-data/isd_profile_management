@@ -2444,3 +2444,42 @@ msgstr "Đã đóng"
 #, python-format
 msgid "This order is cancelled and cannot be paid."
 msgstr "Đơn hàng đã huỷ, không thể thanh toán."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/wizard/payment_method_select_wizard.py:0
+#, python-format
+msgid "No %s payment method is configured for this package. Add one in Profile Management settings."
+msgstr "Chưa cấu hình phương thức thanh toán %s nào cho gói này. Thêm trong cấu hình Profile Management."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/wizard/payment_method_select_wizard.py:0
+#, python-format
+msgid "Payment method %s cannot be used for this package."
+msgstr "Không dùng được phương thức thanh toán %s cho gói này."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/wizard/payment_method_select_wizard.py:0
+#, python-format
+msgid "Live"
+msgstr "Live"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/wizard/payment_method_select_wizard.py:0
+#, python-format
+msgid "Test"
+msgstr "Test"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_qr_popup_wizard__order_link_text
+msgid "Order Link"
+msgstr "Link đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_order_link
+msgid "Customer Order Page Link"
+msgstr "Link trang đơn hàng cho khách"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form_inherit_pm
+msgid "Page where customers open their own order, e.g. https://bloompod.vn/order.html."
+msgstr "Trang để khách tự mở đơn hàng của mình, ví dụ https://bloompod.vn/order.html."

@@ -613,6 +613,10 @@ class UserProfile(models.Model):
         if not payment_method.exists():
             raise ValidationError(_("Payment method not found."))
 
+        # A test package must never reach a live gateway, whoever calls this
+        self.env['payment.method.select.wizard']._check_method_for_package(
+            self.profile_id, payment_method)
+
         # Call isd_payment REST API to create the payment. The endpoint is a JSON-RPC
         # route: arguments go inside "params" and the payload comes back under "result".
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
@@ -671,6 +675,7 @@ class UserProfile(models.Model):
             'transaction_id': transaction_id,
             'amount': total_amount,
             'payment_method_name': payment_method.name or '',
+            'order_link_text': self._build_order_link_text(transaction_id),
         }
 
         if payment_method.payment_provider == 'cash':
@@ -709,7 +714,6 @@ class UserProfile(models.Model):
             # QR code instead of opening the provider page in the staff browser
             self.env['profile.payment'].create(dict(payment_vals, state='pending'))
             wizard_vals['qr_image'] = self._generate_payment_qr(redirect_url)
-            wizard_vals['payment_url'] = redirect_url
 
         else:
             raise ValidationError(_("Payment service returned no QR or redirect URL."))
@@ -725,6 +729,22 @@ class UserProfile(models.Model):
             'target': 'new',
             'context': {'form_view_initial_mode': 'edit'},
         }
+
+    def _build_order_link_text(self, order_code):
+        """Link to the public order page, with the validity note, as one copyable block.
+
+        Empty when no page is configured in settings, which hides the whole block.
+        """
+        base = (self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_order_link', '') or '').strip()
+        if not base or not order_code:
+            return ''
+
+        separator = '&' if '?' in base else '?'
+        # Hardcoded Vietnamese: this block is copied and sent to the customer,
+        # so it must not follow the language of the staff member who checks out
+        return "%s%sorder=%s\nLink có thời hạn trong vòng 1 tiếng" % (
+            base, separator, order_code)
 
     def _generate_payment_qr(self, url):
         """Render a payment link as a QR code image the customer can scan"""
@@ -774,7 +794,11 @@ class UserProfile(models.Model):
             raise ValidationError(_("This order is cancelled and cannot be paid."))
         if self.payment_status == 'paid':
             raise ValidationError(_("This profile is already fully paid."))
-        wizard = self.env['payment.method.select.wizard'].create({
+
+        Wizard = self.env['payment.method.select.wizard']
+        # Fails here with a clear message instead of opening an empty dropdown
+        Wizard._check_method_for_package(self.profile_id)
+        wizard = Wizard.with_context(default_user_profile_id=self.id).create({
             'user_profile_id': self.id,
         })
         return {

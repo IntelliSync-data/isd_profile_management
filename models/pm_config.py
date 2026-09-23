@@ -73,3 +73,12 @@ class ResConfigSettings(models.TransientModel):
         default=False,
         help='Adds the Invoiced stage after Completed, plus the Mark Invoiced button on orders'
     )
+
+    # Customer Order Page
+    pm_order_link = fields.Char(
+        string='Customer Order Page Link',
+        config_parameter='isd_profile_management.pm_order_link',
+        help='Public page where a customer opens their own order, for example '
+             'https://bloompod.vn/order.html. The order code is appended automatically '
+             'and the link is shown under the QR code at checkout'
+    )
