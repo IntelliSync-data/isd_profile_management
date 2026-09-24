@@ -36,7 +36,7 @@ class ExternalProfileAPIController(http.Controller):
             active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
 
             # Same list the Odoo checkout popup offers, so both stay in sync:
-            # live methods for an active package, test methods for draft/inactive
+            # live methods for a Live package, test methods for a Demo one
             methods = request.env['payment.method.select.wizard'].sudo()._get_available_methods(package)
             base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
 
@@ -174,8 +174,8 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'PAYMENT_METHOD_NOT_FOUND'
                 }
 
-            # An inactive or draft package is a test package: it must not be paid
-            # with a live method, and the reverse holds for an active one
+            # A Demo package must not be paid with a live method, and a Live
+            # package must not be paid with a test one
             Wizard = request.env['payment.method.select.wizard'].sudo()
             if payment_method not in Wizard._get_available_methods(package):
                 return {
@@ -489,8 +489,8 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'PAYMENT_METHOD_NOT_FOUND'
                 }
 
-            # Same rule as /api/profile/create: a draft or inactive package is a
-            # test package and must not reach a live gateway
+            # Same rule as /api/profile/create: a Demo package must not reach a
+            # live gateway
             Wizard = request.env['payment.method.select.wizard'].sudo()
             if payment_method not in Wizard._get_available_methods(user_profile.profile_id):
                 return {

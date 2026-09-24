@@ -22,8 +22,12 @@ class PaymentMethodSelectWizard(models.TransientModel):
 
     @api.model
     def _package_environment(self, package):
-        """Live money for a package that is live, test money for one that is not"""
-        return 'live' if package and package.state == 'active' else 'test'
+        """Real money only for a Live package, test gateways for a Demo one.
+
+        Driven by the package type, not by its status: a Live package parked as
+        Inactive is still a live package.
+        """
+        return 'live' if package and package.package_type == 'live' else 'test'
 
     @api.model
     def _get_available_methods(self, package=None):

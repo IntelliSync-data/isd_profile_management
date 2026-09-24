@@ -16,6 +16,13 @@ class ProfileManagement(models.Model):
         ('active', 'Active'),
         ('inactive', 'Inactive'),
     ], string='Status', default='draft', tracking=True)
+    package_type = fields.Selection([
+        ('demo', 'Demo'),
+        ('live', 'Live'),
+    ], string='Type', default='demo', required=True, tracking=True,
+        help='A Demo package is only offered the Test payment methods, a Live one '
+             'only the Live methods. This is independent from the status, so a Live '
+             'package that is set to Inactive stays a Live package')
     
     # Steps
     step_ids = fields.Many2many('profile.step', 'profile_management_step_rel', 'profile_id', 'step_id', string='Steps')
