@@ -2523,3 +2523,8 @@ msgstr "Giao dịch"
 #: model:ir.model.fields,help:isd_profile_management.field_user_profile__isd_transaction_id
 msgid "Payment transaction being paid, or the one that was paid"
 msgstr "Giao dịch thanh toán đang chờ, hoặc giao dịch đã thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__create_date_local
+msgid "Created On"
+msgstr "Ngày tạo"

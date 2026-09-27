@@ -2,7 +2,9 @@
 import base64
 import io
 import logging
+import pytz
 import requests as http_requests
+from datetime import datetime, time
 from PIL import Image
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
@@ -118,6 +120,13 @@ class UserProfile(models.Model):
         compute='_compute_payment_method_id', store=True, readonly=True,
         help='Payment transaction being paid, or the one that was paid')
 
+    # create_date is stored in UTC, which makes a plain domain on it select the
+    # wrong day for anyone east of Greenwich. This is the same date read in the
+    # user timezone, so the Today / Yesterday filters mean what they say.
+    create_date_local = fields.Date(
+        string='Created On', compute='_compute_create_date_local',
+        search='_search_create_date_local')
+
     checkout_state = fields.Selection([
         ('new', 'Not checked out'),
         ('retry', 'Waiting for payment'),
@@ -125,6 +134,36 @@ class UserProfile(models.Model):
         ('closed', 'Closed'),
     ], compute='_compute_checkout_state',
         help='Drives the Checkout / Re-checkout buttons')
+
+    @api.depends('create_date')
+    def _compute_create_date_local(self):
+        for record in self:
+            record.create_date_local = fields.Datetime.context_timestamp(
+                record, record.create_date).date() if record.create_date else False
+
+    def _timezone(self):
+        return pytz.timezone(
+            self.env.context.get('tz') or self.env.user.tz or 'UTC')
+
+    def _search_create_date_local(self, operator, value):
+        """Turn a local calendar day into the UTC window it really covers"""
+        tz = self._timezone()
+
+        def boundary(day, end_of_day=False):
+            naive = datetime.combine(day, time.max if end_of_day else time.min)
+            return fields.Datetime.to_string(
+                tz.localize(naive).astimezone(pytz.utc).replace(tzinfo=None))
+
+        day = fields.Date.to_date(value)
+        if operator == '=':
+            return [('create_date', '>=', boundary(day)),
+                    ('create_date', '<=', boundary(day, end_of_day=True))]
+        if operator in ('>=', '>'):
+            return [('create_date', operator, boundary(day, end_of_day=(operator == '>')))]
+        if operator in ('<=', '<'):
+            return [('create_date', operator, boundary(day, end_of_day=(operator == '<=')))]
+        raise ValidationError(
+            _("Operator %s is not supported on the creation date filter.") % operator)
 
     @api.model
     def _group_expand_state(self, values, domain):

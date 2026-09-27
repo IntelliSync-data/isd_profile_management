@@ -343,11 +343,13 @@
                 <filter string="My Profiles" name="my_profiles" domain="[('partner_id.user_ids', 'in', [uid])]"/>
                 <filter string="Payment Due" name="payment_due" domain="[('remaining_amount','>',0)]"/>
                 <separator/>
-                <filter string="Today" name="created_today" domain="[('create_date','&gt;=',context_today())]"/>
-                <filter string="Yesterday" name="created_yesterday" domain="[('create_date','&gt;=', context_today() - relativedelta(days=1)), ('create_date','&lt;',context_today())]"/>
-                <filter string="This Week" name="created_this_week" domain="[('create_date','&gt;=', (context_today() - relativedelta(weeks=1)))]"/>
-                <filter string="This Month" name="created_this_month" domain="[('create_date','&gt;=', (context_today() - relativedelta(months=1)))]"/>
-                <filter string="This Year" name="created_this_year" domain="[('create_date','&gt;=', (context_today() - relativedelta(years=1)))]"/>
+                <!-- create_date_local reads the date in the user timezone, so these
+                     mean the calendar day the user is actually living in -->
+                <filter string="Today" name="created_today" domain="[('create_date_local','=',context_today())]"/>
+                <filter string="Yesterday" name="created_yesterday" domain="[('create_date_local','=', context_today() - relativedelta(days=1))]"/>
+                <filter string="This Week" name="created_this_week" domain="[('create_date_local','&gt;=', context_today() - relativedelta(days=context_today().weekday()))]"/>
+                <filter string="This Month" name="created_this_month" domain="[('create_date_local','&gt;=', context_today().strftime('%Y-%m-01'))]"/>
+                <filter string="This Year" name="created_this_year" domain="[('create_date_local','&gt;=', context_today().strftime('%Y-01-01'))]"/>
                 <group expand="0" string="Group By">
                     <filter string="Customer" name="group_customer" context="{'group_by':'partner_id'}"/>
                     <filter string="Profile" name="group_profile" context="{'group_by':'profile_id'}"/>
