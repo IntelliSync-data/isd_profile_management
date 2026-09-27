@@ -190,20 +190,24 @@ class UserProfile(models.Model):
     def write(self, vals):
         res = super().write(vals)
         if vals.get('payment_status') == 'paid' and not self.env.context.get('isd_skip_cash_confirm'):
-            self._confirm_pending_cash_payments()
+            self._confirm_open_payments_on_paid()
         return res
 
-    def _confirm_pending_cash_payments(self):
-        """Confirm cash payments and their isd_payment transaction once the order is marked paid"""
+    def _confirm_open_payments_on_paid(self):
+        """Confirm whatever is waiting once the order is marked paid by hand.
+
+        Staff often see the money arrive when the gateway never told us. Confirming
+        the payment already on the order keeps the method the customer really used;
+        only an order that never went through checkout gets a cash payment created.
+        """
         for record in self:
-            cash_payments = record.payment_ids.filtered(
-                lambda p: p.state in ('draft', 'pending')
-                and p.payment_method_id.payment_provider == 'cash'
-            )
-            if not cash_payments:
+            open_payments = record.payment_ids.filtered(
+                lambda p: p.state in ('draft', 'pending'))
+            if not open_payments:
                 # Order marked as paid without going through checkout (manual order)
-                cash_payments = record._create_cash_payment_for_manual_order()
-            for payment in cash_payments:
+                open_payments = record._create_cash_payment_for_manual_order()
+
+            for payment in open_payments:
                 isd_tx = payment.isd_transaction_id
                 if not isd_tx and payment.transaction_id:
                     # The transaction is created by the isd_payment API in its own
@@ -213,8 +217,11 @@ class UserProfile(models.Model):
                     ], limit=1)
                     if isd_tx:
                         payment.isd_transaction_id = isd_tx.id
+
                 if isd_tx and isd_tx.status != 'confirmed':
-                    isd_tx.sudo().mark_as_confirmed_cash(collected_by=self.env.user)
+                    isd_tx.sudo().mark_as_confirmed_manually(
+                        confirmed_by=self.env.user,
+                        reason=_("Order %s marked as paid") % (record.name or ''))
                 payment.with_context(isd_skip_cash_confirm=True).action_confirm()
 
     def _get_cash_payment_method(self):
