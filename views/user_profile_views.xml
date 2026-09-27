@@ -107,6 +107,9 @@
                             <field name="paid_amount" widget="monetary"/>
                             <field name="remaining_amount" widget="monetary"/>
                             <field name="payment_method_id" readonly="1"/>
+                            <field name="isd_transaction_id" readonly="1"
+                                   options="{'no_create': True, 'no_open': False}"
+                                   groups="isd_profile_management.group_profile_manager"/>
                         </group>
                     </group>
                     

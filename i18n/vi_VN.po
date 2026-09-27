@@ -2513,3 +2513,13 @@ msgstr "Loại"
 #: model:ir.model.fields,help:isd_profile_management.field_profile_management__package_type
 msgid "A Demo package is only offered the Test payment methods, a Live one only the Live methods. This is independent from the status, so a Live package that is set to Inactive stays a Live package"
 msgstr "Gói Demo chỉ hiện phương thức thanh toán Test, gói Live chỉ hiện phương thức Live. Không phụ thuộc trạng thái, nên gói Live bị chuyển Inactive vẫn là gói Live."
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__isd_transaction_id
+msgid "Transaction"
+msgstr "Giao dịch"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_user_profile__isd_transaction_id
+msgid "Payment transaction being paid, or the one that was paid"
+msgstr "Giao dịch thanh toán đang chờ, hoặc giao dịch đã thanh toán"

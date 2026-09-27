@@ -113,6 +113,10 @@ class UserProfile(models.Model):
         'isd_payment.method', string='Payment Method',
         compute='_compute_payment_method_id', store=True, index=True,
         help='Payment method of the latest payment that was not cancelled')
+    isd_transaction_id = fields.Many2one(
+        'isd_payment.transaction', string='Transaction',
+        compute='_compute_payment_method_id', store=True, readonly=True,
+        help='Payment transaction being paid, or the one that was paid')
 
     checkout_state = fields.Selection([
         ('new', 'Not checked out'),
@@ -146,15 +150,24 @@ class UserProfile(models.Model):
         for record in self:
             record.show_invoiced_stage = enabled
 
-    @api.depends('payment_ids.payment_method_id', 'payment_ids.state')
+    @api.depends('payment_ids.payment_method_id', 'payment_ids.state',
+                 'payment_ids.isd_transaction_id', 'payment_ids.transaction_id')
     def _compute_payment_method_id(self):
         for record in self:
-            # A re-checkout cancels the previous payment, so the method that counts
-            # is the latest one still alive
+            # A re-checkout cancels the previous payment, so the one that counts
+            # is the latest still alive
             live_payments = record.payment_ids.filtered(
                 lambda p: p.state != 'cancelled')
             latest = (live_payments or record.payment_ids).sorted('id')[-1:]
             record.payment_method_id = latest.payment_method_id
+
+            isd_tx = latest.isd_transaction_id
+            if not isd_tx and latest.transaction_id:
+                # The link is empty when isd_payment created the transaction in its
+                # own request, so fall back to the code both records share
+                isd_tx = self.env['isd_payment.transaction'].sudo().search(
+                    [('transaction_id', '=', latest.transaction_id)], limit=1)
+            record.isd_transaction_id = isd_tx
 
     @api.depends('state', 'payment_status', 'payment_ids.state',
                  'payment_ids.isd_transaction_id.status')
