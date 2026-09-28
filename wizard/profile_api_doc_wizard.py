@@ -74,7 +74,7 @@ Content-Type: application/json</pre>
 
     <h4>Response Notes:</h4>
     <ul>
-        <li><strong>payment_methods</strong>: methods enabled in Settings of this module, narrowed to the package type — a <strong>Live</strong> package gets the <code>live</code> methods, a <strong>Demo</strong> one gets the <code>test</code> methods. Use one of these <code>id</code> values as <code>payment_method_id</code> when calling <code>/api/profile/create</code>; any other id is refused with <code>PAYMENT_METHOD_NOT_ALLOWED</code>. <code>image_url</code> is empty when the method has no logo.</li>
+        <li><strong>payment_methods</strong>: methods enabled in Settings of this module, narrowed to the package type — a <strong>Live</strong> package gets the <code>live</code> methods, a <strong>Demo</strong> one gets the <code>test</code> methods. Use one of these <code>id</code> values as <code>payment_method_id</code> when calling <code>/api/profile/create</code>; any other id is refused with <code>PAYMENT_METHOD_NOT_ALLOWED</code>. <code>image_url</code> is empty when the method has no logo. <code>transfer</code> carries the account details for a customer who pays by transfer rather than by scanning: <code>types</code> (<code>qr_pay</code> and/or <code>bank_transfer</code>), <code>bank_account</code>, <code>bank_name</code> and <code>bank_code</code>. It is empty for providers that have none, and comes back from API 1 and API 5 as well, beside <code>qr_url</code>.</li>
     </ul>
 
     <h4>Success Response (200 OK):</h4>

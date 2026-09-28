@@ -50,6 +50,8 @@ class ExternalProfileAPIController(http.Controller):
                     'description': (method.description or '') if 'description' in method._fields else '',
                     'environment': (method.environment or '') if 'environment' in method._fields else '',
                     'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
+                    # Account details for a customer paying by transfer instead of QR
+                    'transfer': method.get_transfer_info() if hasattr(method, 'get_transfer_info') else {},
                 } for method in methods],
                 'package': {
                     'id': package.id,
@@ -316,6 +318,8 @@ class ExternalProfileAPIController(http.Controller):
                 result['amount_usd'] = payment_response['amount_usd']
             if payment_response.get('qr_url'):
                 result['qr_url'] = payment_response['qr_url']
+            if hasattr(payment_method, 'get_transfer_info'):
+                result['transfer'] = payment_method.get_transfer_info()
             return result
 
         except Exception as e:
@@ -541,6 +545,8 @@ class ExternalProfileAPIController(http.Controller):
                 result['amount_usd'] = payment_response['amount_usd']
             if payment_response.get('qr_url'):
                 result['qr_url'] = payment_response['qr_url']
+            if hasattr(payment_method, 'get_transfer_info'):
+                result['transfer'] = payment_method.get_transfer_info()
             return result
 
         except Exception as e:
@@ -668,6 +674,8 @@ class ExternalProfileAPIController(http.Controller):
                         'type': method.payment_provider or '',
                         'environment': (method.environment or '') if 'environment' in method._fields else '',
                         'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
+                    # Account details for a customer paying by transfer instead of QR
+                    'transfer': method.get_transfer_info() if hasattr(method, 'get_transfer_info') else {},
                     } if method else None,
                 }
 
