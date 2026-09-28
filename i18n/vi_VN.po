@@ -915,9 +915,9 @@ msgid "Expected Completion Date"
 msgstr "Ngày dự kiến hoàn thành"
 
 #. module: isd_profile_management
-#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__completion_date
-msgid "Actual Completion Date"
-msgstr "Ngày hoàn thành thực tế"
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__actual_completion_date
+msgid "Completed Date"
+msgstr "Ngày hoàn thành"
 
 #. module: isd_profile_management
 #: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__user_step_ids
@@ -1164,6 +1164,7 @@ msgstr "Ghi chú quản lý"
 
 #. module: isd_profile_management
 #: model:ir.model.fields,field_description:isd_profile_management.field_user_step__last_updated_by
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_tree
 msgid "Last Updated By"
 msgstr "Cập nhật lần cuối bởi"
 
@@ -2528,3 +2529,13 @@ msgstr "Giao dịch thanh toán đang chờ, hoặc giao dịch đã thanh toán
 #: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__create_date_local
 msgid "Created On"
 msgstr "Ngày tạo"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__partner_phone
+msgid "Phone"
+msgstr "Điện thoại"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__partner_email
+msgid "Email"
+msgstr "Email"

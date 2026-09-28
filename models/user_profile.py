@@ -63,7 +63,7 @@ class UserProfile(models.Model):
     start_date = fields.Date(string='Start Date', tracking=True)
     expected_completion_date = fields.Date(string='Expected Completion Date')
     actual_completion_date = fields.Date(
-        string='Actual Completion Date', readonly=True)
+        string='Completed Date', readonly=True)
 
     # Steps
     user_step_ids = fields.One2many(
@@ -106,6 +106,12 @@ class UserProfile(models.Model):
     notes = fields.Text(string='Notes', help='Additional notes for this profile assignment')
 
     # Address
+    # Shown under the customer on the order, never edited from there
+    partner_phone = fields.Char(
+        related='partner_id.phone', string='Phone', readonly=True)
+    partner_email = fields.Char(
+        related='partner_id.email', string='Email', readonly=True)
+
     address = fields.Text(string='Address')
     accept_address = fields.Boolean(related='profile_id.accept_address')
 
