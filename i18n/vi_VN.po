@@ -2561,3 +2561,23 @@ msgstr "Không sinh được mã đơn hàng duy nhất."
 #, python-format
 msgid "Order created via external API without a payment method. Email: %s, Notes: %s"
 msgstr "Đơn hàng được tạo qua API, chưa chọn phương thức thanh toán. Email: %s, Ghi chú: %s"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_payment_webhook_url
+msgid "Payment Webhook URL"
+msgstr "URL webhook thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_payment_webhook_secret
+msgid "Payment Webhook Secret"
+msgstr "Mã bí mật webhook thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form_inherit_pm
+msgid "Payment Webhook"
+msgstr "Webhook thanh toán"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form_inherit_pm
+msgid "Generate Secret"
+msgstr "Tạo mã bí mật"

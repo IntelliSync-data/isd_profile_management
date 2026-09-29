@@ -6,5 +6,6 @@ from . import user_profile
 from . import step_selection
 from . import res_users
 from . import pm_config
+from . import isd_payment_transaction
 
 # from .services import *

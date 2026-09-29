@@ -17,6 +17,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
     api_confirm_doc = fields.Html(string='Confirm Payment API', compute='_compute_api_documentation')
     api_order_doc = fields.Html(string='Order Info API', compute='_compute_api_documentation')
     api_create_payment_doc = fields.Html(string='Create Payment API', compute='_compute_api_documentation')
+    api_payment_webhook_doc = fields.Html(string='Payment Webhook API', compute='_compute_api_documentation')
 
     @api.depends('package_id')
     def _compute_base_url(self):
@@ -35,6 +36,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
                 wizard.api_confirm_doc = ''
                 wizard.api_order_doc = ''
                 wizard.api_create_payment_doc = ''
+                wizard.api_payment_webhook_doc = ''
                 continue
 
             # Get payment methods for documentation
@@ -74,7 +76,7 @@ Content-Type: application/json</pre>
 
     <h4>Response Notes:</h4>
     <ul>
-        <li><strong>payment_methods</strong>: methods enabled in Settings of this module, narrowed to the package type — a <strong>Live</strong> package gets the <code>live</code> methods, a <strong>Demo</strong> one gets the <code>test</code> methods. Use one of these <code>id</code> values as <code>payment_method_id</code> when calling <code>/api/profile/create</code>; any other id is refused with <code>PAYMENT_METHOD_NOT_ALLOWED</code>. <code>image_url</code> is empty when the method has no logo. <code>transfer</code> carries the account details for a customer who pays by transfer rather than by scanning: <code>types</code> (<code>qr_pay</code> and/or <code>bank_transfer</code>), <code>bank_account</code>, <code>bank_name</code> and <code>bank_code</code>. It is empty for providers that have none, and comes back from API 1 and API 5 as well, beside <code>qr_url</code>.</li>
+        <li><strong>payment_methods</strong>: methods enabled in Settings of this module, narrowed to the package type — a <strong>Live</strong> package gets the <code>live</code> methods, a <strong>Demo</strong> one gets the <code>test</code> methods. Use one of these <code>id</code> values as <code>payment_method_id</code> when calling <code>/api/profile/create</code>; any other id is refused with <code>PAYMENT_METHOD_NOT_ALLOWED</code>. <code>image_url</code> is empty when the method has no logo. <code>transfer</code> carries the account details for a customer who pays by transfer rather than by scanning: <code>types</code> (<code>qr_pay</code> and/or <code>bank_transfer</code>), <code>bank_account</code>, <code>bank_name</code> and <code>bank_code</code>. It is empty for providers that have none, and comes back from API 1 and API 5 as well, beside <code>qr_url</code>. <code>notice</code> carries the wording to show for the method — <code>title</code> and <code>description</code>, set on the payment method and mostly used to explain how cash is collected. Empty when nothing was written.</li>
     </ul>
 
     <h4>Success Response (200 OK):</h4>
@@ -537,6 +539,58 @@ curl -X POST '{wizard.base_url}/api/profile/create-payment' \\
   }}'</pre>
 </div>
 '''
+
+            # API 6: Payment Webhook (receiver)
+            wizard.api_payment_webhook_doc = f"""
+<div style="font-family: monospace; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+    <h3 style="color: #2c3e50;">📥 API 6: Payment Webhook</h3>
+    <p><b>Only needed when the payment system runs on another server.</b> Sharing one Odoo
+    with it, a confirmed payment reaches the order directly and nothing here applies.</p>
+
+    <h4>Endpoint:</h4>
+    <div style="background-color: #34495e; color: #ecf0f1; padding: 10px; border-radius: 3px; margin-bottom: 10px;">
+        POST {webhook_base}/api/profile/payment-webhook
+    </div>
+
+    <h4>Setup</h4>
+    <ol>
+        <li>Settings &gt; Profile Management &gt; <b>Payment Webhook</b>: press <b>Generate Secret</b>.</li>
+        <li>Copy the URL and the secret into <b>Notify URL</b> and <b>Notify Secret</b> on the
+            payment method, over in ISD Payment.</li>
+    </ol>
+
+    <h4>Headers</h4>
+    <ul>
+        <li><code>X-ISD-Event</code>: what happened, one of
+            <code>transaction.confirmed</code>, <code>transaction.cancelled</code>,
+            <code>transaction.expired</code>, <code>transaction.failed</code>. Only
+            <code>transaction.confirmed</code> moves the order; the rest answer
+            <code>200</code> with <code>ignored</code> so the sender stops retrying.</li>
+        <li><code>X-ISD-Signature</code>: HMAC-SHA256 of the raw body, keyed with the secret.
+            A call without a matching signature is refused with <code>401</code>.</li>
+    </ul>
+
+    <h4>Body</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #3498db;">{{
+    "event": "transaction.confirmed",
+    "transaction_id": "BP_7XK2M9QW",
+    "status": "confirmed",
+    "amount": 1650000,
+    "confirmed_at": "2026-09-29 10:15:00",
+    "payment_method": {{"id": 3, "name": "SePay", "type": "sepay"}}
+}}</pre>
+
+    <h4>Response</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #27ae60;">{{
+    "success": true, "matched": true, "confirmed": 1, "payment_status": "paid"
+}}</pre>
+    <p>The order is set to <b>Paid</b> when the confirmed payments cover the total, and to
+    <b>Half Paid</b> when they cover part of it. A transaction belonging to some other system
+    answers <code>matched: false</code> with <code>200</code>, and a payment already confirmed
+    is left alone: retries are safe.</p>
+</div>
+"""
+
 
             # API 3: Confirm Payment (Manual)
             wizard.api_confirm_doc = f'''

@@ -69,6 +69,37 @@
                         </div>
                     </div>
 
+                    <div class="app_settings_block" data-string="Payment Webhook" string="Payment Webhook" data-key="payment_webhook" groups="base.group_user">
+                        <h2>Payment Webhook</h2>
+                        <div class="alert alert-info" role="alert">
+                            <strong>Only needed when ISD Payment runs on another system.</strong>
+                            Sharing one Odoo with it, the order is updated directly and none of this applies.
+                            Otherwise paste the URL below into <b>Notify URL</b> on the payment method,
+                            and give it the same secret, so a confirmed payment reaches this order.
+                        </div>
+                        <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_payment_webhook_url"/>
+                                    <div class="text-muted">Copy this into the payment system</div>
+                                    <field name="pm_payment_webhook_url" widget="CopyClipboardChar"
+                                           readonly="1" class="mt-2"/>
+                                    <label for="pm_payment_webhook_secret" class="mt-3"/>
+                                    <div class="text-muted">
+                                        Both sides must hold the same value. Calls are signed with it
+                                        as <code>X-ISD-Signature</code>, and refused without it
+                                    </div>
+                                    <field name="pm_payment_webhook_secret" password="True" class="mt-2"/>
+                                    <button name="action_generate_payment_webhook_secret" type="object"
+                                            string="Generate Secret" class="btn-secondary btn-sm mt-2"
+                                            icon="fa-refresh"
+                                            confirm="This will replace the current secret, and the payment system will be refused until it is given the new one. Continue?"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="app_settings_block" data-string="Email Templates" string="Email Templates" data-key="email_templates" groups="base.group_user">
                         <h2>Email Notification Templates</h2>
                         <div class="alert alert-info" role="alert">

@@ -1,4 +1,6 @@
-from odoo import models, fields, api
+import secrets
+
+from odoo import models, fields, api, _
 
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
@@ -82,3 +84,39 @@ class ResConfigSettings(models.TransientModel):
              'https://bloompod.vn/order.html. The order code is appended automatically '
              'and the link is shown under the QR code at checkout'
     )
+
+    # Incoming notification, for when isd_payment runs on another system
+    pm_payment_webhook_secret = fields.Char(
+        string='Payment Webhook Secret',
+        config_parameter='isd_profile_management.pm_payment_webhook_secret',
+        help='Shared with the payment system, which signs every call with it. '
+             'Calls without a matching signature are refused'
+    )
+    pm_payment_webhook_url = fields.Char(
+        string='Payment Webhook URL',
+        compute='_compute_pm_payment_webhook_url',
+        help='Paste this into Notify URL on the payment method, over in ISD Payment'
+    )
+
+    def _compute_pm_payment_webhook_url(self):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
+        for record in self:
+            record.pm_payment_webhook_url = '%s/api/profile/payment-webhook' % base_url.rstrip('/')
+
+    def action_generate_payment_webhook_secret(self):
+        """Written straight to the parameter: the settings form is transient, and
+        a secret the user cannot copy before saving is useless."""
+        self.ensure_one()
+        secret = secrets.token_urlsafe(32)
+        self.env['ir.config_parameter'].sudo().set_param(
+            'isd_profile_management.pm_payment_webhook_secret', secret)
+        self.pm_payment_webhook_secret = secret
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': _('Secret generated and saved. Copy it into ISD Payment.'),
+                'type': 'success',
+                'sticky': False,
+            },
+        }

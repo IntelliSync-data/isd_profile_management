@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import hashlib
+import hmac
 import json
 import logging
 from odoo import http, fields, _
@@ -52,6 +54,8 @@ class ExternalProfileAPIController(http.Controller):
                     'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
                     # Account details for a customer paying by transfer instead of QR
                     'transfer': method.get_transfer_info() if hasattr(method, 'get_transfer_info') else {},
+                    # Wording to show for this method, e.g. how to pay in cash
+                    'notice': method.get_notice() if hasattr(method, 'get_notice') else {},
                 } for method in methods],
                 'package': {
                     'id': package.id,
@@ -334,6 +338,8 @@ class ExternalProfileAPIController(http.Controller):
                 result['qr_url'] = payment_response['qr_url']
             if hasattr(payment_method, 'get_transfer_info'):
                 result['transfer'] = payment_method.get_transfer_info()
+            if hasattr(payment_method, 'get_notice'):
+                result['notice'] = payment_method.get_notice()
             return result
 
         except Exception as e:
@@ -466,6 +472,85 @@ class ExternalProfileAPIController(http.Controller):
             }
         return user_profile, None
 
+    @http.route('/api/profile/payment-webhook', type='http', auth='public', methods=['POST'], csrf=False, cors='*')
+    def payment_webhook(self, **kwargs):
+        """Told by the payment system that a transaction was paid.
+
+        The two modules usually share one Odoo, where the order is updated
+        directly and this endpoint is never called. It exists for the case where
+        they live on separate systems and HTTP is the only way across.
+
+        Authenticated by X-ISD-Signature, an HMAC-SHA256 of the raw body keyed
+        with the secret from Profile Management settings. Idempotent: a payment
+        already confirmed is left alone, so a retry costs nothing.
+        """
+        raw_body = request.httprequest.get_data(as_text=True)
+
+        def respond(body, status=200):
+            return request.make_response(
+                json.dumps(body),
+                headers=[('Content-Type', 'application/json')],
+                status=status,
+            )
+
+        secret = request.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_payment_webhook_secret', '')
+        if not secret:
+            _logger.warning("payment-webhook called but no secret is configured")
+            return respond({'success': False, 'error': 'Webhook secret is not configured'}, 503)
+
+        signature = request.httprequest.headers.get('X-ISD-Signature', '')
+        expected = hmac.new(
+            secret.encode(), (raw_body or '').encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, signature):
+            _logger.warning("payment-webhook rejected a bad signature from %s",
+                            request.httprequest.remote_addr)
+            return respond({'success': False, 'error': 'Invalid signature'}, 401)
+
+        try:
+            payload = json.loads(raw_body) if raw_body else {}
+        except ValueError:
+            return respond({'success': False, 'error': 'Invalid JSON'}, 400)
+
+        _logger.info("payment-webhook received: %s", raw_body[:1000])
+
+        if payload.get('event') != 'transaction.confirmed':
+            return respond({'success': True, 'ignored': payload.get('event') or ''})
+
+        transaction_code = payload.get('transaction_id') or ''
+        if not transaction_code:
+            return respond({'success': False, 'error': 'transaction_id is required'}, 400)
+
+        payments = request.env['profile.payment'].sudo().search(
+            [('transaction_id', '=', transaction_code)])
+        if not payments:
+            # Someone else's transaction: answer 200 so the sender stops retrying
+            _logger.info("payment-webhook: no payment for %s", transaction_code)
+            return respond({'success': True, 'matched': False})
+
+        confirmed = 0
+        for payment in payments.filtered(lambda p: p.state != 'confirmed'):
+            amount = float(payload.get('amount') or 0)
+            if amount and abs(amount - payment.amount) > 1:
+                _logger.warning(
+                    "payment-webhook: %s reports %s but the payment expects %s",
+                    transaction_code, amount, payment.amount)
+            if payment.state == 'cancelled':
+                payment.message_post(body=_(
+                    "Money was received on this cancelled payment: "
+                    "an old QR code or payment link was used."))
+            # Only this payment received money, so the order must not go on to
+            # confirm whatever else is still waiting on it
+            payment.with_context(isd_skip_cash_confirm=True).action_confirm()
+            confirmed += 1
+
+        return respond({
+            'success': True,
+            'matched': True,
+            'confirmed': confirmed,
+            'payment_status': payments[0].user_profile_id.payment_status,
+        })
+
     @http.route('/api/profile/create-payment', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
     def create_payment(self, **kwargs):
         """
@@ -575,6 +660,8 @@ class ExternalProfileAPIController(http.Controller):
                 result['qr_url'] = payment_response['qr_url']
             if hasattr(payment_method, 'get_transfer_info'):
                 result['transfer'] = payment_method.get_transfer_info()
+            if hasattr(payment_method, 'get_notice'):
+                result['notice'] = payment_method.get_notice()
             return result
 
         except Exception as e:
@@ -705,6 +792,8 @@ class ExternalProfileAPIController(http.Controller):
                         'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
                     # Account details for a customer paying by transfer instead of QR
                     'transfer': method.get_transfer_info() if hasattr(method, 'get_transfer_info') else {},
+                    # Wording to show for this method, e.g. how to pay in cash
+                    'notice': method.get_notice() if hasattr(method, 'get_notice') else {},
                     } if method else None,
                 }
 
