@@ -144,13 +144,6 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'MISSING_EMAIL'
                 }
 
-            if not payment_method_id:
-                return {
-                    'success': False,
-                    'error': 'Payment Method ID is required',
-                    'error_code': 'MISSING_PAYMENT_METHOD_ID'
-                }
-
             # Check if package exists
             package = request.env['profile.management'].sudo().browse(package_id)
             if not package.exists():
@@ -167,24 +160,27 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'PACKAGE_INACTIVE'
                 }
 
-            # Check if payment method exists
-            payment_method = request.env['isd_payment.method'].sudo().browse(payment_method_id)
-            if not payment_method.exists():
-                return {
-                    'success': False,
-                    'error': 'Payment method not found',
-                    'error_code': 'PAYMENT_METHOD_NOT_FOUND'
-                }
+            # Without a method the order is created and paid for later, through
+            # /api/profile/create-payment
+            payment_method = request.env['isd_payment.method'].sudo().browse(payment_method_id) \
+                if payment_method_id else None
+            if payment_method_id:
+                if not payment_method.exists():
+                    return {
+                        'success': False,
+                        'error': 'Payment method not found',
+                        'error_code': 'PAYMENT_METHOD_NOT_FOUND'
+                    }
 
-            # A Demo package must not be paid with a live method, and a Live
-            # package must not be paid with a test one
-            Wizard = request.env['payment.method.select.wizard'].sudo()
-            if payment_method not in Wizard._get_available_methods(package):
-                return {
-                    'success': False,
-                    'error': 'This payment method cannot be used for this package',
-                    'error_code': 'PAYMENT_METHOD_NOT_ALLOWED'
-                }
+                # A Demo package must not be paid with a live method, and a Live
+                # package must not be paid with a test one
+                Wizard = request.env['payment.method.select.wizard'].sudo()
+                if payment_method not in Wizard._get_available_methods(package):
+                    return {
+                        'success': False,
+                        'error': 'This payment method cannot be used for this package',
+                        'error_code': 'PAYMENT_METHOD_NOT_ALLOWED'
+                    }
 
             # The website posts full contact details to isd_chatbot's /api/inquiry, so
             # reuse them when this API is called with the email only. Guarded because
@@ -275,6 +271,23 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'INVALID_AMOUNT'
                 }
 
+            # No method means no payment yet, so the customer page shows the
+            # full price and starts the payment itself later
+            if not payment_method:
+                user_profile._send_order_confirmation_email()
+                user_profile.message_post(
+                    body=_("Order created via external API without a payment method. "
+                           "Email: %s, Notes: %s") % (email, notes),
+                    message_type='comment',
+                    subtype_xmlid='mail.mt_note'
+                )
+                return {
+                    'success': True,
+                    'user_profile_id': user_profile.id,
+                    'order_code': user_profile.order_code,
+                    'amount': total_amount,
+                }
+
             # Half payment: pay 50%
             if half_payment:
                 total_amount = total_amount / 2
@@ -308,6 +321,7 @@ class ExternalProfileAPIController(http.Controller):
             result = {
                 'success': True,
                 'user_profile_id': user_profile.id,
+                'order_code': user_profile.order_code,
                 'transaction_id': payment_response.get('transaction_id'),
                 'amount': total_amount,
             }
@@ -428,10 +442,15 @@ class ExternalProfileAPIController(http.Controller):
                 }
             user_profile = request.env['user.profile'].sudo().browse(user_profile_id)
         elif order_code:
-            payment = request.env['profile.payment'].sudo().search(
-                ['|', ('transaction_id', '=', order_code),
-                 ('name', '=', order_code)], limit=1)
-            user_profile = payment.user_profile_id
+            # The order's own public code first, then the older references: the
+            # gateway transaction id, or the payment reference it falls back to
+            user_profile = request.env['user.profile'].sudo().search(
+                [('order_code', '=', order_code)], limit=1)
+            if not user_profile:
+                payment = request.env['profile.payment'].sudo().search(
+                    ['|', ('transaction_id', '=', order_code),
+                     ('name', '=', order_code)], limit=1)
+                user_profile = payment.user_profile_id
         else:
             return None, {
                 'success': False,
@@ -455,12 +474,14 @@ class ExternalProfileAPIController(http.Controller):
         Input JSON:
         {
             "order_code": "BP_XXX",
-            "payment_method_id": 3
+            "payment_method_id": 3,
+            "half_payment": false
         }
 
-        `user_profile_id` is accepted in place of `order_code`. Any transaction
-        still waiting on this order is cancelled first, so the customer is never
-        left with two live QR codes.
+        `user_profile_id` is accepted in place of `order_code`. `half_payment`
+        collects half of what is left, for a deposit. Any transaction still
+        waiting on this order is cancelled first, so the customer is never left
+        with two live QR codes.
         """
         try:
             user_profile, error = self._find_order(
@@ -507,6 +528,9 @@ class ExternalProfileAPIController(http.Controller):
             user_profile._cancel_open_payments()
 
             amount = user_profile.remaining_amount or user_profile.total_cost
+            if kwargs.get('half_payment'):
+                # A deposit: the rest is collected with another call later
+                amount = amount / 2
             if amount <= 0:
                 return {
                     'success': False,
@@ -533,11 +557,15 @@ class ExternalProfileAPIController(http.Controller):
                 subtype_xmlid='mail.mt_note'
             )
 
+            isd_tx = profile_payment.isd_transaction_id
             result = {
                 'success': True,
                 'user_profile_id': user_profile.id,
+                'order_code': user_profile.order_code,
                 'transaction_id': payment_response.get('transaction_id'),
                 'amount': amount,
+                # So the page can count down to the real deadline
+                'expired_at': fields.Datetime.to_string(isd_tx.expired_at) if isd_tx else '',
             }
             if payment_response.get('redirect_url'):
                 result['redirect_url'] = payment_response['redirect_url']

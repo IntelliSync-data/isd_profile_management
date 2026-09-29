@@ -85,6 +85,7 @@
                     <field name="actual_completion_date"/>
                     <field name="assigned_to" optional="hide"/>
                     <field name="assigned_date" optional="hide"/>
+                    <field name="order_code" optional="hide"/>
                     <field name="invoice_number" optional="hide"/>
                     <field name="write_uid" string="Last Updated By"/>
                 </list>

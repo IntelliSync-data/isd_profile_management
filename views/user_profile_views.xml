@@ -23,6 +23,7 @@
                 <field name="actual_completion_date"/>
                 <field name="assigned_to" optional="hide"/>
                 <field name="assigned_date" optional="hide"/>
+                <field name="order_code" optional="hide"/>
                 <field name="invoice_number" optional="hide"/>
                 <field name="write_uid" string="Last Updated By"/>
             </list>
@@ -82,6 +83,7 @@
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
+                        <h3 class="text-muted"><field name="order_code" readonly="1"/></h3>
                     </div>
                     
                     <group>

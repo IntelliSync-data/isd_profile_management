@@ -4,6 +4,7 @@ import io
 import logging
 import pytz
 import requests as http_requests
+import secrets
 from datetime import datetime, time
 from PIL import Image
 from odoo import models, fields, api, _
@@ -24,6 +25,26 @@ class UserProfile(models.Model):
         return
 
     name = fields.Char(string='Name', compute='_compute_name', store=True)
+    # The reference a customer page uses. Random on purpose: the database id is
+    # sequential, so anyone could walk it and read another customer's order.
+    order_code = fields.Char(
+        string='Order Code', copy=False, index=True, readonly=True,
+        default=lambda self: self._generate_order_code(),
+        help='Public reference for this order, used by the customer order page')
+
+    _sql_constraints = [
+        ('order_code_unique', 'unique(order_code)', 'Order code must be unique!'),
+    ]
+
+    @api.model
+    def _generate_order_code(self, length=12):
+        """Unguessable, and readable out loud: no 0/O or 1/I to confuse anyone"""
+        alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+        for _attempt in range(10):
+            code = ''.join(secrets.choice(alphabet) for _ in range(length))
+            if not self.sudo().search_count([('order_code', '=', code)]):
+                return code
+        raise ValidationError(_("Could not generate a unique order code."))
 
     # Customer and Profile
     partner_id = fields.Many2one(
@@ -740,7 +761,8 @@ class UserProfile(models.Model):
             'transaction_id': transaction_id,
             'amount': total_amount,
             'payment_method_name': payment_method.name or '',
-            'order_link_text': self._build_order_link_text(transaction_id),
+            'order_link_text': self._build_order_link_text(
+                self.order_code or transaction_id),
         }
 
         if payment_method.payment_provider == 'cash':
@@ -924,15 +946,14 @@ class UserProfile(models.Model):
             _logger.warning("Configured order confirmation email template not found")
             return
 
-        # Order code shown to the customer (same value the checkout page
-        # displays as "Mã đơn hàng"): the payment gateway transaction id,
-        # falling back to the internal payment reference.
+        # Code the customer sees. The order's own code survives a re-checkout,
+        # unlike a gateway transaction id, and exists even before any payment.
         if payment is None:
             payment = self.env['profile.payment'].search(
                 [('user_profile_id', '=', self.id)], order='create_date desc', limit=1
             )
-        order_code = ''
-        if payment:
+        order_code = self.order_code or ''
+        if not order_code and payment:
             order_code = payment.transaction_id or payment.name or ''
 
         contact_name = self.partner_id.name or ''

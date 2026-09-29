@@ -170,7 +170,8 @@ Content-Type: application/json</pre>
         <li><strong>phone</strong> (optional): Customer phone. Used when creating the contact; on an existing contact it only fills a missing phone.</li>
         <li><strong>notes</strong> (optional): Additional information saved on the order</li>
         <li><strong>address</strong> (optional): Delivery address, saved to the order's Address field. Shown on the order when the product has <em>Accept Address</em> enabled, or whenever an address is saved.</li>
-        <li><strong>payment_method_id</strong> (required): Payment method ID from ISD Payment module</li>
+        <li><strong>payment_method_id</strong> (optional): Payment method ID from ISD Payment module. Leave it out to create the order without paying yet: no payment is started, no gateway is called, and <code>amount</code> comes back as the full price. Pay it later with API 5.</li>
+        <li><strong>order_code</strong> is returned by every call: a random public reference for this order. Use it, not <code>user_profile_id</code>, on a customer page — ids are sequential and can be walked to read someone else's order.</li>
         <li><strong>half_payment</strong> (optional, default: false): If <code>true</code>, only pay 50% of the total amount. Payment status will be set to <code>half_paid</code>. Call this API again to pay the remaining 50%.</li>
     </ul>
 
@@ -484,6 +485,7 @@ curl -X POST '{wizard.base_url}/api/profile/order-info' \\
     <ul>
         <li><strong>order_code</strong>: the code the customer sees. <code>user_profile_id</code> is accepted instead.</li>
         <li><strong>payment_method_id</strong> (required): from <code>payment_methods</code> in the Package Info API.</li>
+        <li><strong>half_payment</strong> (optional, default false): collect half of what is left, for a deposit. The rest is collected by calling this again later.</li>
     </ul>
 
     <div style="background-color: #fff3cd; padding: 10px; border-left: 3px solid #e67e22; margin: 10px 0;">
@@ -499,8 +501,10 @@ curl -X POST '{wizard.base_url}/api/profile/order-info' \\
     "result": {{
         "success": true,
         "user_profile_id": 456,
+        "order_code": "BP_XXX",
         "transaction_id": "BP_YYY",
         "amount": 1650000,
+        "expired_at": "2026-09-29 10:15:00",
         "qr_url": "https://qr.sepay.vn/img?acc=..."
     }}
 }}</pre>

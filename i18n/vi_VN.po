@@ -2539,3 +2539,25 @@ msgstr "Điện thoại"
 #: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__partner_email
 msgid "Email"
 msgstr "Email"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__order_code
+msgid "Order Code"
+msgstr "Mã đơn hàng"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_user_profile__order_code
+msgid "Public reference for this order, used by the customer order page"
+msgstr "Mã công khai của đơn hàng, dùng cho trang tra cứu đơn của khách"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+#, python-format
+msgid "Could not generate a unique order code."
+msgstr "Không sinh được mã đơn hàng duy nhất."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/controllers/external_api.py:0
+#, python-format
+msgid "Order created via external API without a payment method. Email: %s, Notes: %s"
+msgstr "Đơn hàng được tạo qua API, chưa chọn phương thức thanh toán. Email: %s, Ghi chú: %s"
