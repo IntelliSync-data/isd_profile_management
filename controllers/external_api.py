@@ -661,6 +661,7 @@ class ExternalProfileAPIController(http.Controller):
                 'remaining_amount': user_profile.remaining_amount,
                 'progress_percentage': user_profile.progress_percentage,
                 'address': user_profile.address or '',
+                'notes': user_profile.notes or '',
                 'created_at': fields.Datetime.to_string(user_profile.create_date) or '',
                 'start_date': fields.Date.to_string(user_profile.start_date) or '',
                 'customer': {

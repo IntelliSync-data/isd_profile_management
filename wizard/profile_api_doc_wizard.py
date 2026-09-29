@@ -381,6 +381,7 @@ curl -X POST '{wizard.base_url}/api/profile/check-payment' \\
             "remaining_amount": 500000.0,
             "progress_percentage": 0.0,
             "address": "12 Nguyen Hue, District 1",
+            "notes": "Giao truoc 5h chieu",
             "created_at": "2026-09-22 09:15:00",
             "start_date": "",
             "customer": {{"name": "John Doe", "email": "john@example.com", "phone": "0900000000"}},
