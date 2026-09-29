@@ -78,19 +78,33 @@
                             and give it the same secret, so a confirmed payment reaches this order.
                         </div>
                         <div class="row mt16 o_settings_container">
+                            <!-- One box each: the copy widget lays itself out as a grid and
+                                 drags the next label alongside it when they share one -->
                             <div class="col-12 col-lg-6 o_setting_box">
                                 <div class="o_setting_left_pane"></div>
                                 <div class="o_setting_right_pane">
-                                    <label for="pm_payment_webhook_url"/>
-                                    <div class="text-muted">Copy this into the payment system</div>
-                                    <field name="pm_payment_webhook_url" widget="CopyClipboardChar"
-                                           readonly="1" class="mt-2"/>
-                                    <label for="pm_payment_webhook_secret" class="mt-3"/>
+                                    <span class="o_form_label">Payment Webhook URL</span>
+                                    <div class="text-muted">
+                                        Copy this into Notify URL on the payment method
+                                    </div>
+                                    <div class="mt-2 w-100">
+                                        <field name="pm_payment_webhook_url"
+                                               widget="CopyClipboardChar" nolabel="1"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <span class="o_form_label">Payment Webhook Secret</span>
                                     <div class="text-muted">
                                         Both sides must hold the same value. Calls are signed with it
                                         as <code>X-ISD-Signature</code>, and refused without it
                                     </div>
-                                    <field name="pm_payment_webhook_secret" password="True" class="mt-2"/>
+                                    <div class="mt-2">
+                                        <field name="pm_payment_webhook_secret"
+                                               password="True" nolabel="1"/>
+                                    </div>
                                     <button name="action_generate_payment_webhook_secret" type="object"
                                             string="Generate Secret" class="btn-secondary btn-sm mt-2"
                                             icon="fa-refresh"

@@ -20,6 +20,10 @@ class ResConfigSettings(models.TransientModel):
         ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
         existing = self.env['isd_payment.method'].sudo().browse(ids).exists().ids
         res['pm_payment_method_ids'] = [(6, 0, existing)]
+
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
+        res['pm_payment_webhook_url'] = (
+            '%s/api/profile/payment-webhook' % base_url.rstrip('/') if base_url else '')
         return res
 
     def set_values(self):
@@ -93,15 +97,9 @@ class ResConfigSettings(models.TransientModel):
              'Calls without a matching signature are refused'
     )
     pm_payment_webhook_url = fields.Char(
-        string='Payment Webhook URL',
-        compute='_compute_pm_payment_webhook_url',
+        string='Payment Webhook URL', readonly=True,
         help='Paste this into Notify URL on the payment method, over in ISD Payment'
     )
-
-    def _compute_pm_payment_webhook_url(self):
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
-        for record in self:
-            record.pm_payment_webhook_url = '%s/api/profile/payment-webhook' % base_url.rstrip('/')
 
     def action_generate_payment_webhook_secret(self):
         """Written straight to the parameter: the settings form is transient, and

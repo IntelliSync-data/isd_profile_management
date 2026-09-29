@@ -19,6 +19,7 @@ class ExternalProfileAPIController(http.Controller):
     @http.route('/api/profile/package-info', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
     def get_package_info(self, **kwargs):
         try:
+            lang = self._apply_lang(kwargs)
             package_id = kwargs.get('package_id')
             if not package_id:
                 return {
@@ -44,6 +45,11 @@ class ExternalProfileAPIController(http.Controller):
 
             return {
                 'success': True,
+                'lang': lang,
+                'languages': [
+                    {'code': lang.code, 'name': lang.name}
+                    for lang in request.env['res.lang'].sudo().search([('active', '=', True)])
+                ],
                 'payment_methods': [{
                     'id': method.id,
                     'name': method.name,
@@ -109,6 +115,7 @@ class ExternalProfileAPIController(http.Controller):
         }
         """
         try:
+            self._apply_lang(kwargs)
             # Get input parameters
             package_id = kwargs.get('package_id')
             email = kwargs.get('email')
@@ -432,6 +439,31 @@ class ExternalProfileAPIController(http.Controller):
                 'error_code': 'INTERNAL_ERROR'
             }
 
+    def _apply_lang(self, kwargs):
+        """Answer in the language the caller asked for.
+
+        Applied to the whole request rather than to the notice alone, so the
+        stage and payment labels come back translated too. An unknown or
+        uninstalled language is ignored, leaving the default.
+        """
+        wanted = (kwargs.get('lang') or '').strip()
+        if not wanted:
+            return ''
+
+        Lang = request.env['res.lang'].sudo()
+        lang = Lang.search([('code', '=', wanted), ('active', '=', True)], limit=1)
+        if not lang:
+            # Accept "vi" for "vi_VN", which is what a browser usually sends
+            lang = Lang.search(
+                [('code', '=like', '%s%%' % wanted.split('_')[0]), ('active', '=', True)],
+                limit=1)
+        if not lang:
+            _logger.info("Requested language %s is not installed, using the default", wanted)
+            return ''
+
+        request.update_context(lang=lang.code)
+        return lang.code
+
     def _find_order(self, user_profile_id=None, order_code=None):
         """Resolve an order from its id or from the code the customer sees.
 
@@ -569,6 +601,7 @@ class ExternalProfileAPIController(http.Controller):
         with two live QR codes.
         """
         try:
+            self._apply_lang(kwargs)
             user_profile, error = self._find_order(
                 kwargs.get('user_profile_id'),
                 kwargs.get('order_code') or kwargs.get('transaction_code'))
@@ -692,6 +725,7 @@ class ExternalProfileAPIController(http.Controller):
         which is slower but authoritative.
         """
         try:
+            self._apply_lang(kwargs)
             user_profile_id = kwargs.get('user_profile_id')
             order_code = kwargs.get('order_code') or kwargs.get('transaction_code')
             refresh = bool(kwargs.get('refresh'))
