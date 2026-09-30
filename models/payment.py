@@ -309,13 +309,16 @@ class ProfilePayment(models.Model):
         request_origin = self.env.context.get('request_origin', '')
         request_ip = self.env.context.get('request_ip', '')
 
+        # The QR must carry what the gateway charges, not what the package costs
+        charge_amount = self._convert_payment_amount(payment_method)['charge_amount']
+
         # Create ISD Payment transaction
         isd_transaction = self.env['isd_payment.transaction'].create({
             'payment_method_id': payment_method.id,
             'transaction_id': transaction_id,
-            'amount': self.amount,
+            'amount': charge_amount,
             'description': f"Profile Payment {self.name} - {self.partner_id.name or ''}",
-            'qr_url': payment_method.generate_qr_url(transaction_id, self.amount),
+            'qr_url': payment_method.generate_qr_url(transaction_id, charge_amount),
             'bank_account': payment_method.provider_account_id,
             'bank_code': payment_method.sepay_acc_bank,
             'status': 'pending',
@@ -433,43 +436,58 @@ class ProfilePayment(models.Model):
                 'message': result.get('message', _('Payment not yet confirmed')),
             }
 
-    def _convert_payment_amount(self, provider):
-        """Convert amount based on package currency and payment provider.
+    def _convert_payment_amount(self, payment_method, amount=None):
+        """Turn the order total into what this gateway actually charges.
 
-        Currency is the currency of the package price (from settings).
-        - USD + PayPal → no conversion
-        - USD + SePay/QR → convert USD to VND (amount * exchange_rate)
-        - VND + PayPal → convert VND to USD (amount / exchange_rate)
-        - VND + SePay/QR → no conversion
+        The package price is in the currency from settings; the gateway says
+        what it takes. Reading it from the method rather than assuming
+        "PayPal means USD" lets a second USD gateway exist without a rewrite.
 
         Returns:
-            dict with 'charge_amount' (amount to charge provider),
-                       'amount_usd' (USD amount or 0),
-                       'amount_vnd' (VND amount or 0)
+            dict with 'charge_amount' (what to send the gateway),
+                      'charge_currency' ('vnd' or 'usd'),
+                      'amount_usd', 'amount_vnd'
         """
         ICP = self.env['ir.config_parameter'].sudo()
-        currency = ICP.get_param('isd_profile_management.pm_currency', 'vnd')
+        package_currency = ICP.get_param('isd_profile_management.pm_currency', 'vnd')
         exchange_rate = float(ICP.get_param('isd_profile_management.pm_exchange_rate', '25000'))
-
         if exchange_rate <= 0:
             exchange_rate = 25000.0
 
-        is_paypal = provider == 'paypal'
-
-        if currency == 'usd' and is_paypal:
-            # Package in USD, PayPal accepts USD → no conversion
-            return {'charge_amount': self.amount, 'amount_usd': self.amount, 'amount_vnd': 0}
-        elif currency == 'usd' and not is_paypal:
-            # Package in USD, SePay needs VND → multiply by rate
-            amount_vnd = round(self.amount * exchange_rate)
-            return {'charge_amount': amount_vnd, 'amount_usd': self.amount, 'amount_vnd': amount_vnd}
-        elif currency == 'vnd' and is_paypal:
-            # Package in VND, PayPal needs USD → divide by rate
-            amount_usd = round(self.amount / exchange_rate, 2)
-            return {'charge_amount': amount_usd, 'amount_usd': amount_usd, 'amount_vnd': self.amount}
+        # Older isd_payment has no currency field: fall back to the old assumption
+        if 'currency' in payment_method._fields:
+            charge_currency = payment_method.currency or 'vnd'
         else:
-            # VND + SePay → no conversion
-            return {'charge_amount': self.amount, 'amount_usd': 0, 'amount_vnd': self.amount}
+            charge_currency = 'usd' if payment_method.payment_provider == 'paypal' else 'vnd'
+
+        amount = self.amount if amount is None else amount
+
+        if package_currency == charge_currency:
+            return {
+                'charge_amount': amount,
+                'charge_currency': charge_currency,
+                'amount_usd': amount if charge_currency == 'usd' else 0,
+                'amount_vnd': amount if charge_currency == 'vnd' else 0,
+            }
+
+        if charge_currency == 'vnd':
+            # Priced in USD, charged in VND
+            amount_vnd = round(amount * exchange_rate)
+            return {
+                'charge_amount': amount_vnd,
+                'charge_currency': 'vnd',
+                'amount_usd': amount,
+                'amount_vnd': amount_vnd,
+            }
+
+        # Priced in VND, charged in USD
+        amount_usd = round(amount / exchange_rate, 2)
+        return {
+            'charge_amount': amount_usd,
+            'charge_currency': 'usd',
+            'amount_usd': amount_usd,
+            'amount_vnd': amount,
+        }
 
     def action_create_isd_payment_external(self, payment_method):
         """Create payment transaction via ISD Payment module for external API
@@ -486,7 +504,7 @@ class ProfilePayment(models.Model):
         request_origin = self.env.context.get('request_origin', 'External API')
         request_ip = self.env.context.get('request_ip', '')
 
-        converted = self._convert_payment_amount(provider)
+        converted = self._convert_payment_amount(payment_method)
         charge_amount = converted['charge_amount']
 
         if provider == 'paypal':
@@ -504,7 +522,8 @@ class ProfilePayment(models.Model):
             isd_transaction = self.env['isd_payment.transaction'].create({
                 'payment_method_id': payment_method.id,
                 'transaction_id': order_id,
-                'amount': self.amount,
+                # What PayPal really charges, in the currency it charges in
+                'amount': charge_amount,
                 'amount_usd': converted['amount_usd'],
                 'description': f"External Profile Payment {self.name} - {self.partner_id.name or ''}",
                 'paypal_order_id': order_id,
