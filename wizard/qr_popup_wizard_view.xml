@@ -20,9 +20,17 @@
                     <field name="qr_image" widget="image" style="width: 100%; height: auto;"/>
                 </div>
 
-                <div class="mt-3" invisible="not payment_url">
-                    <label for="payment_url" string="Link here"/>
-                    <field name="payment_url" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
+                <!-- Same block for every online method: the customer opens this page
+                     instead of being handed the provider link. Odoo 18 has no
+                     CopyClipboardText, so the text and the copy button are two nodes
+                     on the same field, and the button copies both lines. -->
+                <div class="text-center mt-3" invisible="not order_link_text">
+                    <div class="d-inline-flex align-items-center gap-2">
+                        <field name="order_link_text" readonly="1" nolabel="1"
+                               class="mb-0 text-center" style="white-space: pre-line;"/>
+                        <field name="order_link_text" widget="CopyClipboardButton"
+                               string="Copy" nolabel="1"/>
+                    </div>
                 </div>
 
                 <div class="text-muted text-center mt-3">

@@ -45,6 +45,10 @@
                 <group string="Order Information">
                     <field name="partner_id" string="Customer"
                            groups="isd_profile_management.group_profile_manager"/>
+                    <field name="partner_phone" readonly="1"
+                           groups="isd_profile_management.group_profile_manager"/>
+                    <field name="partner_email" readonly="1"
+                           groups="isd_profile_management.group_profile_manager"/>
                     <field name="profile_id" string="Product" readonly="state != 'new'"/>
                     <field name="state" widget="badge"/>
                     <field name="progress_percentage" widget="progressbar"/>
@@ -66,8 +70,8 @@
                 <list string="Orders" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='not_yet_paid'" decoration-primary="state=='paid'" decoration-muted="state=='new'">
                     <field name="partner_id" string="Customer"/>
                     <field name="profile_id" string="Product"/>
-                    <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='paid'"/>
-                    <field name="progress_percentage" widget="progressbar"/>
+                    <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='paid'" decoration-primary="state=='invoiced'"/>
+                    <field name="progress_percentage" widget="progressbar" optional="hide"/>
                     <field name="total_cost" sum="Total Cost"/>
                     <field name="paid_amount" sum="Paid" optional="hide"/>
                     <field name="remaining_amount" sum="Remaining" optional="hide"/>
@@ -78,8 +82,12 @@
                            decoration-info="payment_status == 'returned'"/>
                     <field name="payment_method_id" optional="show"/>
                     <field name="start_date"/>
-                    <field name="assigned_to"/>
+                    <field name="actual_completion_date"/>
+                    <field name="assigned_to" optional="hide"/>
                     <field name="assigned_date" optional="hide"/>
+                    <field name="order_code" optional="hide"/>
+                    <field name="invoice_number" optional="hide"/>
+                    <field name="write_uid" string="Last Updated By"/>
                 </list>
             </xpath>
         </field>

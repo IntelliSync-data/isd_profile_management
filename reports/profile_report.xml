@@ -25,9 +25,9 @@
                                 <p><strong>Status:</strong> <span t-field="profile.state"/></p>
                                 <p><strong>Progress:</strong> <span t-field="profile.progress_percentage"/>%</p>
                                 <p><strong>Start Date:</strong> <span t-field="profile.start_date"/></p>
-                                <p><strong>Total Cost:</strong> <span t-field="profile.total_cost" t-options="{'widget': 'monetary'}"/></p>
-                                <p><strong>Paid Amount:</strong> <span t-field="profile.paid_amount" t-options="{'widget': 'monetary'}"/></p>
-                                <p><strong>Remaining:</strong> <span t-field="profile.remaining_amount" t-options="{'widget': 'monetary'}"/></p>
+                                <p><strong>Total Cost:</strong> <span t-field="profile.total_cost" t-options="{'widget': 'monetary', 'display_currency': profile.currency_id}"/></p>
+                                <p><strong>Paid Amount:</strong> <span t-field="profile.paid_amount" t-options="{'widget': 'monetary', 'display_currency': profile.currency_id}"/></p>
+                                <p><strong>Remaining:</strong> <span t-field="profile.remaining_amount" t-options="{'widget': 'monetary', 'display_currency': profile.currency_id}"/></p>
                             </div>
                         </div>
                         
@@ -52,7 +52,7 @@
                                                 <td><span t-field="step.name"/></td>
                                                 <td><span t-field="step.state"/></td>
                                                 <td><span t-if="step.is_selected">✓</span></td>
-                                                <td><span t-field="step.cost" t-options="{'widget': 'monetary'}"/></td>
+                                                <td><span t-field="step.cost" t-options="{'widget': 'monetary', 'display_currency': profile.currency_id}"/></td>
                                                 <td><span t-field="step.payment_status"/></td>
                                                 <td><span t-field="step.start_date"/></td>
                                                 <td><span t-field="step.completion_date"/></td>
@@ -91,7 +91,7 @@
                                 <p><strong>Payment Reference:</strong> <span t-field="payment.name"/></p>
                                 <p><strong>Customer:</strong> <span t-if="payment.partner_id" t-field="payment.partner_id.name"/></p>
                                 <p><strong>Profile:</strong> <span t-field="payment.profile_id.name"/></p>
-                                <p><strong>Amount:</strong> <span t-field="payment.amount" t-options="{'widget': 'monetary'}"/></p>
+                                <p><strong>Amount:</strong> <span t-field="payment.amount" t-options="{'widget': 'monetary', 'display_currency': payment.currency_id}"/></p>
                                 <p><strong>Payment Date:</strong> <span t-field="payment.payment_date"/></p>
                                 <p><strong>Status:</strong> <span t-field="payment.state"/></p>
                                 <p t-if="payment.confirmed_by"><strong>Confirmed By:</strong> <span t-field="payment.confirmed_by.name"/></p>
@@ -113,14 +113,14 @@
                                         <t t-foreach="payment.step_ids" t-as="step">
                                             <tr>
                                                 <td><span t-field="step.name"/></td>
-                                                <td><span t-field="step.cost" t-options="{'widget': 'monetary'}"/></td>
+                                                <td><span t-field="step.cost" t-options="{'widget': 'monetary', 'display_currency': payment.currency_id}"/></td>
                                             </tr>
                                         </t>
                                     </tbody>
                                     <tfoot>
                                         <tr>
                                             <th>Total</th>
-                                            <th><span t-field="payment.amount" t-options="{'widget': 'monetary'}"/></th>
+                                            <th><span t-field="payment.amount" t-options="{'widget': 'monetary', 'display_currency': payment.currency_id}"/></th>
                                         </tr>
                                     </tfoot>
                                 </table>

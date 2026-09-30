@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import hashlib
+import hmac
 import json
 import logging
 from odoo import http, fields, _
@@ -17,6 +19,7 @@ class ExternalProfileAPIController(http.Controller):
     @http.route('/api/profile/package-info', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
     def get_package_info(self, **kwargs):
         try:
+            lang = self._apply_lang(kwargs)
             package_id = kwargs.get('package_id')
             if not package_id:
                 return {
@@ -35,12 +38,18 @@ class ExternalProfileAPIController(http.Controller):
 
             active_steps = package.step_ids.filtered(lambda s: s.state == 'active')
 
-            # Same list the Odoo checkout popup offers, so both stay in sync
-            methods = request.env['payment.method.select.wizard'].sudo()._get_available_methods()
+            # Same list the Odoo checkout popup offers, so both stay in sync:
+            # live methods for a Live package, test methods for a Demo one
+            methods = request.env['payment.method.select.wizard'].sudo()._get_available_methods(package)
             base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
 
             return {
                 'success': True,
+                'lang': lang,
+                'languages': [
+                    {'code': lang.code, 'name': lang.name}
+                    for lang in request.env['res.lang'].sudo().search([('active', '=', True)])
+                ],
                 'payment_methods': [{
                     'id': method.id,
                     'name': method.name,
@@ -49,6 +58,10 @@ class ExternalProfileAPIController(http.Controller):
                     'description': (method.description or '') if 'description' in method._fields else '',
                     'environment': (method.environment or '') if 'environment' in method._fields else '',
                     'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
+                    # Account details for a customer paying by transfer instead of QR
+                    'transfer': method.get_transfer_info() if hasattr(method, 'get_transfer_info') else {},
+                    # Wording to show for this method, e.g. how to pay in cash
+                    'notice': method.get_notice() if hasattr(method, 'get_notice') else {},
                 } for method in methods],
                 'package': {
                     'id': package.id,
@@ -102,6 +115,7 @@ class ExternalProfileAPIController(http.Controller):
         }
         """
         try:
+            self._apply_lang(kwargs)
             # Get input parameters
             package_id = kwargs.get('package_id')
             email = kwargs.get('email')
@@ -141,13 +155,6 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'MISSING_EMAIL'
                 }
 
-            if not payment_method_id:
-                return {
-                    'success': False,
-                    'error': 'Payment Method ID is required',
-                    'error_code': 'MISSING_PAYMENT_METHOD_ID'
-                }
-
             # Check if package exists
             package = request.env['profile.management'].sudo().browse(package_id)
             if not package.exists():
@@ -164,14 +171,27 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'PACKAGE_INACTIVE'
                 }
 
-            # Check if payment method exists
-            payment_method = request.env['isd_payment.method'].sudo().browse(payment_method_id)
-            if not payment_method.exists():
-                return {
-                    'success': False,
-                    'error': 'Payment method not found',
-                    'error_code': 'PAYMENT_METHOD_NOT_FOUND'
-                }
+            # Without a method the order is created and paid for later, through
+            # /api/profile/create-payment
+            payment_method = request.env['isd_payment.method'].sudo().browse(payment_method_id) \
+                if payment_method_id else None
+            if payment_method_id:
+                if not payment_method.exists():
+                    return {
+                        'success': False,
+                        'error': 'Payment method not found',
+                        'error_code': 'PAYMENT_METHOD_NOT_FOUND'
+                    }
+
+                # A Demo package must not be paid with a live method, and a Live
+                # package must not be paid with a test one
+                Wizard = request.env['payment.method.select.wizard'].sudo()
+                if payment_method not in Wizard._get_available_methods(package):
+                    return {
+                        'success': False,
+                        'error': 'This payment method cannot be used for this package',
+                        'error_code': 'PAYMENT_METHOD_NOT_ALLOWED'
+                    }
 
             # The website posts full contact details to isd_chatbot's /api/inquiry, so
             # reuse them when this API is called with the email only. Guarded because
@@ -262,6 +282,23 @@ class ExternalProfileAPIController(http.Controller):
                     'error_code': 'INVALID_AMOUNT'
                 }
 
+            # No method means no payment yet, so the customer page shows the
+            # full price and starts the payment itself later
+            if not payment_method:
+                user_profile._send_order_confirmation_email()
+                user_profile.message_post(
+                    body=_("Order created via external API without a payment method. "
+                           "Email: %s, Notes: %s") % (email, notes),
+                    message_type='comment',
+                    subtype_xmlid='mail.mt_note'
+                )
+                return {
+                    'success': True,
+                    'user_profile_id': user_profile.id,
+                    'order_code': user_profile.order_code,
+                    'amount': total_amount,
+                }
+
             # Half payment: pay 50%
             if half_payment:
                 total_amount = total_amount / 2
@@ -295,6 +332,7 @@ class ExternalProfileAPIController(http.Controller):
             result = {
                 'success': True,
                 'user_profile_id': user_profile.id,
+                'order_code': user_profile.order_code,
                 'transaction_id': payment_response.get('transaction_id'),
                 'amount': total_amount,
             }
@@ -305,6 +343,10 @@ class ExternalProfileAPIController(http.Controller):
                 result['amount_usd'] = payment_response['amount_usd']
             if payment_response.get('qr_url'):
                 result['qr_url'] = payment_response['qr_url']
+            if hasattr(payment_method, 'get_transfer_info'):
+                result['transfer'] = payment_method.get_transfer_info()
+            if hasattr(payment_method, 'get_notice'):
+                result['notice'] = payment_method.get_notice()
             return result
 
         except Exception as e:
@@ -391,6 +433,425 @@ class ExternalProfileAPIController(http.Controller):
 
         except Exception as e:
             _logger.exception("Error confirming payment via external API")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_code': 'INTERNAL_ERROR'
+            }
+
+    def _apply_lang(self, kwargs):
+        """Answer in the language the caller asked for.
+
+        Applied to the whole request rather than to the notice alone, so the
+        stage and payment labels come back translated too. An unknown or
+        uninstalled language is ignored, leaving the default.
+        """
+        wanted = (kwargs.get('lang') or '').strip()
+        if not wanted:
+            return ''
+
+        Lang = request.env['res.lang'].sudo()
+        lang = Lang.search([('code', '=', wanted), ('active', '=', True)], limit=1)
+        if not lang:
+            # Accept "vi" for "vi_VN", which is what a browser usually sends
+            lang = Lang.search(
+                [('code', '=like', '%s%%' % wanted.split('_')[0]), ('active', '=', True)],
+                limit=1)
+        if not lang:
+            _logger.info("Requested language %s is not installed, using the default", wanted)
+            return ''
+
+        request.update_context(lang=lang.code)
+        return lang.code
+
+    def _find_order(self, user_profile_id=None, order_code=None):
+        """Resolve an order from its id or from the code the customer sees.
+
+        Returns (user_profile, error_dict); exactly one of them is filled.
+        """
+        if user_profile_id:
+            try:
+                user_profile_id = int(user_profile_id)
+            except (TypeError, ValueError):
+                return None, {
+                    'success': False,
+                    'error': 'user_profile_id must be an integer',
+                    'error_code': 'INVALID_USER_PROFILE_ID'
+                }
+            user_profile = request.env['user.profile'].sudo().browse(user_profile_id)
+        elif order_code:
+            # The order's own public code first, then the older references: the
+            # gateway transaction id, or the payment reference it falls back to
+            user_profile = request.env['user.profile'].sudo().search(
+                [('order_code', '=', order_code)], limit=1)
+            if not user_profile:
+                payment = request.env['profile.payment'].sudo().search(
+                    ['|', ('transaction_id', '=', order_code),
+                     ('name', '=', order_code)], limit=1)
+                user_profile = payment.user_profile_id
+        else:
+            return None, {
+                'success': False,
+                'error': 'Either user_profile_id or order_code is required',
+                'error_code': 'MISSING_ORDER_REFERENCE'
+            }
+
+        if not user_profile or not user_profile.exists():
+            return None, {
+                'success': False,
+                'error': 'Order not found',
+                'error_code': 'ORDER_NOT_FOUND'
+            }
+        return user_profile, None
+
+    @http.route('/api/profile/payment-webhook', type='http', auth='public', methods=['POST'], csrf=False, cors='*')
+    def payment_webhook(self, **kwargs):
+        """Told by the payment system that a transaction was paid.
+
+        The two modules usually share one Odoo, where the order is updated
+        directly and this endpoint is never called. It exists for the case where
+        they live on separate systems and HTTP is the only way across.
+
+        Authenticated by X-ISD-Signature, an HMAC-SHA256 of the raw body keyed
+        with the secret from Profile Management settings. Idempotent: a payment
+        already confirmed is left alone, so a retry costs nothing.
+        """
+        raw_body = request.httprequest.get_data(as_text=True)
+
+        def respond(body, status=200):
+            return request.make_response(
+                json.dumps(body),
+                headers=[('Content-Type', 'application/json')],
+                status=status,
+            )
+
+        secret = request.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_payment_webhook_secret', '')
+        if not secret:
+            _logger.warning("payment-webhook called but no secret is configured")
+            return respond({'success': False, 'error': 'Webhook secret is not configured'}, 503)
+
+        signature = request.httprequest.headers.get('X-ISD-Signature', '')
+        expected = hmac.new(
+            secret.encode(), (raw_body or '').encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, signature):
+            _logger.warning("payment-webhook rejected a bad signature from %s",
+                            request.httprequest.remote_addr)
+            return respond({'success': False, 'error': 'Invalid signature'}, 401)
+
+        try:
+            payload = json.loads(raw_body) if raw_body else {}
+        except ValueError:
+            return respond({'success': False, 'error': 'Invalid JSON'}, 400)
+
+        _logger.info("payment-webhook received: %s", raw_body[:1000])
+
+        if payload.get('event') != 'transaction.confirmed':
+            return respond({'success': True, 'ignored': payload.get('event') or ''})
+
+        transaction_code = payload.get('transaction_id') or ''
+        if not transaction_code:
+            return respond({'success': False, 'error': 'transaction_id is required'}, 400)
+
+        payments = request.env['profile.payment'].sudo().search(
+            [('transaction_id', '=', transaction_code)])
+        if not payments:
+            # Someone else's transaction: answer 200 so the sender stops retrying
+            _logger.info("payment-webhook: no payment for %s", transaction_code)
+            return respond({'success': True, 'matched': False})
+
+        confirmed = 0
+        for payment in payments.filtered(lambda p: p.state != 'confirmed'):
+            amount = float(payload.get('amount') or 0)
+            if amount and abs(amount - payment.amount) > 1:
+                _logger.warning(
+                    "payment-webhook: %s reports %s but the payment expects %s",
+                    transaction_code, amount, payment.amount)
+            if payment.state == 'cancelled':
+                payment.message_post(body=_(
+                    "Money was received on this cancelled payment: "
+                    "an old QR code or payment link was used."))
+            # Only this payment received money, so the order must not go on to
+            # confirm whatever else is still waiting on it
+            payment.with_context(isd_skip_cash_confirm=True).action_confirm()
+            confirmed += 1
+
+        return respond({
+            'success': True,
+            'matched': True,
+            'confirmed': confirmed,
+            'payment_status': payments[0].user_profile_id.payment_status,
+        })
+
+    @http.route('/api/profile/create-payment', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
+    def create_payment(self, **kwargs):
+        """
+        Start a new payment on an order that already exists.
+
+        Input JSON:
+        {
+            "order_code": "BP_XXX",
+            "payment_method_id": 3,
+            "half_payment": false
+        }
+
+        `user_profile_id` is accepted in place of `order_code`. `half_payment`
+        collects half of what is left, for a deposit. Any transaction still
+        waiting on this order is cancelled first, so the customer is never left
+        with two live QR codes.
+        """
+        try:
+            self._apply_lang(kwargs)
+            user_profile, error = self._find_order(
+                kwargs.get('user_profile_id'),
+                kwargs.get('order_code') or kwargs.get('transaction_code'))
+            if error:
+                return error
+
+            if user_profile.state == 'cancelled':
+                return {
+                    'success': False,
+                    'error': 'Order is cancelled',
+                    'error_code': 'ORDER_CANCELLED'
+                }
+
+            if user_profile.payment_status == 'paid':
+                return {
+                    'success': False,
+                    'error': 'Order is already paid',
+                    'error_code': 'ALREADY_PAID'
+                }
+
+            payment_method_id = kwargs.get('payment_method_id')
+            payment_method = request.env['isd_payment.method'].sudo().browse(
+                payment_method_id) if payment_method_id else None
+            if not payment_method or not payment_method.exists():
+                return {
+                    'success': False,
+                    'error': 'Payment method not found',
+                    'error_code': 'PAYMENT_METHOD_NOT_FOUND'
+                }
+
+            # Same rule as /api/profile/create: a Demo package must not reach a
+            # live gateway
+            Wizard = request.env['payment.method.select.wizard'].sudo()
+            if payment_method not in Wizard._get_available_methods(user_profile.profile_id):
+                return {
+                    'success': False,
+                    'error': 'This payment method cannot be used for this package',
+                    'error_code': 'PAYMENT_METHOD_NOT_ALLOWED'
+                }
+
+            # Drop whatever was still waiting, gateway side included
+            user_profile._cancel_open_payments()
+
+            amount = user_profile.remaining_amount or user_profile.total_cost
+            if kwargs.get('half_payment'):
+                # A deposit: the rest is collected with another call later
+                amount = amount / 2
+            if amount <= 0:
+                return {
+                    'success': False,
+                    'error': 'Order has nothing left to pay',
+                    'error_code': 'INVALID_AMOUNT'
+                }
+
+            profile_payment = request.env['profile.payment'].sudo().create({
+                'user_profile_id': user_profile.id,
+                'partner_id': user_profile.partner_id.id if user_profile.partner_id else False,
+                'amount': amount,
+                'step_ids': [(6, 0, user_profile.user_step_ids.ids)],
+                'state': 'draft',
+            })
+
+            payment_response = profile_payment.with_context(
+                payment_method_id=payment_method.id
+            ).action_create_isd_payment_external(payment_method)
+
+            user_profile.message_post(
+                body=_("New payment started via external API: %s") % (
+                    payment_response.get('transaction_id') or ''),
+                message_type='comment',
+                subtype_xmlid='mail.mt_note'
+            )
+
+            isd_tx = profile_payment.isd_transaction_id
+            result = {
+                'success': True,
+                'user_profile_id': user_profile.id,
+                'order_code': user_profile.order_code,
+                'transaction_id': payment_response.get('transaction_id'),
+                'amount': amount,
+                # So the page can count down to the real deadline
+                'expired_at': fields.Datetime.to_string(isd_tx.expired_at) if isd_tx else '',
+            }
+            if payment_response.get('redirect_url'):
+                result['redirect_url'] = payment_response['redirect_url']
+            if payment_response.get('amount_usd'):
+                result['amount_usd'] = payment_response['amount_usd']
+            if payment_response.get('qr_url'):
+                result['qr_url'] = payment_response['qr_url']
+            if hasattr(payment_method, 'get_transfer_info'):
+                result['transfer'] = payment_method.get_transfer_info()
+            if hasattr(payment_method, 'get_notice'):
+                result['notice'] = payment_method.get_notice()
+            return result
+
+        except Exception as e:
+            _logger.exception("Error creating a payment via external API")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_code': 'INTERNAL_ERROR'
+            }
+
+    @http.route('/api/profile/order-info', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
+    def get_order_info(self, **kwargs):
+        """
+        Everything a checkout page needs about one order and its current payment.
+
+        Input JSON (one of the references is required):
+        {
+            "user_profile_id": 456,
+            "order_code": "TEST_ABC123",
+            "refresh": false
+        }
+
+        `order_code` is the code the customer sees, which is the gateway
+        transaction id or, when there is none, the payment reference.
+        `transaction_code` is accepted as an alias for it.
+
+        `refresh` asks the payment provider for the live status before answering,
+        which is slower but authoritative.
+        """
+        try:
+            self._apply_lang(kwargs)
+            user_profile_id = kwargs.get('user_profile_id')
+            order_code = kwargs.get('order_code') or kwargs.get('transaction_code')
+            refresh = bool(kwargs.get('refresh'))
+
+            Payment = request.env['profile.payment'].sudo()
+            payment = Payment.browse()
+
+            user_profile, error = self._find_order(user_profile_id, order_code)
+            if error:
+                return error
+
+            if order_code:
+                # Report the transaction the caller asked about, not the latest one,
+                # as long as it really belongs to this order
+                payment = Payment.search(
+                    ['&', ('user_profile_id', '=', user_profile.id),
+                     '|', ('transaction_id', '=', order_code),
+                     ('name', '=', order_code)], limit=1)
+
+            # Without an explicit transaction code, report the payment that is
+            # actually in play: the latest one that was not cancelled
+            if not payment:
+                live_payments = user_profile.payment_ids.filtered(
+                    lambda p: p.state != 'cancelled')
+                payment = (live_payments or user_profile.payment_ids).sorted('id')[-1:]
+
+            if payment and refresh and payment.state != 'confirmed':
+                try:
+                    payment.action_check_payment_status()
+                except Exception:
+                    # A provider hiccup must not break the whole response
+                    _logger.exception(
+                        "order-info: could not refresh payment %s", payment.transaction_id)
+
+            isd_tx = payment.isd_transaction_id
+            if payment and not isd_tx and payment.transaction_id:
+                isd_tx = request.env['isd_payment.transaction'].sudo().search(
+                    [('transaction_id', '=', payment.transaction_id)], limit=1)
+
+            base_url = request.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
+            partner = user_profile.partner_id
+            state_labels = dict(user_profile._fields['state'].selection)
+            payment_labels = dict(user_profile._fields['payment_status'].selection)
+
+            order_data = {
+                'id': user_profile.id,
+                'name': user_profile.name or '',
+                'state': user_profile.state,
+                'state_label': state_labels.get(user_profile.state, ''),
+                'payment_status': user_profile.payment_status,
+                'payment_status_label': payment_labels.get(user_profile.payment_status, ''),
+                'total_cost': user_profile.total_cost,
+                'paid_amount': user_profile.paid_amount,
+                'remaining_amount': user_profile.remaining_amount,
+                'progress_percentage': user_profile.progress_percentage,
+                'address': user_profile.address or '',
+                'notes': user_profile.notes or '',
+                'created_at': fields.Datetime.to_string(user_profile.create_date) or '',
+                'start_date': fields.Date.to_string(user_profile.start_date) or '',
+                'customer': {
+                    'name': partner.name or '',
+                    'email': partner.email or '',
+                    'phone': partner.phone or '',
+                },
+                'package': {
+                    'id': user_profile.profile_id.id,
+                    'name': user_profile.profile_id.name or '',
+                },
+                'services': [{
+                    'id': step.id,
+                    'name': step.name or '',
+                    'cost': step.cost,
+                    'state': step.state,
+                    'is_selected': step.is_selected,
+                } for step in user_profile.user_step_ids],
+            }
+
+            transaction_data = None
+            if payment:
+                method = payment.payment_method_id
+                transaction_data = {
+                    'transaction_id': payment.transaction_id or '',
+                    'payment_state': payment.state,
+                    'amount': payment.amount,
+                    'status': isd_tx.status if isd_tx else '',
+                    'is_expired': bool(isd_tx.is_expired) if isd_tx else False,
+                    'expired_at': fields.Datetime.to_string(isd_tx.expired_at) if isd_tx else '',
+                    'confirmed_at': fields.Datetime.to_string(isd_tx.confirmed_at) if isd_tx else '',
+                    'qr_url': (isd_tx.qr_url or '') if isd_tx else '',
+                    # PayPal and VNPay send the customer to their own page instead
+                    'payment_url': ((isd_tx.paypal_redirect_url or isd_tx.vnpay_redirect_url or '')
+                                    if isd_tx else ''),
+                    'payment_method': {
+                        'id': method.id,
+                        'name': method.name or '',
+                        'type': method.payment_provider or '',
+                        'environment': (method.environment or '') if 'environment' in method._fields else '',
+                        'image_url': f"{base_url}/web/image/isd_payment.method/{method.id}/image" if method.image else '',
+                    # Account details for a customer paying by transfer instead of QR
+                    'transfer': method.get_transfer_info() if hasattr(method, 'get_transfer_info') else {},
+                    # Wording to show for this method, e.g. how to pay in cash
+                    'notice': method.get_notice() if hasattr(method, 'get_notice') else {},
+                    } if method else None,
+                }
+
+            # What the caller should do next, so the page does not have to guess
+            tx_status = transaction_data['status'] if transaction_data else ''
+            if user_profile.payment_status == 'paid' or tx_status == 'confirmed' \
+                    or (payment and payment.state == 'confirmed'):
+                next_action = 'done'
+            elif not payment:
+                next_action = 'checkout'
+            elif tx_status in ('cancelled', 'failed', 'expired') or transaction_data['is_expired']:
+                next_action = 'recheckout'
+            else:
+                next_action = 'wait'
+
+            return {
+                'success': True,
+                'next_action': next_action,
+                'order': order_data,
+                'transaction': transaction_data,
+            }
+
+        except Exception as e:
+            _logger.exception("Error getting order info via external API")
             return {
                 'success': False,
                 'error': str(e),

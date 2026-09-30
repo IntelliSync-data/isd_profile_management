@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_profile_invoice_wizard_form" model="ir.ui.view">
+        <field name="name">profile.invoice.wizard.form</field>
+        <field name="model">profile.invoice.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Mark Invoiced">
+                <group>
+                    <field name="user_profile_id" readonly="1" force_save="1"/>
+                    <field name="invoice_number" placeholder="Optional"/>
+                    <field name="invoice_date"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Mark Invoiced"
+                            class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

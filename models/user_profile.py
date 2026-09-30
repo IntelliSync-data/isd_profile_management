@@ -2,7 +2,10 @@
 import base64
 import io
 import logging
+import pytz
 import requests as http_requests
+import secrets
+from datetime import datetime, time
 from PIL import Image
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
@@ -22,6 +25,26 @@ class UserProfile(models.Model):
         return
 
     name = fields.Char(string='Name', compute='_compute_name', store=True)
+    # The reference a customer page uses. Random on purpose: the database id is
+    # sequential, so anyone could walk it and read another customer's order.
+    order_code = fields.Char(
+        string='Order Code', copy=False, index=True, readonly=True,
+        default=lambda self: self._generate_order_code(),
+        help='Public reference for this order, used by the customer order page')
+
+    _sql_constraints = [
+        ('order_code_unique', 'unique(order_code)', 'Order code must be unique!'),
+    ]
+
+    @api.model
+    def _generate_order_code(self, length=12):
+        """Unguessable, and readable out loud: no 0/O or 1/I to confuse anyone"""
+        alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+        for _attempt in range(10):
+            code = ''.join(secrets.choice(alphabet) for _ in range(length))
+            if not self.sudo().search_count([('order_code', '=', code)]):
+                return code
+        raise ValidationError(_("Could not generate a unique order code."))
 
     # Customer and Profile
     partner_id = fields.Many2one(
@@ -35,9 +58,15 @@ class UserProfile(models.Model):
         ('in_progress', 'In Progress'),
         ('pending', 'Pending'),
         ('completed', 'Completed'),
+        ('invoiced', 'Invoiced'),
         ('cancelled', 'Cancelled'),
     ], string='Stage', default='new', tracking=True,
         group_expand='_group_expand_state')
+
+    # Invoicing (only used when the Invoiced stage is enabled in Settings)
+    invoice_number = fields.Char(string='Invoice Number', tracking=True, copy=False)
+    invoice_date = fields.Date(string='Invoice Date', tracking=True, copy=False)
+    show_invoiced_stage = fields.Boolean(compute='_compute_show_invoiced_stage')
 
     # Payment Status
     payment_status = fields.Selection([
@@ -55,7 +84,7 @@ class UserProfile(models.Model):
     start_date = fields.Date(string='Start Date', tracking=True)
     expected_completion_date = fields.Date(string='Expected Completion Date')
     actual_completion_date = fields.Date(
-        string='Actual Completion Date', readonly=True)
+        string='Completed Date', readonly=True)
 
     # Steps
     user_step_ids = fields.One2many(
@@ -98,6 +127,12 @@ class UserProfile(models.Model):
     notes = fields.Text(string='Notes', help='Additional notes for this profile assignment')
 
     # Address
+    # Shown under the customer on the order, never edited from there
+    partner_phone = fields.Char(
+        related='partner_id.phone', string='Phone', readonly=True)
+    partner_email = fields.Char(
+        related='partner_id.email', string='Email', readonly=True)
+
     address = fields.Text(string='Address')
     accept_address = fields.Boolean(related='profile_id.accept_address')
 
@@ -106,39 +141,139 @@ class UserProfile(models.Model):
     payment_method_id = fields.Many2one(
         'isd_payment.method', string='Payment Method',
         compute='_compute_payment_method_id', store=True, index=True,
-        help='Payment method of the first payment created for this order')
+        help='Payment method of the latest payment that was not cancelled')
+    isd_transaction_id = fields.Many2one(
+        'isd_payment.transaction', string='Transaction',
+        compute='_compute_payment_method_id', store=True, readonly=True,
+        help='Payment transaction being paid, or the one that was paid')
+
+    # create_date is stored in UTC, which makes a plain domain on it select the
+    # wrong day for anyone east of Greenwich. This is the same date read in the
+    # user timezone, so the Today / Yesterday filters mean what they say.
+    create_date_local = fields.Date(
+        string='Created On', compute='_compute_create_date_local',
+        search='_search_create_date_local')
+
+    checkout_state = fields.Selection([
+        ('new', 'Not checked out'),
+        ('retry', 'Waiting for payment'),
+        ('done', 'Paid'),
+        ('closed', 'Closed'),
+    ], compute='_compute_checkout_state',
+        help='Drives the Checkout / Re-checkout buttons')
+
+    @api.depends('create_date')
+    def _compute_create_date_local(self):
+        for record in self:
+            record.create_date_local = fields.Datetime.context_timestamp(
+                record, record.create_date).date() if record.create_date else False
+
+    def _timezone(self):
+        return pytz.timezone(
+            self.env.context.get('tz') or self.env.user.tz or 'UTC')
+
+    def _search_create_date_local(self, operator, value):
+        """Turn a local calendar day into the UTC window it really covers"""
+        tz = self._timezone()
+
+        def boundary(day, end_of_day=False):
+            naive = datetime.combine(day, time.max if end_of_day else time.min)
+            return fields.Datetime.to_string(
+                tz.localize(naive).astimezone(pytz.utc).replace(tzinfo=None))
+
+        day = fields.Date.to_date(value)
+        if operator == '=':
+            return [('create_date', '>=', boundary(day)),
+                    ('create_date', '<=', boundary(day, end_of_day=True))]
+        if operator in ('>=', '>'):
+            return [('create_date', operator, boundary(day, end_of_day=(operator == '>')))]
+        if operator in ('<=', '<'):
+            return [('create_date', operator, boundary(day, end_of_day=(operator == '<=')))]
+        raise ValidationError(
+            _("Operator %s is not supported on the creation date filter.") % operator)
 
     @api.model
     def _group_expand_state(self, values, domain):
         """Order the Stage groups as declared instead of alphabetically by value"""
         order = [key for key, _label in self._fields['state'].selection]
+        # Keep Invoiced out of the groups unless the setting is on, but never drop
+        # it when orders already sit in that stage
+        if not self._invoiced_stage_enabled() and 'invoiced' not in (values or []):
+            order = [key for key in order if key != 'invoiced']
         if not values:
             return order
         return [key for key in order if key in values]
 
-    @api.depends('payment_ids.payment_method_id')
+    @api.model
+    def _invoiced_stage_enabled(self):
+        """Whether the Invoiced stage is enabled in Profile Management settings"""
+        value = self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_enable_invoiced_stage', 'False')
+        return str(value).lower() in ('true', '1')
+
+    def _compute_show_invoiced_stage(self):
+        enabled = self._invoiced_stage_enabled()
+        for record in self:
+            record.show_invoiced_stage = enabled
+
+    @api.depends('payment_ids.payment_method_id', 'payment_ids.state',
+                 'payment_ids.isd_transaction_id', 'payment_ids.transaction_id')
     def _compute_payment_method_id(self):
         for record in self:
-            first_payment = record.payment_ids.sorted('id')[:1]
-            record.payment_method_id = first_payment.payment_method_id
+            # A re-checkout cancels the previous payment, so the one that counts
+            # is the latest still alive
+            live_payments = record.payment_ids.filtered(
+                lambda p: p.state != 'cancelled')
+            latest = (live_payments or record.payment_ids).sorted('id')[-1:]
+            record.payment_method_id = latest.payment_method_id
+
+            isd_tx = latest.isd_transaction_id
+            if not isd_tx and latest.transaction_id:
+                # The link is empty when isd_payment created the transaction in its
+                # own request, so fall back to the code both records share
+                isd_tx = self.env['isd_payment.transaction'].sudo().search(
+                    [('transaction_id', '=', latest.transaction_id)], limit=1)
+            record.isd_transaction_id = isd_tx
+
+    @api.depends('state', 'payment_status', 'payment_ids.state',
+                 'payment_ids.isd_transaction_id.status')
+    def _compute_checkout_state(self):
+        for record in self:
+            if record.state == 'cancelled':
+                # Nothing left to collect on an order nobody will deliver
+                record.checkout_state = 'closed'
+                continue
+            confirmed = record.payment_ids.filtered(
+                lambda p: p.state == 'confirmed'
+                or p.isd_transaction_id.status == 'confirmed')
+            if record.payment_status == 'paid' or confirmed:
+                record.checkout_state = 'done'
+            elif record.payment_ids.filtered(lambda p: p.state != 'cancelled'):
+                record.checkout_state = 'retry'
+            else:
+                record.checkout_state = 'new'
 
     def write(self, vals):
         res = super().write(vals)
         if vals.get('payment_status') == 'paid' and not self.env.context.get('isd_skip_cash_confirm'):
-            self._confirm_pending_cash_payments()
+            self._confirm_open_payments_on_paid()
         return res
 
-    def _confirm_pending_cash_payments(self):
-        """Confirm cash payments and their isd_payment transaction once the order is marked paid"""
+    def _confirm_open_payments_on_paid(self):
+        """Confirm whatever is waiting once the order is marked paid by hand.
+
+        Staff often see the money arrive when the gateway never told us. Confirming
+        the payment already on the order keeps the method the customer really used;
+        only an order that never went through checkout gets a cash payment created.
+        """
         for record in self:
-            cash_payments = record.payment_ids.filtered(
-                lambda p: p.state in ('draft', 'pending')
-                and p.payment_method_id.payment_provider == 'cash'
-            )
-            if not cash_payments:
+            open_payments = record.payment_ids.filtered(
+                lambda p: p.state in ('draft', 'pending'))
+            if not open_payments:
                 # Order marked as paid without going through checkout (manual order)
-                cash_payments = record._create_cash_payment_for_manual_order()
-            for payment in cash_payments:
+                open_payments = record._create_cash_payment_for_manual_order()
+
+            for payment in open_payments:
                 isd_tx = payment.isd_transaction_id
                 if not isd_tx and payment.transaction_id:
                     # The transaction is created by the isd_payment API in its own
@@ -148,8 +283,11 @@ class UserProfile(models.Model):
                     ], limit=1)
                     if isd_tx:
                         payment.isd_transaction_id = isd_tx.id
+
                 if isd_tx and isd_tx.status != 'confirmed':
-                    isd_tx.sudo().mark_as_confirmed_cash(collected_by=self.env.user)
+                    isd_tx.sudo().mark_as_confirmed_manually(
+                        confirmed_by=self.env.user,
+                        reason=_("Order %s marked as paid") % (record.name or ''))
                 payment.with_context(isd_skip_cash_confirm=True).action_confirm()
 
     def _get_cash_payment_method(self):
@@ -368,6 +506,53 @@ class UserProfile(models.Model):
             'tag': 'reload',
         }
 
+    def action_open_invoice_wizard(self):
+        """Ask for the (optional) invoice details before moving to the Invoiced stage"""
+        self.ensure_one()
+        if not self._invoiced_stage_enabled():
+            raise ValidationError(
+                _("The Invoiced stage is disabled in Profile Management settings."))
+        if self.state != 'completed':
+            raise ValidationError(
+                _("Only completed orders can be marked as invoiced."))
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Mark Invoiced'),
+            'res_model': 'profile.invoice.wizard',
+            'view_mode': 'form',
+            'views': [(self.env.ref(
+                'isd_profile_management.view_profile_invoice_wizard_form').id, 'form')],
+            'target': 'new',
+            'context': {'default_user_profile_id': self.id},
+        }
+
+    def action_mark_invoiced(self, invoice_number=None, invoice_date=None):
+        """Move a completed order to the Invoiced stage, the final stage"""
+        for record in self:
+            if record.state != 'completed':
+                raise ValidationError(
+                    _("Only completed orders can be marked as invoiced."))
+
+            vals = {'state': 'invoiced'}
+            if invoice_number:
+                vals['invoice_number'] = invoice_number
+            if invoice_date:
+                vals['invoice_date'] = invoice_date
+            record.write(vals)
+
+            if invoice_number:
+                from markupsafe import escape
+                record.message_post(
+                    body=_("Order invoiced (invoice %s)") % escape(invoice_number))
+            else:
+                record.message_post(body=_("Order invoiced"))
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+
     def action_cancel_profile(self):
         """Cancel the profile"""
         self.write({'state': 'cancelled'})
@@ -476,6 +661,10 @@ class UserProfile(models.Model):
         Returns:
             Odoo action dict — either act_url (redirect) or act_window (QR wizard).
         """
+        if self.state == 'cancelled':
+            raise ValidationError(
+                _("This order is cancelled and cannot be paid."))
+
         if self.payment_status == 'paid':
             raise ValidationError(
                 _("This profile is already fully paid."))
@@ -509,6 +698,10 @@ class UserProfile(models.Model):
         payment_method = self.env['isd_payment.method'].browse(payment_method_id)
         if not payment_method.exists():
             raise ValidationError(_("Payment method not found."))
+
+        # A test package must never reach a live gateway, whoever calls this
+        self.env['payment.method.select.wizard']._check_method_for_package(
+            self.profile_id, payment_method)
 
         # Call isd_payment REST API to create the payment. The endpoint is a JSON-RPC
         # route: arguments go inside "params" and the payload comes back under "result".
@@ -550,6 +743,10 @@ class UserProfile(models.Model):
         isd_tx = self.env['isd_payment.transaction'].sudo().search(
             [('transaction_id', '=', transaction_id)], limit=1)
 
+        # The new transaction exists now, so the previous attempt can go. Doing it
+        # here and not earlier keeps the old payment usable if the API call failed.
+        self._cancel_open_payments()
+
         payment_vals = {
             'user_profile_id': self.id,
             'partner_id': self.partner_id.id if self.partner_id else False,
@@ -564,6 +761,8 @@ class UserProfile(models.Model):
             'transaction_id': transaction_id,
             'amount': total_amount,
             'payment_method_name': payment_method.name or '',
+            'order_link_text': self._build_order_link_text(
+                self.order_code or transaction_id),
         }
 
         if payment_method.payment_provider == 'cash':
@@ -602,7 +801,6 @@ class UserProfile(models.Model):
             # QR code instead of opening the provider page in the staff browser
             self.env['profile.payment'].create(dict(payment_vals, state='pending'))
             wizard_vals['qr_image'] = self._generate_payment_qr(redirect_url)
-            wizard_vals['payment_url'] = redirect_url
 
         else:
             raise ValidationError(_("Payment service returned no QR or redirect URL."))
@@ -619,6 +817,22 @@ class UserProfile(models.Model):
             'context': {'form_view_initial_mode': 'edit'},
         }
 
+    def _build_order_link_text(self, order_code):
+        """Link to the public order page, with the validity note, as one copyable block.
+
+        Empty when no page is configured in settings, which hides the whole block.
+        """
+        base = (self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_order_link', '') or '').strip()
+        if not base or not order_code:
+            return ''
+
+        separator = '&' if '?' in base else '?'
+        # Hardcoded Vietnamese: this block is copied and sent to the customer,
+        # so it must not follow the language of the staff member who checks out
+        return "%s%sorder=%s\nLink có thời hạn trong vòng 1 tiếng" % (
+            base, separator, order_code)
+
     def _generate_payment_qr(self, url):
         """Render a payment link as a QR code image the customer can scan"""
         try:
@@ -633,12 +847,45 @@ class UserProfile(models.Model):
         qr.make_image(fill_color="black", back_color="white").save(buffer, format='PNG')
         return base64.b64encode(buffer.getvalue()).decode('ascii')
 
+    def _cancel_open_payments(self):
+        """Drop the payments still waiting, so a re-checkout starts clean.
+
+        Only ACB can revoke its QR on the provider side. Elsewhere the old QR or
+        link keeps working, so cron_sync_cancelled_payments picks the money up if
+        a customer pays it anyway.
+        """
+        self.ensure_one()
+        open_payments = self.payment_ids.filtered(
+            lambda p: p.state not in ('confirmed', 'cancelled'))
+
+        for payment in open_payments:
+            isd_tx = payment.isd_transaction_id
+            if not isd_tx and payment.transaction_id:
+                isd_tx = self.env['isd_payment.transaction'].sudo().search(
+                    [('transaction_id', '=', payment.transaction_id)], limit=1)
+
+            if isd_tx and isd_tx.status == 'confirmed':
+                # Money arrived while the user was starting over: keep it
+                payment.action_confirm()
+                continue
+
+            if isd_tx and isd_tx.status not in ('cancelled',):
+                isd_tx.sudo().mark_as_cancelled(
+                    reason=_("Replaced by a new checkout on order %s") % self.name)
+            payment.action_cancel()
+
     def action_open_checkout_wizard(self):
         """Open wizard to select payment method and proceed to checkout."""
         self.ensure_one()
+        if self.state == 'cancelled':
+            raise ValidationError(_("This order is cancelled and cannot be paid."))
         if self.payment_status == 'paid':
             raise ValidationError(_("This profile is already fully paid."))
-        wizard = self.env['payment.method.select.wizard'].create({
+
+        Wizard = self.env['payment.method.select.wizard']
+        # Fails here with a clear message instead of opening an empty dropdown
+        Wizard._check_method_for_package(self.profile_id)
+        wizard = Wizard.with_context(default_user_profile_id=self.id).create({
             'user_profile_id': self.id,
         })
         return {
@@ -699,15 +946,14 @@ class UserProfile(models.Model):
             _logger.warning("Configured order confirmation email template not found")
             return
 
-        # Order code shown to the customer (same value the checkout page
-        # displays as "Mã đơn hàng"): the payment gateway transaction id,
-        # falling back to the internal payment reference.
+        # Code the customer sees. The order's own code survives a re-checkout,
+        # unlike a gateway transaction id, and exists even before any payment.
         if payment is None:
             payment = self.env['profile.payment'].search(
                 [('user_profile_id', '=', self.id)], order='create_date desc', limit=1
             )
-        order_code = ''
-        if payment:
+        order_code = self.order_code or ''
+        if not order_code and payment:
             order_code = payment.transaction_id or payment.name or ''
 
         contact_name = self.partner_id.name or ''
@@ -719,6 +965,7 @@ class UserProfile(models.Model):
 
         variables = {
             'order_code': order_code,
+            'user_profile_id': str(self.id),
             'profile_name': self.name or '',
             'user_name': contact_name,
             'user_email': contact_email,
@@ -1062,7 +1309,7 @@ class UserStep(models.Model):
         profile = self.user_profile_id
         if not profile or not profile.profile_id.is_auto_complete:
             return
-        if profile.state == 'completed':
+        if profile.state in ('completed', 'invoiced'):
             return
         selected_steps = profile.user_step_ids.filtered('is_selected')
         if selected_steps and all(s.state == 'completed' for s in selected_steps):

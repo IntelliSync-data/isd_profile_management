@@ -43,6 +43,74 @@
                                     <field name="pm_exchange_rate" class="mt-2"/>
                                 </div>
                             </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_order_link"/>
+                                    <div class="text-muted">
+                                        Page where customers open their own order, e.g. https://bloompod.vn/order.html.
+                                        <code>?order=&lt;order code&gt;</code> is appended automatically and the result is
+                                        shown under the QR code at checkout
+                                    </div>
+                                    <field name="pm_order_link" class="mt-2" placeholder="https://bloompod.vn/order.html"/>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane">
+                                    <field name="pm_enable_invoiced_stage"/>
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label for="pm_enable_invoiced_stage"/>
+                                    <div class="text-muted">
+                                        Adds the Invoiced stage after Completed, plus a Mark Invoiced button on completed orders
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app_settings_block" data-string="Payment Webhook" string="Payment Webhook" data-key="payment_webhook" groups="base.group_user">
+                        <h2>Payment Webhook</h2>
+                        <div class="alert alert-info" role="alert">
+                            <strong>Only needed when ISD Payment runs on another system.</strong>
+                            Sharing one Odoo with it, the order is updated directly and none of this applies.
+                            Otherwise paste the URL below into <b>Notify URL</b> on the payment method,
+                            and give it the same secret, so a confirmed payment reaches this order.
+                        </div>
+                        <div class="row mt16 o_settings_container">
+                            <!-- One box each: the copy widget lays itself out as a grid and
+                                 drags the next label alongside it when they share one -->
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <span class="o_form_label">Payment Webhook URL</span>
+                                    <div class="text-muted">
+                                        Copy this into Notify URL on the payment method
+                                    </div>
+                                    <div class="mt-2 w-100">
+                                        <field name="pm_payment_webhook_url"
+                                               widget="CopyClipboardChar" nolabel="1"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"></div>
+                                <div class="o_setting_right_pane">
+                                    <span class="o_form_label">Payment Webhook Secret</span>
+                                    <div class="text-muted">
+                                        Both sides must hold the same value. Calls are signed with it
+                                        as <code>X-ISD-Signature</code>, and refused without it
+                                    </div>
+                                    <div class="mt-2">
+                                        <field name="pm_payment_webhook_secret"
+                                               password="True" nolabel="1"/>
+                                    </div>
+                                    <button name="action_generate_payment_webhook_secret" type="object"
+                                            string="Generate Secret" class="btn-secondary btn-sm mt-2"
+                                            icon="fa-refresh"
+                                            confirm="This will replace the current secret, and the payment system will be refused until it is given the new one. Continue?"/>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -64,6 +132,7 @@
                                     <div class="alert alert-secondary mt-2 small" role="alert">
                                         <strong>Available variables for template Variable Keys:</strong><br/>
                                         <code>order_code</code> - Order code (e.g. transaction ID shown at checkout)<br/>
+                                        <code>user_profile_id</code> - Order ID, use it to call the order-info API<br/>
                                         <code>user_name</code> - Customer name<br/>
                                         <code>user_email</code> - Customer email<br/>
                                         <code>package_name</code> - Package name<br/>
@@ -97,7 +166,9 @@
                                         <code>state</code> - Payment state (draft, pending, confirmed, ...)<br/>
                                         <code>payment_date</code> - Payment date<br/>
                                         <code>package_name</code> - Package name<br/>
-                                        <code>profile_name</code> - Profile assignment name
+                                        <code>profile_name</code> - Profile assignment name<br/>
+                                        <code>user_profile_id</code> - Order ID, use it to call the order-info API<br/>
+                                        <code>order_code</code> - Order code (transaction ID, else payment reference)
                                     </div>
                                 </div>
                             </div>
