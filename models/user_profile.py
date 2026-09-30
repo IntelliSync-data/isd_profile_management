@@ -703,6 +703,13 @@ class UserProfile(models.Model):
         self.env['payment.method.select.wizard']._check_method_for_package(
             self.profile_id, payment_method)
 
+        # The package is priced in the currency from settings, the gateway charges
+        # in its own. Converting here, and saying so, is what stops the amount
+        # being converted a second time on the other side.
+        converted = self.env['profile.payment']._convert_payment_amount(
+            payment_method, amount=total_amount)
+        charge_amount = converted['charge_amount']
+
         # Call isd_payment REST API to create the payment. The endpoint is a JSON-RPC
         # route: arguments go inside "params" and the payload comes back under "result".
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
@@ -713,7 +720,8 @@ class UserProfile(models.Model):
                     "jsonrpc": "2.0",
                     "method": "call",
                     "params": {
-                        "amount": total_amount,
+                        "amount": charge_amount,
+                        "amount_currency": converted['charge_currency'],
                         "description": f"Profile Payment - {self.name}",
                         "branch": self.profile_id.name or '',
                     },
