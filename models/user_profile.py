@@ -25,6 +25,9 @@ class UserProfile(models.Model):
         return
 
     name = fields.Char(string='Name', compute='_compute_name', store=True)
+    # Archiving is what a manager does instead of deleting: the order leaves the
+    # list without taking its payments and history with it
+    active = fields.Boolean(string='Active', default=True)
     # The reference a customer page uses. Random on purpose: the database id is
     # sequential, so anyone could walk it and read another customer's order.
     order_code = fields.Char(
