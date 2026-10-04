@@ -174,6 +174,15 @@ Content-Type: application/json</pre>
         <li><strong>notes</strong> (optional): Additional information saved on the order</li>
         <li><strong>address</strong> (optional): Delivery address, saved to the order's Address field. Shown on the order when the product has <em>Accept Address</em> enabled, or whenever an address is saved.</li>
         <li><strong>payment_method_id</strong> (optional): Payment method ID from ISD Payment module. Leave it out to create the order without paying yet: no payment is started, no gateway is called, and <code>amount</code> comes back as the full price. Pay it later with API 5.</li>
+        <li><strong>metadata</strong> (optional): an object of your own, stored on the order and
+            handed back by API 4 untouched. <code>metadata.gift.product_id</code> is the one key
+            this module reads: the product is taken out of circulation as the order is created, and
+            a second customer reaching for the same one is refused with
+            <code>child_unavailable</code> instead of getting an order. Nothing releases it again;
+            staff unhide it by hand if the order comes to nothing. Namespace what you put in it, so two sites using this
+            field for different things never collide. Must be an object and under 8 KB; the contents
+            are never inspected. It stays on the order, so a transaction expiring and a new one
+            taking its place does not lose it.</li>
         <li><strong>order_code</strong> is returned by every call: a random public reference for this order. Use it, not <code>user_profile_id</code>, on a customer page — ids are sequential and can be walked to read someone else's order.</li>
         <li><strong>half_payment</strong> (optional, default: false): If <code>true</code>, only pay 50% of the total amount. Payment status will be set to <code>half_paid</code>. Call this API again to pay the remaining 50%.</li>
     </ul>
@@ -385,6 +394,7 @@ curl -X POST '{wizard.base_url}/api/profile/check-payment' \\
             "progress_percentage": 0.0,
             "address": "12 Nguyen Hue, District 1",
             "notes": "Giao truoc 5h chieu",
+            "metadata": {{"gift": {{"product_id": 12, "child_name": "Be An"}}}},
             "created_at": "2026-09-22 09:15:00",
             "start_date": "",
             "customer": {{"name": "John Doe", "email": "john@example.com", "phone": "0900000000"}},

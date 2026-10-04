@@ -139,6 +139,11 @@ class UserProfile(models.Model):
     address = fields.Text(string='Address')
     accept_address = fields.Boolean(related='profile_id.accept_address')
 
+    # Whatever the site needs to remember about this order, machine-readable and
+    # namespaced by the caller. Kept on the order, not on a payment, so it
+    # survives a transaction expiring and a new one taking its place.
+    metadata = fields.Json(string='Metadata')
+
     # Payments
     payment_ids = fields.One2many('profile.payment', 'user_profile_id', string='Payments')
     payment_method_id = fields.Many2one(
@@ -292,6 +297,44 @@ class UserProfile(models.Model):
                         confirmed_by=self.env.user,
                         reason=_("Order %s marked as paid") % (record.name or ''))
                 payment.with_context(isd_skip_cash_confirm=True).action_confirm()
+
+    @api.model
+    def claim_gift_product(self, product_id):
+        """Take a child out of circulation for the order being created.
+
+        Returns True when this caller got it, False when someone else already
+        has. The row is locked first: two customers pressing at the same moment
+        would otherwise both read it as available and both be told yes.
+
+        isd_products is deliberately not a dependency, so the model is asked
+        for rather than imported; a site without it reserves nothing.
+        """
+        if 'isd.product' not in self.env:
+            return True
+
+        try:
+            product_id = int(product_id)
+        except (TypeError, ValueError):
+            _logger.warning("Gift product_id is not a number: %r", product_id)
+            return False
+
+        product = self.env['isd.product'].sudo().browse(product_id).exists()
+        if not product:
+            _logger.warning("Gift product %s does not exist", product_id)
+            return False
+
+        # FOR UPDATE makes the second caller wait here, then read the value the
+        # first one wrote, instead of racing it
+        self.env.cr.execute(
+            "SELECT is_visible FROM isd_product WHERE id = %s FOR UPDATE", (product.id,))
+        row = self.env.cr.fetchone()
+        if not row or not row[0]:
+            _logger.info("Gift product %s was already taken", product_id)
+            return False
+
+        product.is_visible = False
+        _logger.info("Gift product %s reserved for a new order", product_id)
+        return True
 
     def _get_cash_payment_method(self):
         """Cash method the package accepts, else any active one.

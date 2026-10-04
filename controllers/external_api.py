@@ -125,6 +125,9 @@ class ExternalProfileAPIController(http.Controller):
             phone = kwargs.get('phone') or ''
             payment_method_id = kwargs.get('payment_method_id')
             half_payment = kwargs.get('half_payment', False)
+            metadata, metadata_error = self._validate_metadata(kwargs.get('metadata'))
+            if metadata_error:
+                return metadata_error
 
             for label, value, code in (
                 ('Address', address, 'INVALID_ADDRESS'),
@@ -247,6 +250,18 @@ class ExternalProfileAPIController(http.Controller):
             if total_amount <= 0:
                 total_amount = package.total_cost or 0
 
+            # Claim the child before the order exists, in this same transaction:
+            # whoever gets the row lock gets the child, the other is told it is
+            # gone. If anything below fails, the rollback frees it again.
+            gift = (metadata or {}).get('gift')
+            gift_product_id = gift.get('product_id') if isinstance(gift, dict) else None
+            if gift_product_id and not request.env['user.profile'].sudo().claim_gift_product(gift_product_id):
+                return {
+                    'success': False,
+                    'error': 'This child has just been taken by someone else',
+                    'error_code': 'child_unavailable'
+                }
+
             # Always create a new user profile (each purchase is a separate order)
             user_profile = request.env['user.profile'].sudo().with_context(skip_create_steps=True).create({
                 'partner_id': partner.id,
@@ -254,6 +269,7 @@ class ExternalProfileAPIController(http.Controller):
                 'state': 'new',
                 'assigned_date': fields.Datetime.now(),
                 'notes': notes,
+                'metadata': metadata,
                 'address': address or False,
                 'locked_cost': total_amount,
             })
@@ -463,6 +479,41 @@ class ExternalProfileAPIController(http.Controller):
 
         request.update_context(lang=lang.code)
         return lang.code
+
+    # 8 KB is room for a sizeable object and still nothing a public endpoint
+    # has to think twice about storing
+    MAX_METADATA_BYTES = 8 * 1024
+
+    def _validate_metadata(self, metadata):
+        """Check the shape and the size, never the contents.
+
+        The caller owns what goes inside; this endpoint is public, so it owns
+        the fact that it is an object and that it is not enormous.
+        Returns (metadata, error_dict); exactly one of them is filled.
+        """
+        if metadata in (None, '', False):
+            return None, None
+        if not isinstance(metadata, dict):
+            return None, {
+                'success': False,
+                'error': 'metadata must be an object',
+                'error_code': 'INVALID_METADATA'
+            }
+        try:
+            size = len(json.dumps(metadata).encode())
+        except (TypeError, ValueError):
+            return None, {
+                'success': False,
+                'error': 'metadata must be JSON-serialisable',
+                'error_code': 'INVALID_METADATA'
+            }
+        if size > self.MAX_METADATA_BYTES:
+            return None, {
+                'success': False,
+                'error': 'metadata is larger than %s bytes' % self.MAX_METADATA_BYTES,
+                'error_code': 'METADATA_TOO_LARGE'
+            }
+        return metadata, None
 
     def _find_order(self, user_profile_id=None, order_code=None):
         """Resolve an order from its id or from the code the customer sees.
@@ -783,6 +834,7 @@ class ExternalProfileAPIController(http.Controller):
                 'progress_percentage': user_profile.progress_percentage,
                 'address': user_profile.address or '',
                 'notes': user_profile.notes or '',
+                'metadata': user_profile.metadata or {},
                 'created_at': fields.Datetime.to_string(user_profile.create_date) or '',
                 'start_date': fields.Date.to_string(user_profile.start_date) or '',
                 'customer': {

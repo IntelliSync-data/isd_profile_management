@@ -353,6 +353,7 @@ msgstr "Lý do từ chối"
 
 #. module: isd_profile_management
 #: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__metadata
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__metadata
 msgid "Metadata"
 msgstr "Siêu dữ liệu"
 
