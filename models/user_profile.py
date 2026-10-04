@@ -294,12 +294,12 @@ class UserProfile(models.Model):
                 payment.with_context(isd_skip_cash_confirm=True).action_confirm()
 
     def _get_cash_payment_method(self):
-        """Cash method picked from the configured checkout methods, else any active one"""
-        param = self.env['ir.config_parameter'].sudo().get_param(
-            'isd_profile_management.pm_payment_method_ids', default=''
-        )
-        ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
-        methods = self.env['isd_payment.method'].sudo().browse(ids).filtered(
+        """Cash method the package accepts, else any active one.
+
+        The fallback matters: an order can be marked paid by hand even when the
+        package never offered cash, and the money still has to land somewhere.
+        """
+        methods = self.profile_id.payment_method_ids.sudo().filtered(
             lambda m: m.exists() and m.active and m.payment_provider == 'cash'
         )
         if methods:

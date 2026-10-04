@@ -269,25 +269,19 @@ class ProfilePayment(models.Model):
     def action_create_isd_payment(self):
         """Create payment transaction via ISD Payment module.
 
-        Reads the first active payment method from pm_payment_method_ids config param,
-        then delegates to action_create_isd_payment_with_method.
+        Takes the first method the order's package accepts, then delegates to
+        action_create_isd_payment_with_method.
         """
         self.ensure_one()
 
-        # Get payment method IDs from config
-        param = self.env['ir.config_parameter'].sudo().get_param(
-            'isd_profile_management.pm_payment_method_ids', default=''
-        )
-        ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
+        package = self.user_profile_id.profile_id
+        methods = self.env['payment.method.select.wizard']._get_available_methods(package)
+        if not methods:
+            raise ValidationError(_(
+                "This package accepts no payment method. "
+                "Add one under Payment Methods on the package."))
 
-        if not ids:
-            raise ValidationError(_("Please configure Payment Methods in Settings first."))
-
-        payment_method = self.env['isd_payment.method'].browse(ids[0])
-        if not payment_method.exists():
-            raise ValidationError(_("Configured Payment Method not found."))
-
-        return self.action_create_isd_payment_with_method(payment_method)
+        return self.action_create_isd_payment_with_method(methods[0])
 
     def action_create_isd_payment_with_method(self, payment_method):
         """Create payment transaction via ISD Payment module using a specific method record.

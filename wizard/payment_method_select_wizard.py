@@ -30,26 +30,13 @@ class PaymentMethodSelectWizard(models.TransientModel):
         return 'live' if package and package.package_type == 'live' else 'test'
 
     @api.model
-    def _get_settings_methods(self):
-        """The old global list, now only a fallback for a package that names none"""
-        param = self.env['ir.config_parameter'].sudo().get_param(
-            'isd_profile_management.pm_payment_method_ids', default=''
-        )
-        ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
-        return self.env['isd_payment.method'].sudo().browse(ids)
-
-    @api.model
     def _get_available_methods(self, package=None):
         """How an order of this package can be paid.
 
         The package decides, because one package may take cash at the counter
-        while another only takes a card. Settings still answers for a package
-        that names none, so a newly created one is not stuck with nothing.
+        while another only takes a card. A package naming none accepts none.
         """
         methods = package.payment_method_ids.sudo() if package else self.env['isd_payment.method']
-        if not methods:
-            methods = self._get_settings_methods()
-
         methods = methods.filtered(lambda m: m.exists() and m.active and m.is_configured)
 
         # guarded: isd_payment may still be running a version without the flag
@@ -65,8 +52,8 @@ class PaymentMethodSelectWizard(models.TransientModel):
         if not methods:
             environment = self._package_environment(package)
             raise ValidationError(_(
-                "No %s payment method is configured for this package. "
-                "Add one in Profile Management settings."
+                "This package accepts no %s payment method. "
+                "Add one under Payment Methods on the package."
             ) % (_("Live") if environment == 'live' else _("Test")))
 
         if method and method not in methods:
