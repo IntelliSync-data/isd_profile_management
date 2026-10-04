@@ -2583,3 +2583,8 @@ msgstr "Đã lưu trữ"
 #. module: isd_profile_management
 msgid "Default Payment Methods"
 msgstr "Phương thức thanh toán mặc định"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__api_cancel_order_doc
+msgid "Cancel Order API"
+msgstr "API huỷ đơn hàng"

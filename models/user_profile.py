@@ -336,6 +336,36 @@ class UserProfile(models.Model):
         _logger.info("Gift product %s reserved for a new order", product_id)
         return True
 
+    def release_gift_product(self):
+        """Put the child back on offer, because this order is going nowhere.
+
+        The mirror of claim_gift_product, and the reason cancelling an order has
+        to be one step: releasing the child while leaving the order alive would
+        let a second customer pay for the same child the first one still holds a
+        payment link for.
+        """
+        if 'isd.product' not in self.env:
+            return
+
+        for record in self:
+            gift = (record.metadata or {}).get('gift')
+            product_id = gift.get('product_id') if isinstance(gift, dict) else None
+            if not product_id:
+                continue
+            try:
+                product_id = int(product_id)
+            except (TypeError, ValueError):
+                continue
+
+            product = self.env['isd.product'].sudo().browse(product_id).exists()
+            if not product or product.is_visible:
+                continue
+
+            product.is_visible = True
+            _logger.info(
+                "Order %s cancelled: put product %s back on offer",
+                record.name, product_id)
+
     def _get_cash_payment_method(self):
         """Cash method the package accepts, else any active one.
 

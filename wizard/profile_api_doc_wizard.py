@@ -18,6 +18,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
     api_order_doc = fields.Html(string='Order Info API', compute='_compute_api_documentation')
     api_create_payment_doc = fields.Html(string='Create Payment API', compute='_compute_api_documentation')
     api_payment_webhook_doc = fields.Html(string='Payment Webhook API', compute='_compute_api_documentation')
+    api_cancel_order_doc = fields.Html(string='Cancel Order API', compute='_compute_api_documentation')
 
     @api.depends('package_id')
     def _compute_base_url(self):
@@ -37,6 +38,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
                 wizard.api_order_doc = ''
                 wizard.api_create_payment_doc = ''
                 wizard.api_payment_webhook_doc = ''
+                wizard.api_cancel_order_doc = ''
                 continue
 
             # Get payment methods for documentation
@@ -599,6 +601,56 @@ curl -X POST '{wizard.base_url}/api/profile/create-payment' \\
     <b>Half Paid</b> when they cover part of it. A transaction belonging to some other system
     answers <code>matched: false</code> with <code>200</code>, and a payment already confirmed
     is left alone: retries are safe.</p>
+</div>
+"""
+
+
+            # API 7: Cancel Order
+            wizard.api_cancel_order_doc = f"""
+<div style="font-family: monospace; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+    <h3 style="color: #2c3e50;">🚫 API 7: Cancel Order</h3>
+    <p>Gives up an order nobody paid for, and puts its child back on offer. This is what a
+    <b>Back</b> button on the checkout page should call: once an order exists the child is
+    already reserved, so going back without cancelling would leave the customer blocked by
+    their own order.</p>
+
+    <h4>Endpoint:</h4>
+    <div style="background-color: #34495e; color: #ecf0f1; padding: 10px; border-radius: 3px; margin-bottom: 10px;">
+        POST {wizard.base_url}/api/profile/cancel-order
+    </div>
+
+    <h4>Request Body:</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #3498db;">{{
+    "jsonrpc": "2.0",
+    "params": {{
+        "order_code": "KXM7PQR4TZWD"
+    }}
+}}</pre>
+
+    <h4>Response</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #27ae60;">{{
+    "success": true
+}}</pre>
+    <p>An order that was already cancelled answers <code>success: true</code> with
+    <code>already_cancelled: true</code>, so pressing Back twice is harmless.</p>
+
+    <h4>Error Codes:</h4>
+    <ul>
+        <li><code>order_not_found</code> — no order matches that code</li>
+        <li><code>order_paid</code> — money was received, so the order stands. Returned as well
+            when the gateway has confirmed the transaction but the payment here has not caught
+            up yet, which is what a customer pressing Back at the exact moment they pay would
+            otherwise slip through.</li>
+    </ul>
+
+    <h4>What it does, all in one step</h4>
+    <ol>
+        <li>Cancels whatever transaction is still waiting, at the gateway too where that is possible</li>
+        <li>Moves the order to Cancelled, along with its steps</li>
+        <li>Puts <code>metadata.gift.product_id</code> back on offer, if the order carried one</li>
+    </ol>
+    <p>Releasing the child without cancelling the order is deliberately not offered: a second
+    customer could pay for a child the first still holds a payment link for.</p>
 </div>
 """
 

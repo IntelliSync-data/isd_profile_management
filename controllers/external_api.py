@@ -756,6 +756,67 @@ class ExternalProfileAPIController(http.Controller):
                 'error_code': 'INTERNAL_ERROR'
             }
 
+    @http.route('/api/profile/cancel-order', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
+    def cancel_order(self, **kwargs):
+        """
+        Give up an order that was never paid, and put its child back on offer.
+
+        Input JSON:
+        {
+            "order_code": "KXM7PQR4TZWD"
+        }
+
+        One step on purpose. Releasing the child while leaving the order alive
+        would let a second customer pay for the child the first one still holds
+        a payment link for, which is the very thing reserving it prevents.
+        """
+        try:
+            user_profile, error = self._find_order(
+                kwargs.get('user_profile_id'),
+                kwargs.get('order_code') or kwargs.get('transaction_code'))
+            if error:
+                # Lowercase codes here, as the caller of this endpoint expects
+                return {
+                    'success': False,
+                    'error': error['error'],
+                    'error_code': 'order_not_found',
+                }
+
+            if user_profile.state == 'cancelled':
+                # Already where the caller wants it
+                return {'success': True, 'already_cancelled': True}
+
+            # The gateway may have confirmed the transaction without the payment
+            # here having caught up yet, so look at both before letting go
+            paid = user_profile.payment_status in ('paid', 'half_paid') or any(
+                payment.state == 'confirmed'
+                or payment.isd_transaction_id.status == 'confirmed'
+                for payment in user_profile.payment_ids)
+            if paid:
+                return {
+                    'success': False,
+                    'error': 'This order has already been paid',
+                    'error_code': 'order_paid',
+                }
+
+            # Stop whatever is still waiting for money, then close the order,
+            # then free the child. One request, so one transaction: a failure
+            # anywhere leaves everything as it was.
+            user_profile._cancel_open_payments()
+            user_profile.action_cancel_profile()
+            user_profile.release_gift_product()
+
+            _logger.info("Order %s cancelled through the API", user_profile.order_code)
+            return {'success': True}
+
+        except Exception as e:
+            _logger.exception("Error cancelling an order via external API")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_code': 'INTERNAL_ERROR'
+            }
+
     @http.route('/api/profile/order-info', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
     def get_order_info(self, **kwargs):
         """
