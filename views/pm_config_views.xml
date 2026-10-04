@@ -75,6 +75,9 @@
                                         <strong>Available variables for template Variable Keys:</strong><br/>
                                         <code>order_code</code> - Order code (e.g. transaction ID shown at checkout)<br/>
                                         <code>user_profile_id</code> - Order ID, use it to call the order-info API<br/>
+                                        <code>gift_param</code> - <code>&amp;gift=12</code> on a gift order, empty otherwise. Paste right after the order code<br/>
+                                        <code>gift_product_id</code> - the reserved product id, empty otherwise<br/>
+                                        <code>gift_child_name</code> - the child's name as stored on the order<br/>
                                         <code>user_name</code> - Customer name<br/>
                                         <code>user_email</code> - Customer email<br/>
                                         <code>package_name</code> - Package name<br/>

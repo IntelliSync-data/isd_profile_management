@@ -255,12 +255,22 @@ class ExternalProfileAPIController(http.Controller):
             # gone. If anything below fails, the rollback frees it again.
             gift = (metadata or {}).get('gift')
             gift_product_id = gift.get('product_id') if isinstance(gift, dict) else None
-            if gift_product_id and not request.env['user.profile'].sudo().claim_gift_product(gift_product_id):
-                return {
-                    'success': False,
-                    'error': 'This child has just been taken by someone else',
-                    'error_code': 'child_unavailable'
-                }
+            if gift_product_id:
+                claimed, product = request.env['user.profile'].sudo().claim_gift_product(
+                    gift_product_id)
+                if not claimed:
+                    return {
+                        'success': False,
+                        'error': 'This child has just been taken by someone else',
+                        'error_code': 'child_unavailable'
+                    }
+                if product:
+                    # The browser took the name from a URL, so a customer could
+                    # have edited it. The id is what was actually reserved.
+                    gift['child_name'] = product.name or gift.get('child_name') or ''
+                    # Whoever handles the order needs what the staff wrote about
+                    # this child, not only what the customer typed
+                    notes = '\n'.join(part for part in (notes, product.note) if part)
 
             # Always create a new user profile (each purchase is a separate order)
             user_profile = request.env['user.profile'].sudo().with_context(skip_create_steps=True).create({

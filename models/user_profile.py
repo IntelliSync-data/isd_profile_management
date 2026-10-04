@@ -302,26 +302,31 @@ class UserProfile(models.Model):
     def claim_gift_product(self, product_id):
         """Take a child out of circulation for the order being created.
 
-        Returns True when this caller got it, False when someone else already
-        has. The row is locked first: two customers pressing at the same moment
+        Returns (ok, product). `ok` is False when the child is gone, or was
+        never there. `product` is the record when there is one, so the caller
+        can read the name and the note it should trust over anything the
+        browser sent; it is empty where isd_products is not installed.
+
+        The row is locked first: two customers pressing at the same moment
         would otherwise both read it as available and both be told yes.
 
         isd_products is deliberately not a dependency, so the model is asked
         for rather than imported; a site without it reserves nothing.
         """
         if 'isd.product' not in self.env:
-            return True
+            return True, self.env['user.profile'].browse()
 
+        Product = self.env['isd.product'].sudo()
         try:
             product_id = int(product_id)
         except (TypeError, ValueError):
             _logger.warning("Gift product_id is not a number: %r", product_id)
-            return False
+            return False, Product.browse()
 
-        product = self.env['isd.product'].sudo().browse(product_id).exists()
+        product = Product.browse(product_id).exists()
         if not product:
             _logger.warning("Gift product %s does not exist", product_id)
-            return False
+            return False, Product.browse()
 
         # FOR UPDATE makes the second caller wait here, then read the value the
         # first one wrote, instead of racing it
@@ -330,11 +335,11 @@ class UserProfile(models.Model):
         row = self.env.cr.fetchone()
         if not row or not row[0]:
             _logger.info("Gift product %s was already taken", product_id)
-            return False
+            return False, product
 
         product.is_visible = False
         _logger.info("Gift product %s reserved for a new order", product_id)
-        return True
+        return True, product
 
     def release_gift_product(self):
         """Put the child back on offer, because this order is going nowhere.
@@ -1047,9 +1052,20 @@ class UserProfile(models.Model):
             _logger.warning("No email for order confirmation - skipping")
             return
 
+        # Flat, always defined. A template digging into metadata itself raises
+        # on every order that carries none, and the email is then never sent.
+        gift = (self.metadata or {}).get('gift')
+        gift_product_id = gift.get('product_id') if isinstance(gift, dict) else ''
+        gift_product_id = str(gift_product_id or '')
+
         variables = {
             'order_code': order_code,
             'user_profile_id': str(self.id),
+            'gift_product_id': gift_product_id,
+            # Ready to paste after the order code: empty for an ordinary order,
+            # so no dangling parameter is left behind
+            'gift_param': ('&gift=%s' % gift_product_id) if gift_product_id else '',
+            'gift_child_name': (gift.get('child_name') or '') if isinstance(gift, dict) else '',
             'profile_name': self.name or '',
             'user_name': contact_name,
             'user_email': contact_email,
