@@ -37,6 +37,13 @@ class ProfileManagement(models.Model):
     is_advanced = fields.Boolean(string='Advanced', default=False, help="Enable advanced step flow (Start → Complete → Approve)")
     is_auto_complete = fields.Boolean(string='Auto Complete', default=False, help="Automatically mark profile as completed when all selected steps are approved")
     accept_address = fields.Boolean(string='Accept Address', default=False, help="Show an Address field on orders of this product")
+    payment_method_ids = fields.Many2many(
+        'isd_payment.method',
+        'profile_management_payment_method_rel', 'profile_id', 'method_id',
+        string='Payment Methods',
+        help="How an order of this package can be paid. Still narrowed by the "
+             "package type: a Demo package only ever offers Test methods. "
+             "Leave empty to fall back to the methods set in Settings")
 
     # Users
     assigned_user_ids = fields.Many2many(

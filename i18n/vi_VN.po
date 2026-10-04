@@ -550,7 +550,7 @@ msgid "External payment QR code generated. Transaction ID: %s"
 msgstr "Đã tạo mã QR thanh toán bên ngoài. Mã giao dịch: %s"
 
 #. module: isd_profile_management
-#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_payment_method_ids
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__payment_method_ids
 msgid "Payment Methods"
 msgstr "Phương thức thanh toán"
 
@@ -2588,3 +2588,8 @@ msgstr "Tạo mã bí mật"
 #: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
 msgid "Archived"
 msgstr "Đã lưu trữ"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_payment_method_ids
+msgid "Default Payment Methods"
+msgstr "Phương thức thanh toán mặc định"

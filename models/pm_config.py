@@ -8,8 +8,9 @@ class ResConfigSettings(models.TransientModel):
     # ISD Payment Integration
     pm_payment_method_ids = fields.Many2many(
         'isd_payment.method',
-        string='Payment Methods',
-        help='Select payment methods from ISD Payment module'
+        string='Default Payment Methods',
+        help='Used only by a package that names no payment methods of its own. '
+             'Each package decides how it can be paid, on its own form'
     )
 
     def get_values(self):

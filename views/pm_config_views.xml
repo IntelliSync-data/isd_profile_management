@@ -20,7 +20,8 @@
                                 <div class="o_setting_right_pane">
                                     <label for="pm_payment_method_ids"/>
                                     <div class="text-muted">
-                                        Select payment methods configured in ISD Payment module
+                                        Fallback only. Each package names the methods it accepts,
+                                        on its own form; these apply to a package that names none
                                     </div>
                                     <field name="pm_payment_method_ids" widget="many2many_tags" class="mt-2"/>
                                 </div>
