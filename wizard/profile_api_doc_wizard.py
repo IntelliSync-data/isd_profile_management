@@ -102,6 +102,7 @@ Content-Type: application/json</pre>
             "promotional_cost": {wizard.package_id.promotional_cost},
             "total_cost": {wizard.package_id.total_cost},
             "total_cost_display": "{wizard.package_id.total_cost_display}",
+            "allow_half_payment": {'true' if wizard.package_id.allow_half_payment else 'false'},
             "services": [
                 {{"id": 1, "name": "Service Name", "cost": 500000}},
                 ...
@@ -186,7 +187,8 @@ Content-Type: application/json</pre>
             are never inspected. It stays on the order, so a transaction expiring and a new one
             taking its place does not lose it.</li>
         <li><strong>order_code</strong> is returned by every call: a random public reference for this order. Use it, not <code>user_profile_id</code>, on a customer page — ids are sequential and can be walked to read someone else's order.</li>
-        <li><strong>half_payment</strong> (optional, default: false): If <code>true</code>, only pay 50% of the total amount. Payment status will be set to <code>half_paid</code>. Call this API again to pay the remaining 50%.</li>
+        <li><strong>half_payment</strong> (optional, default: false): If <code>true</code>, only pay 50% of the total amount. Payment status will be set to <code>half_paid</code>. Call this API again to pay the remaining 50%.
+            Only for a package whose <code>allow_half_payment</code> is true in the Package Info API; otherwise the call is refused with <code>HALF_PAYMENT_NOT_ALLOWED</code>.</li>
     </ul>
 
     <h4>Success Response (200 OK):</h4>
@@ -501,7 +503,8 @@ curl -X POST '{wizard.base_url}/api/profile/order-info' \\
     <ul>
         <li><strong>order_code</strong>: the code the customer sees. <code>user_profile_id</code> is accepted instead.</li>
         <li><strong>payment_method_id</strong> (required): from <code>payment_methods</code> in the Package Info API.</li>
-        <li><strong>half_payment</strong> (optional, default false): collect half of what is left, for a deposit. The rest is collected by calling this again later.</li>
+        <li><strong>half_payment</strong> (optional, default false): collect half of what is left, for a deposit. The rest is collected by calling this again later.
+            Only for a package whose <code>allow_half_payment</code> is true; otherwise the call is refused with <code>HALF_PAYMENT_NOT_ALLOWED</code>.</li>
     </ul>
 
     <div style="background-color: #fff3cd; padding: 10px; border-left: 3px solid #e67e22; margin: 10px 0;">

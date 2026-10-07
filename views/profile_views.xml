@@ -64,6 +64,7 @@
                             <field name="payment_method_ids" widget="many2many_tags"
                                    options="{'no_create': True}"
                                    placeholder="Leave empty to use the ones in Settings"/>
+                            <field name="allow_half_payment"/>
                             <field name="create_uid"/>
                             <field name="create_date"/>
                         </group>

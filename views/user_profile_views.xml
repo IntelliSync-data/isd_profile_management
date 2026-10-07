@@ -103,8 +103,17 @@
                             <field name="progress_percentage" widget="progressbar"/>
                         </group>
                         <group string="Cost Information">
+                            <field name="allow_half_payment" invisible="1"/>
+                            <!-- Half Paid is only on offer where the package says
+                                 so. An order that somehow reached it keeps the
+                                 full list, so the status stays readable. -->
                             <field name="payment_status"
                                    widget="radio"
+                                   invisible="not allow_half_payment and payment_status != 'half_paid'"
+                                   groups="isd_profile_management.group_profile_manager"/>
+                            <field name="payment_status_no_half"
+                                   widget="radio"
+                                   invisible="allow_half_payment or payment_status == 'half_paid'"
                                    groups="isd_profile_management.group_profile_manager"/>
                             <field name="payment_status" widget="badge"
                                    decoration-danger="payment_status == 'not_yet_paid'"
@@ -112,9 +121,15 @@
                                    decoration-success="payment_status == 'paid'"
                                    decoration-info="payment_status == 'returned'"
                                    groups="isd_profile_management.group_profile_student_only"/>
+                            <!-- Once the money is all in, the price is settled.
+                                 An admin keeps the same box without the lock. -->
                             <field name="locked_cost" widget="monetary"
-                                   groups="isd_profile_management.group_profile_manager"
-                                   string="Adjust Price"/>
+                                   string="Adjust Price"
+                                   readonly="payment_status in ('paid', 'returned')"
+                                   groups="isd_profile_management.group_profile_manager,!isd_profile_management.group_profile_admin"/>
+                            <field name="locked_cost" widget="monetary"
+                                   string="Adjust Price"
+                                   groups="isd_profile_management.group_profile_admin"/>
                             <field name="total_cost" widget="monetary"/>
                             <field name="paid_amount" widget="monetary"/>
                             <field name="remaining_amount" widget="monetary"/>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'ISD Profile Management',
-    'version': '18.0.1.5.0',
+    'version': '18.0.1.6.0',
     'summary': 'Profile Management System for Users and Managers',
     'description': """
         Profile Management System for Odoo 18.0
