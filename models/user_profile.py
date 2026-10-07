@@ -262,10 +262,111 @@ class UserProfile(models.Model):
                 record.checkout_state = 'new'
 
     def write(self, vals):
+        # Read before super(), while total_cost still holds the old price: what is
+        # waiting to be paid can only be adjusted against what it was asked for.
+        remaining_before = {}
+        if 'locked_cost' in vals:
+            remaining_before = {
+                record.id: record._remaining_to_charge() for record in self}
+
         res = super().write(vals)
+
         if vals.get('payment_status') == 'paid' and not self.env.context.get('isd_skip_cash_confirm'):
             self._confirm_open_payments_on_paid()
+        if remaining_before:
+            self._sync_open_payments_to_price(remaining_before)
         return res
+
+    def _remaining_to_charge(self):
+        """What is still owed, counting only money actually confirmed.
+
+        remaining_amount answers a different question: it trusts payment_status,
+        so an order flagged paid by hand reads as nothing owed even with no
+        payment behind it. Here only confirmed payments count.
+        """
+        self.ensure_one()
+        confirmed = sum(
+            self.payment_ids.filtered(lambda p: p.state == 'confirmed').mapped('amount'))
+        return (self.total_cost or 0.0) - confirmed
+
+    def _sync_open_payments_to_price(self, remaining_before):
+        """Carry a hand-adjusted price through to the payment still waiting.
+
+        Confirmed payments are left alone: that money already arrived for the
+        old price, and the adjustment only changes what is still owed.
+
+        The waiting payment is re-priced where its provider can follow, which
+        is isd_payment's call, not ours. Where it cannot - an ACB QR issued by
+        the bank, a PayPal order already approved - the amount is baked into
+        what the customer is holding, so the payment is cancelled rather than
+        left disagreeing with it, and the next checkout asks for the new price.
+        """
+        for order in self:
+            open_payments = order.payment_ids.filtered(
+                lambda p: p.state in ('draft', 'pending'))
+            if not open_payments:
+                continue
+
+            remaining = order._remaining_to_charge()
+            if remaining <= 0:
+                order._cancel_open_payments()
+                order._post_price_change(_(
+                    "Price adjusted: the order is already covered, so the "
+                    "payment still waiting was cancelled."))
+                continue
+
+            # A re-checkout cancels the previous attempt, so one open payment is
+            # the normal case. Several means something unusual, and splitting a
+            # new total between them is not a decision the price box can make.
+            if len(open_payments) > 1:
+                order._cancel_open_payments()
+                order._post_price_change(_(
+                    "Price adjusted: more than one payment was waiting, so all "
+                    "of them were cancelled. The customer checks out again."))
+                continue
+
+            payment = open_payments
+            isd_tx = payment.isd_transaction_id
+            if not isd_tx and payment.transaction_id:
+                isd_tx = self.env['isd_payment.transaction'].sudo().search(
+                    [('transaction_id', '=', payment.transaction_id)], limit=1)
+
+            # Keep a half payment a half payment, now of the new remainder
+            before = remaining_before.get(order.id) or 0.0
+            was_half = before > 0 and 0.4 <= (payment.amount / before) <= 0.6
+            new_amount = round(remaining / 2 if was_half else remaining, 2)
+            if new_amount <= 0:
+                continue
+
+            if isd_tx and isd_tx.status not in ('confirmed', 'cancelled'):
+                method = payment.payment_method_id or isd_tx.payment_method_id
+                converted = self.env['profile.payment']._convert_payment_amount(
+                    method, amount=new_amount)
+                # Only the provider knows whether its transaction can still be
+                # re-priced. Older isd_payment cannot answer, so it is a no.
+                repriced = hasattr(isd_tx, 'change_amount') and isd_tx.sudo().change_amount(
+                    converted['charge_amount'])
+                if not repriced:
+                    order._cancel_open_payments()
+                    order._post_price_change(_(
+                        "Price adjusted: the payment already issued could not be "
+                        "changed to the new amount, so it was cancelled. The "
+                        "customer checks out again."))
+                    continue
+
+            payment.write({'amount': new_amount})
+            order._post_price_change(_(
+                "Price adjusted: the payment still waiting now asks for "
+                "%(amount)s."
+            ) % {'amount': new_amount})
+
+    def _post_price_change(self, body):
+        """Say in the chatter what the price change did to the payments."""
+        self.ensure_one()
+        try:
+            self.message_post(body=body)
+        except Exception:
+            _logger.info("Price change on order %s: %s", self.name or self.id, body)
 
     def _confirm_open_payments_on_paid(self):
         """Confirm whatever is waiting once the order is marked paid by hand.
@@ -758,18 +859,10 @@ class UserProfile(models.Model):
         if not selected_steps:
             raise ValidationError(_("No steps selected for payment."))
 
-        # Calculate remaining amount
-        if self.profile_id and self.profile_id.use_promotional_price:
-            full_amount = self.profile_id.promotional_cost
-        else:
-            package_cost = self.profile_id.package_cost if self.profile_id else 0.0
-            full_amount = sum(selected_steps.mapped('cost')) + package_cost
-        confirmed_payments = self.env['profile.payment'].search([
-            ('user_profile_id', '=', self.id),
-            ('state', '=', 'confirmed'),
-        ])
-        already_paid = sum(confirmed_payments.mapped('amount'))
-        remaining = full_amount - already_paid
+        # total_cost already is the package or promotional price, and the price a
+        # manager typed into Adjust Price wins over both. Recomputing it from the
+        # steps here would quietly charge the unadjusted amount.
+        remaining = self._remaining_to_charge()
 
         if remaining <= 0:
             raise ValidationError(_("No remaining amount to pay."))

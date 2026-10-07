@@ -2588,3 +2588,35 @@ msgstr "Phương thức thanh toán mặc định"
 #: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__api_cancel_order_doc
 msgid "Cancel Order API"
 msgstr "API huỷ đơn hàng"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+msgid ""
+"Price adjusted: the order is already covered, so the payment still waiting "
+"was cancelled."
+msgstr ""
+"Đã điều chỉnh giá: đơn hàng đã được thanh toán đủ, nên khoản thanh toán đang "
+"chờ đã bị huỷ."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+msgid ""
+"Price adjusted: more than one payment was waiting, so all of them were "
+"cancelled. The customer checks out again."
+msgstr ""
+"Đã điều chỉnh giá: có nhiều hơn một khoản thanh toán đang chờ, nên tất cả đã "
+"bị huỷ. Khách hàng cần thanh toán lại."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+msgid ""
+"Price adjusted: the payment already issued could not be changed to the new "
+"amount, so it was cancelled. The customer checks out again."
+msgstr ""
+"Đã điều chỉnh giá: khoản thanh toán đã phát hành không thể đổi sang số tiền "
+"mới, nên đã bị huỷ. Khách hàng cần thanh toán lại."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+msgid "Price adjusted: the payment still waiting now asks for %(amount)s."
+msgstr "Đã điều chỉnh giá: khoản thanh toán đang chờ nay là %(amount)s."
