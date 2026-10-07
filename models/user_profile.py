@@ -25,6 +25,9 @@ class UserProfile(models.Model):
         return
 
     name = fields.Char(string='Name', compute='_compute_name', store=True)
+    # Archiving is what a manager does instead of deleting: the order leaves the
+    # list without taking its payments and history with it
+    active = fields.Boolean(string='Active', default=True)
     # The reference a customer page uses. Random on purpose: the database id is
     # sequential, so anyone could walk it and read another customer's order.
     order_code = fields.Char(
@@ -135,6 +138,11 @@ class UserProfile(models.Model):
 
     address = fields.Text(string='Address')
     accept_address = fields.Boolean(related='profile_id.accept_address')
+
+    # Whatever the site needs to remember about this order, machine-readable and
+    # namespaced by the caller. Kept on the order, not on a payment, so it
+    # survives a transaction expiring and a new one taking its place.
+    metadata = fields.Json(string='Metadata')
 
     # Payments
     payment_ids = fields.One2many('profile.payment', 'user_profile_id', string='Payments')
@@ -290,13 +298,86 @@ class UserProfile(models.Model):
                         reason=_("Order %s marked as paid") % (record.name or ''))
                 payment.with_context(isd_skip_cash_confirm=True).action_confirm()
 
+    @api.model
+    def claim_gift_product(self, product_id):
+        """Take a child out of circulation for the order being created.
+
+        Returns (ok, product). `ok` is False when the child is gone, or was
+        never there. `product` is the record when there is one, so the caller
+        can read the name and the note it should trust over anything the
+        browser sent; it is empty where isd_products is not installed.
+
+        The row is locked first: two customers pressing at the same moment
+        would otherwise both read it as available and both be told yes.
+
+        isd_products is deliberately not a dependency, so the model is asked
+        for rather than imported; a site without it reserves nothing.
+        """
+        if 'isd.product' not in self.env:
+            return True, self.env['user.profile'].browse()
+
+        Product = self.env['isd.product'].sudo()
+        try:
+            product_id = int(product_id)
+        except (TypeError, ValueError):
+            _logger.warning("Gift product_id is not a number: %r", product_id)
+            return False, Product.browse()
+
+        product = Product.browse(product_id).exists()
+        if not product:
+            _logger.warning("Gift product %s does not exist", product_id)
+            return False, Product.browse()
+
+        # FOR UPDATE makes the second caller wait here, then read the value the
+        # first one wrote, instead of racing it
+        self.env.cr.execute(
+            "SELECT is_visible FROM isd_product WHERE id = %s FOR UPDATE", (product.id,))
+        row = self.env.cr.fetchone()
+        if not row or not row[0]:
+            _logger.info("Gift product %s was already taken", product_id)
+            return False, product
+
+        product.is_visible = False
+        _logger.info("Gift product %s reserved for a new order", product_id)
+        return True, product
+
+    def release_gift_product(self):
+        """Put the child back on offer, because this order is going nowhere.
+
+        The mirror of claim_gift_product, and the reason cancelling an order has
+        to be one step: releasing the child while leaving the order alive would
+        let a second customer pay for the same child the first one still holds a
+        payment link for.
+        """
+        if 'isd.product' not in self.env:
+            return
+
+        for record in self:
+            gift = (record.metadata or {}).get('gift')
+            product_id = gift.get('product_id') if isinstance(gift, dict) else None
+            if not product_id:
+                continue
+            try:
+                product_id = int(product_id)
+            except (TypeError, ValueError):
+                continue
+
+            product = self.env['isd.product'].sudo().browse(product_id).exists()
+            if not product or product.is_visible:
+                continue
+
+            product.is_visible = True
+            _logger.info(
+                "Order %s cancelled: put product %s back on offer",
+                record.name, product_id)
+
     def _get_cash_payment_method(self):
-        """Cash method picked from the configured checkout methods, else any active one"""
-        param = self.env['ir.config_parameter'].sudo().get_param(
-            'isd_profile_management.pm_payment_method_ids', default=''
-        )
-        ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
-        methods = self.env['isd_payment.method'].sudo().browse(ids).filtered(
+        """Cash method the package accepts, else any active one.
+
+        The fallback matters: an order can be marked paid by hand even when the
+        package never offered cash, and the money still has to land somewhere.
+        """
+        methods = self.profile_id.payment_method_ids.sudo().filtered(
             lambda m: m.exists() and m.active and m.payment_provider == 'cash'
         )
         if methods:
@@ -971,9 +1052,20 @@ class UserProfile(models.Model):
             _logger.warning("No email for order confirmation - skipping")
             return
 
+        # Flat, always defined. A template digging into metadata itself raises
+        # on every order that carries none, and the email is then never sent.
+        gift = (self.metadata or {}).get('gift')
+        gift_product_id = gift.get('product_id') if isinstance(gift, dict) else ''
+        gift_product_id = str(gift_product_id or '')
+
         variables = {
             'order_code': order_code,
             'user_profile_id': str(self.id),
+            'gift_product_id': gift_product_id,
+            # Ready to paste after the order code: empty for an ordinary order,
+            # so no dangling parameter is left behind
+            'gift_param': ('&gift=%s' % gift_product_id) if gift_product_id else '',
+            'gift_child_name': (gift.get('child_name') or '') if isinstance(gift, dict) else '',
             'profile_name': self.name or '',
             'user_name': contact_name,
             'user_email': contact_email,

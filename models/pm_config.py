@@ -5,34 +5,12 @@ from odoo import models, fields, api, _
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    # ISD Payment Integration
-    pm_payment_method_ids = fields.Many2many(
-        'isd_payment.method',
-        string='Payment Methods',
-        help='Select payment methods from ISD Payment module'
-    )
-
     def get_values(self):
         res = super().get_values()
-        param = self.env['ir.config_parameter'].sudo().get_param(
-            'isd_profile_management.pm_payment_method_ids', default=''
-        )
-        ids = [int(i) for i in param.split(',') if i.strip().isdigit()]
-        existing = self.env['isd_payment.method'].sudo().browse(ids).exists().ids
-        res['pm_payment_method_ids'] = [(6, 0, existing)]
-
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
         res['pm_payment_webhook_url'] = (
             '%s/api/profile/payment-webhook' % base_url.rstrip('/') if base_url else '')
         return res
-
-    def set_values(self):
-        super().set_values()
-        ids = self.pm_payment_method_ids.ids
-        self.env['ir.config_parameter'].sudo().set_param(
-            'isd_profile_management.pm_payment_method_ids',
-            ','.join(str(i) for i in ids)
-        )
 
     # Currency Configuration
     pm_currency = fields.Selection(

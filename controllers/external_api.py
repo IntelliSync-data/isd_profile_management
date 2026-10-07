@@ -125,6 +125,9 @@ class ExternalProfileAPIController(http.Controller):
             phone = kwargs.get('phone') or ''
             payment_method_id = kwargs.get('payment_method_id')
             half_payment = kwargs.get('half_payment', False)
+            metadata, metadata_error = self._validate_metadata(kwargs.get('metadata'))
+            if metadata_error:
+                return metadata_error
 
             for label, value, code in (
                 ('Address', address, 'INVALID_ADDRESS'),
@@ -247,6 +250,28 @@ class ExternalProfileAPIController(http.Controller):
             if total_amount <= 0:
                 total_amount = package.total_cost or 0
 
+            # Claim the child before the order exists, in this same transaction:
+            # whoever gets the row lock gets the child, the other is told it is
+            # gone. If anything below fails, the rollback frees it again.
+            gift = (metadata or {}).get('gift')
+            gift_product_id = gift.get('product_id') if isinstance(gift, dict) else None
+            if gift_product_id:
+                claimed, product = request.env['user.profile'].sudo().claim_gift_product(
+                    gift_product_id)
+                if not claimed:
+                    return {
+                        'success': False,
+                        'error': 'This child has just been taken by someone else',
+                        'error_code': 'child_unavailable'
+                    }
+                if product:
+                    # The browser took the name from a URL, so a customer could
+                    # have edited it. The id is what was actually reserved.
+                    gift['child_name'] = product.name or gift.get('child_name') or ''
+                    # Whoever handles the order needs what the staff wrote about
+                    # this child, not only what the customer typed
+                    notes = '\n'.join(part for part in (notes, product.note) if part)
+
             # Always create a new user profile (each purchase is a separate order)
             user_profile = request.env['user.profile'].sudo().with_context(skip_create_steps=True).create({
                 'partner_id': partner.id,
@@ -254,6 +279,7 @@ class ExternalProfileAPIController(http.Controller):
                 'state': 'new',
                 'assigned_date': fields.Datetime.now(),
                 'notes': notes,
+                'metadata': metadata,
                 'address': address or False,
                 'locked_cost': total_amount,
             })
@@ -463,6 +489,41 @@ class ExternalProfileAPIController(http.Controller):
 
         request.update_context(lang=lang.code)
         return lang.code
+
+    # 8 KB is room for a sizeable object and still nothing a public endpoint
+    # has to think twice about storing
+    MAX_METADATA_BYTES = 8 * 1024
+
+    def _validate_metadata(self, metadata):
+        """Check the shape and the size, never the contents.
+
+        The caller owns what goes inside; this endpoint is public, so it owns
+        the fact that it is an object and that it is not enormous.
+        Returns (metadata, error_dict); exactly one of them is filled.
+        """
+        if metadata in (None, '', False):
+            return None, None
+        if not isinstance(metadata, dict):
+            return None, {
+                'success': False,
+                'error': 'metadata must be an object',
+                'error_code': 'INVALID_METADATA'
+            }
+        try:
+            size = len(json.dumps(metadata).encode())
+        except (TypeError, ValueError):
+            return None, {
+                'success': False,
+                'error': 'metadata must be JSON-serialisable',
+                'error_code': 'INVALID_METADATA'
+            }
+        if size > self.MAX_METADATA_BYTES:
+            return None, {
+                'success': False,
+                'error': 'metadata is larger than %s bytes' % self.MAX_METADATA_BYTES,
+                'error_code': 'METADATA_TOO_LARGE'
+            }
+        return metadata, None
 
     def _find_order(self, user_profile_id=None, order_code=None):
         """Resolve an order from its id or from the code the customer sees.
@@ -705,6 +766,67 @@ class ExternalProfileAPIController(http.Controller):
                 'error_code': 'INTERNAL_ERROR'
             }
 
+    @http.route('/api/profile/cancel-order', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
+    def cancel_order(self, **kwargs):
+        """
+        Give up an order that was never paid, and put its child back on offer.
+
+        Input JSON:
+        {
+            "order_code": "KXM7PQR4TZWD"
+        }
+
+        One step on purpose. Releasing the child while leaving the order alive
+        would let a second customer pay for the child the first one still holds
+        a payment link for, which is the very thing reserving it prevents.
+        """
+        try:
+            user_profile, error = self._find_order(
+                kwargs.get('user_profile_id'),
+                kwargs.get('order_code') or kwargs.get('transaction_code'))
+            if error:
+                # Lowercase codes here, as the caller of this endpoint expects
+                return {
+                    'success': False,
+                    'error': error['error'],
+                    'error_code': 'order_not_found',
+                }
+
+            if user_profile.state == 'cancelled':
+                # Already where the caller wants it
+                return {'success': True, 'already_cancelled': True}
+
+            # The gateway may have confirmed the transaction without the payment
+            # here having caught up yet, so look at both before letting go
+            paid = user_profile.payment_status in ('paid', 'half_paid') or any(
+                payment.state == 'confirmed'
+                or payment.isd_transaction_id.status == 'confirmed'
+                for payment in user_profile.payment_ids)
+            if paid:
+                return {
+                    'success': False,
+                    'error': 'This order has already been paid',
+                    'error_code': 'order_paid',
+                }
+
+            # Stop whatever is still waiting for money, then close the order,
+            # then free the child. One request, so one transaction: a failure
+            # anywhere leaves everything as it was.
+            user_profile._cancel_open_payments()
+            user_profile.action_cancel_profile()
+            user_profile.release_gift_product()
+
+            _logger.info("Order %s cancelled through the API", user_profile.order_code)
+            return {'success': True}
+
+        except Exception as e:
+            _logger.exception("Error cancelling an order via external API")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_code': 'INTERNAL_ERROR'
+            }
+
     @http.route('/api/profile/order-info', type='json', auth='public', methods=['POST'], csrf=False, cors='*')
     def get_order_info(self, **kwargs):
         """
@@ -783,6 +905,7 @@ class ExternalProfileAPIController(http.Controller):
                 'progress_percentage': user_profile.progress_percentage,
                 'address': user_profile.address or '',
                 'notes': user_profile.notes or '',
+                'metadata': user_profile.metadata or {},
                 'created_at': fields.Datetime.to_string(user_profile.create_date) or '',
                 'start_date': fields.Date.to_string(user_profile.start_date) or '',
                 'customer': {

@@ -123,6 +123,7 @@ msgstr "Nháp"
 
 #. module: isd_profile_management
 #: model:ir.model.fields,selection:isd_profile_management.field_profile_management__state
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__active
 msgid "Active"
 msgstr "Hoạt động"
 
@@ -352,6 +353,7 @@ msgstr "Lý do từ chối"
 
 #. module: isd_profile_management
 #: model:ir.model.fields,field_description:isd_profile_management.field_profile_payment__metadata
+#: model:ir.model.fields,field_description:isd_profile_management.field_user_profile__metadata
 msgid "Metadata"
 msgstr "Siêu dữ liệu"
 
@@ -476,17 +478,7 @@ msgstr "Thanh toán đã xác nhận"
 msgid "Your payment of %s has been confirmed."
 msgstr "Thanh toán %s của bạn đã được xác nhận."
 
-#. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py:0
-#, python-format
-msgid "Please configure Payment Methods in Settings first."
-msgstr "Vui lòng cấu hình phương thức thanh toán trong Cài đặt trước."
 
-#. module: isd_profile_management
-#: code:addons/isd_profile_management/models/payment.py:0
-#, python-format
-msgid "Configured Payment Method not found."
-msgstr "Không tìm thấy phương thức thanh toán đã cấu hình."
 
 #. module: isd_profile_management
 #: code:addons/isd_profile_management/models/payment.py:0
@@ -549,7 +541,7 @@ msgid "External payment QR code generated. Transaction ID: %s"
 msgstr "Đã tạo mã QR thanh toán bên ngoài. Mã giao dịch: %s"
 
 #. module: isd_profile_management
-#: model:ir.model.fields,field_description:isd_profile_management.field_res_config_settings__pm_payment_method_ids
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__payment_method_ids
 msgid "Payment Methods"
 msgstr "Phương thức thanh toán"
 
@@ -2449,8 +2441,8 @@ msgstr "Đơn hàng đã huỷ, không thể thanh toán."
 #. module: isd_profile_management
 #: code:addons/isd_profile_management/wizard/payment_method_select_wizard.py:0
 #, python-format
-msgid "No %s payment method is configured for this package. Add one in Profile Management settings."
-msgstr "Chưa cấu hình phương thức thanh toán %s nào cho gói này. Thêm trong cấu hình Profile Management."
+msgid "This package accepts no %s payment method. Add one under Payment Methods on the package."
+msgstr "Gói này không nhận phương thức thanh toán %s nào. Thêm ở mục Phương thức thanh toán trên gói."
 
 #. module: isd_profile_management
 #: code:addons/isd_profile_management/wizard/payment_method_select_wizard.py:0
@@ -2581,3 +2573,18 @@ msgstr "Webhook thanh toán"
 #: model:ir.ui.view,arch_db:isd_profile_management.res_config_settings_view_form_inherit_pm
 msgid "Generate Secret"
 msgstr "Tạo mã bí mật"
+
+#. module: isd_profile_management
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_search
+#: model:ir.ui.view,arch_db:isd_profile_management.view_user_profile_form
+msgid "Archived"
+msgstr "Đã lưu trữ"
+
+#. module: isd_profile_management
+msgid "Default Payment Methods"
+msgstr "Phương thức thanh toán mặc định"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_api_documentation_wizard__api_cancel_order_doc
+msgid "Cancel Order API"
+msgstr "API huỷ đơn hàng"

@@ -5,7 +5,7 @@
         <field name="name">user.profile.tree</field>
         <field name="model">user.profile</field>
         <field name="arch" type="xml">
-            <list string="User Profiles" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-muted="state=='new'">
+            <list string="User Profiles" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-muted="not active or state=='new'">
                 <field name="partner_id"/>
                 <field name="profile_id"/>
                 <field name="state" widget="badge" decoration-success="state=='completed'" decoration-info="state=='in_progress'" decoration-warning="state=='pending'" decoration-primary="state=='invoiced'"/>
@@ -23,6 +23,7 @@
                 <field name="actual_completion_date"/>
                 <field name="assigned_to" optional="hide"/>
                 <field name="assigned_date" optional="hide"/>
+                <field name="active" column_invisible="True"/>
                 <field name="order_code" optional="hide"/>
                 <field name="invoice_number" optional="hide"/>
                 <field name="write_uid" string="Last Updated By"/>
@@ -81,6 +82,9 @@
                            invisible="not show_invoiced_stage"/>
                 </header>
                 <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <field name="active" invisible="1"/>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
                         <h3 class="text-muted"><field name="order_code" readonly="1"/></h3>
@@ -341,6 +345,8 @@
                 <filter string="Pending" name="pending" domain="[('state','=','pending')]"/>
                 <filter string="Completed" name="completed" domain="[('state','=','completed')]"/>
                 <filter string="Invoiced" name="invoiced" domain="[('state','=','invoiced')]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active','=',False)]"/>
                 <filter string="Cancelled" name="cancelled" domain="[('state','=','cancelled')]"/>
                 <separator/>
                 <filter string="Not Yet Paid" name="not_yet_paid" domain="[('payment_status','=','not_yet_paid')]"/>

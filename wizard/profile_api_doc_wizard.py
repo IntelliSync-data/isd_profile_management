@@ -18,6 +18,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
     api_order_doc = fields.Html(string='Order Info API', compute='_compute_api_documentation')
     api_create_payment_doc = fields.Html(string='Create Payment API', compute='_compute_api_documentation')
     api_payment_webhook_doc = fields.Html(string='Payment Webhook API', compute='_compute_api_documentation')
+    api_cancel_order_doc = fields.Html(string='Cancel Order API', compute='_compute_api_documentation')
 
     @api.depends('package_id')
     def _compute_base_url(self):
@@ -37,6 +38,7 @@ class ProfileAPIDocumentationWizard(models.TransientModel):
                 wizard.api_order_doc = ''
                 wizard.api_create_payment_doc = ''
                 wizard.api_payment_webhook_doc = ''
+                wizard.api_cancel_order_doc = ''
                 continue
 
             # Get payment methods for documentation
@@ -76,7 +78,7 @@ Content-Type: application/json</pre>
 
     <h4>Response Notes:</h4>
     <ul>
-        <li><strong>payment_methods</strong>: methods enabled in Settings of this module, narrowed to the package type — a <strong>Live</strong> package gets the <code>live</code> methods, a <strong>Demo</strong> one gets the <code>test</code> methods. Use one of these <code>id</code> values as <code>payment_method_id</code> when calling <code>/api/profile/create</code>; any other id is refused with <code>PAYMENT_METHOD_NOT_ALLOWED</code>. <code>image_url</code> is empty when the method has no logo. <code>transfer</code> carries the account details for a customer who pays by transfer rather than by scanning: <code>types</code> (<code>qr_pay</code> and/or <code>bank_transfer</code>), <code>bank_account</code>, <code>bank_name</code> and <code>bank_code</code>. It is empty for providers that have none, and comes back from API 1 and API 5 as well, beside <code>qr_url</code>. <code>notice</code> carries the wording to show for the method — <code>title</code> and <code>description</code>, set on the payment method and mostly used to explain how cash is collected. Empty when nothing was written.</li>
+        <li><strong>payment_methods</strong>: the methods this package accepts, named on the package itself, narrowed to the package type — a <strong>Live</strong> package gets the <code>live</code> methods, a <strong>Demo</strong> one gets the <code>test</code> methods. Use one of these <code>id</code> values as <code>payment_method_id</code> when calling <code>/api/profile/create</code>; any other id is refused with <code>PAYMENT_METHOD_NOT_ALLOWED</code>. <code>image_url</code> is empty when the method has no logo. <code>transfer</code> carries the account details for a customer who pays by transfer rather than by scanning: <code>types</code> (<code>qr_pay</code> and/or <code>bank_transfer</code>), <code>bank_account</code>, <code>bank_name</code> and <code>bank_code</code>. It is empty for providers that have none, and comes back from API 1 and API 5 as well, beside <code>qr_url</code>. <code>notice</code> carries the wording to show for the method — <code>title</code> and <code>description</code>, set on the payment method and mostly used to explain how cash is collected. Empty when nothing was written.</li>
         <li>Send <strong>lang</strong> with any of these calls to choose the language, e.g. <code>"lang": "vi_VN"</code>. <code>"vi"</code> works too. The method name, its description and its notice come back in that language, as do the stage and payment labels. A language that is not installed is ignored and the default is used; the answer to this call says which one was applied in <code>lang</code>, and lists what can be asked for in <code>languages</code>.</li>
     </ul>
 
@@ -174,6 +176,15 @@ Content-Type: application/json</pre>
         <li><strong>notes</strong> (optional): Additional information saved on the order</li>
         <li><strong>address</strong> (optional): Delivery address, saved to the order's Address field. Shown on the order when the product has <em>Accept Address</em> enabled, or whenever an address is saved.</li>
         <li><strong>payment_method_id</strong> (optional): Payment method ID from ISD Payment module. Leave it out to create the order without paying yet: no payment is started, no gateway is called, and <code>amount</code> comes back as the full price. Pay it later with API 5.</li>
+        <li><strong>metadata</strong> (optional): an object of your own, stored on the order and
+            handed back by API 4 untouched. <code>metadata.gift.product_id</code> is the one key
+            this module reads: the product is taken out of circulation as the order is created, and
+            a second customer reaching for the same one is refused with
+            <code>child_unavailable</code> instead of getting an order. Nothing releases it again;
+            staff unhide it by hand if the order comes to nothing. Namespace what you put in it, so two sites using this
+            field for different things never collide. Must be an object and under 8 KB; the contents
+            are never inspected. It stays on the order, so a transaction expiring and a new one
+            taking its place does not lose it.</li>
         <li><strong>order_code</strong> is returned by every call: a random public reference for this order. Use it, not <code>user_profile_id</code>, on a customer page — ids are sequential and can be walked to read someone else's order.</li>
         <li><strong>half_payment</strong> (optional, default: false): If <code>true</code>, only pay 50% of the total amount. Payment status will be set to <code>half_paid</code>. Call this API again to pay the remaining 50%.</li>
     </ul>
@@ -385,6 +396,7 @@ curl -X POST '{wizard.base_url}/api/profile/check-payment' \\
             "progress_percentage": 0.0,
             "address": "12 Nguyen Hue, District 1",
             "notes": "Giao truoc 5h chieu",
+            "metadata": {{"gift": {{"product_id": 12, "child_name": "Be An"}}}},
             "created_at": "2026-09-22 09:15:00",
             "start_date": "",
             "customer": {{"name": "John Doe", "email": "john@example.com", "phone": "0900000000"}},
@@ -589,6 +601,56 @@ curl -X POST '{wizard.base_url}/api/profile/create-payment' \\
     <b>Half Paid</b> when they cover part of it. A transaction belonging to some other system
     answers <code>matched: false</code> with <code>200</code>, and a payment already confirmed
     is left alone: retries are safe.</p>
+</div>
+"""
+
+
+            # API 7: Cancel Order
+            wizard.api_cancel_order_doc = f"""
+<div style="font-family: monospace; padding: 15px; background-color: #f5f5f5; border-radius: 5px;">
+    <h3 style="color: #2c3e50;">🚫 API 7: Cancel Order</h3>
+    <p>Gives up an order nobody paid for, and puts its child back on offer. This is what a
+    <b>Back</b> button on the checkout page should call: once an order exists the child is
+    already reserved, so going back without cancelling would leave the customer blocked by
+    their own order.</p>
+
+    <h4>Endpoint:</h4>
+    <div style="background-color: #34495e; color: #ecf0f1; padding: 10px; border-radius: 3px; margin-bottom: 10px;">
+        POST {wizard.base_url}/api/profile/cancel-order
+    </div>
+
+    <h4>Request Body:</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #3498db;">{{
+    "jsonrpc": "2.0",
+    "params": {{
+        "order_code": "KXM7PQR4TZWD"
+    }}
+}}</pre>
+
+    <h4>Response</h4>
+    <pre style="background-color: white; padding: 10px; border-left: 3px solid #27ae60;">{{
+    "success": true
+}}</pre>
+    <p>An order that was already cancelled answers <code>success: true</code> with
+    <code>already_cancelled: true</code>, so pressing Back twice is harmless.</p>
+
+    <h4>Error Codes:</h4>
+    <ul>
+        <li><code>order_not_found</code> — no order matches that code</li>
+        <li><code>order_paid</code> — money was received, so the order stands. Returned as well
+            when the gateway has confirmed the transaction but the payment here has not caught
+            up yet, which is what a customer pressing Back at the exact moment they pay would
+            otherwise slip through.</li>
+    </ul>
+
+    <h4>What it does, all in one step</h4>
+    <ol>
+        <li>Cancels whatever transaction is still waiting, at the gateway too where that is possible</li>
+        <li>Moves the order to Cancelled, along with its steps</li>
+        <li>Puts <code>metadata.gift.product_id</code> back on offer, if the order carried one</li>
+    </ol>
+    <p>Releasing the child without cancelling the order is deliberately not offered: a second
+    customer could pay for a child the first still holds a payment link for.</p>
 </div>
 """
 

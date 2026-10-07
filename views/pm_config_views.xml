@@ -11,64 +11,6 @@
                 <app data-string="Profile Management"
                     string="Profile Management"
                     name="isd_profile_management">
-                    <div class="app_settings_block" data-string="Payment Configuration" string="Payment Configuration" data-key="payment_config" groups="base.group_user">
-                        <h2>Payment Configuration</h2>
-                        <div class="row mt16 o_settings_container">
-                            <div class="col-12 col-lg-6 o_setting_box">
-                                <div class="o_setting_left_pane">
-                                </div>
-                                <div class="o_setting_right_pane">
-                                    <label for="pm_payment_method_ids"/>
-                                    <div class="text-muted">
-                                        Select payment methods configured in ISD Payment module
-                                    </div>
-                                    <field name="pm_payment_method_ids" widget="many2many_tags" class="mt-2"/>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="app_settings_block" data-string="General" string="General" data-key="general" groups="base.group_user">
-                        <h2>General</h2>
-                        <div class="row mt16 o_settings_container">
-                            <div class="col-12 col-lg-6 o_setting_box">
-                                <div class="o_setting_left_pane"></div>
-                                <div class="o_setting_right_pane">
-                                    <label for="pm_currency"/>
-                                    <div class="text-muted">Currency of package prices</div>
-                                    <field name="pm_currency" class="mt-2"/>
-                                    <label for="pm_exchange_rate" class="mt-3"/>
-                                    <div class="text-muted">Used to convert between USD and VND when payment provider currency differs</div>
-                                    <field name="pm_exchange_rate" class="mt-2"/>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-6 o_setting_box">
-                                <div class="o_setting_left_pane"></div>
-                                <div class="o_setting_right_pane">
-                                    <label for="pm_order_link"/>
-                                    <div class="text-muted">
-                                        Page where customers open their own order, e.g. https://bloompod.vn/order.html.
-                                        <code>?order=&lt;order code&gt;</code> is appended automatically and the result is
-                                        shown under the QR code at checkout
-                                    </div>
-                                    <field name="pm_order_link" class="mt-2" placeholder="https://bloompod.vn/order.html"/>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-6 o_setting_box">
-                                <div class="o_setting_left_pane">
-                                    <field name="pm_enable_invoiced_stage"/>
-                                </div>
-                                <div class="o_setting_right_pane">
-                                    <label for="pm_enable_invoiced_stage"/>
-                                    <div class="text-muted">
-                                        Adds the Invoiced stage after Completed, plus a Mark Invoiced button on completed orders
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="app_settings_block" data-string="Payment Webhook" string="Payment Webhook" data-key="payment_webhook" groups="base.group_user">
                         <h2>Payment Webhook</h2>
                         <div class="alert alert-info" role="alert">
@@ -133,6 +75,9 @@
                                         <strong>Available variables for template Variable Keys:</strong><br/>
                                         <code>order_code</code> - Order code (e.g. transaction ID shown at checkout)<br/>
                                         <code>user_profile_id</code> - Order ID, use it to call the order-info API<br/>
+                                        <code>gift_param</code> - <code>&amp;gift=12</code> on a gift order, empty otherwise. Paste right after the order code<br/>
+                                        <code>gift_product_id</code> - the reserved product id, empty otherwise<br/>
+                                        <code>gift_child_name</code> - the child's name as stored on the order<br/>
                                         <code>user_name</code> - Customer name<br/>
                                         <code>user_email</code> - Customer email<br/>
                                         <code>package_name</code> - Package name<br/>

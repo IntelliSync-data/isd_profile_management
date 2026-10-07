@@ -46,6 +46,10 @@
                             <field name="api_payment_webhook_doc" widget="html" nolabel="1"/>
                         </page>
 
+                        <page string="🚫 API 7: Cancel Order" name="api_cancel_order">
+                            <field name="api_cancel_order_doc" widget="html" nolabel="1"/>
+                        </page>
+
                         <page string="📋 Integration Flow" name="integration_flow">
                             <div style="font-family: sans-serif; padding: 20px;">
                                 <h3>Complete Integration Flow:</h3>
