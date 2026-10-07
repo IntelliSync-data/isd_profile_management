@@ -133,6 +133,10 @@ class ProfilePayment(models.Model):
             total_paid = sum(confirmed_payments.mapped('amount'))
             total_cost = profile.total_cost
 
+            # Read off the money that actually arrived, so it is allowed to
+            # say half where a person would not be: the ladder on user.profile
+            # guards hand-made changes, not what the payments add up to.
+            profile = profile.with_context(isd_payment_recompute=True)
             if total_cost > 0 and total_paid >= total_cost:
                 profile.write({'payment_status': 'paid'})
             elif total_paid > 0:

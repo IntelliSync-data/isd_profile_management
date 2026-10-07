@@ -78,6 +78,22 @@ class UserProfile(models.Model):
         ('paid', 'Paid'),
         ('returned', 'Returned'),
     ], string='Payment Status', default='not_yet_paid', tracking=True)
+    # How far along the money is. A payment status may move up this ladder but
+    # never back down, because stepping down would reopen an order whose money
+    # has already been taken. Only an admin may step down. Returned sits level
+    # with Paid: the money did arrive, it just went back out again.
+    _PAYMENT_STATUS_RANK = {
+        'not_yet_paid': 0, 'half_paid': 1, 'paid': 2, 'returned': 2}
+    allow_half_payment = fields.Boolean(
+        related='profile_id.allow_half_payment', readonly=True)
+    payment_status_no_half = fields.Selection([
+        ('not_yet_paid', 'Not Yet Paid'),
+        ('paid', 'Paid'),
+        ('returned', 'Returned'),
+    ], string='Payment Status',
+        compute='_compute_payment_status_no_half',
+        inverse='_inverse_payment_status_no_half',
+        help='The same status, for a package that is never paid in halves')
 
     # Progress
     progress_percentage = fields.Float(
@@ -261,7 +277,65 @@ class UserProfile(models.Model):
             else:
                 record.checkout_state = 'new'
 
+    @api.depends('payment_status')
+    def _compute_payment_status_no_half(self):
+        for record in self:
+            record.payment_status_no_half = (
+                record.payment_status if record.payment_status != 'half_paid'
+                else False)
+
+    def _inverse_payment_status_no_half(self):
+        for record in self:
+            if record.payment_status_no_half:
+                record.payment_status = record.payment_status_no_half
+
+    def _is_payment_admin(self):
+        """Who is allowed to walk a payment status back, or re-price a paid order."""
+        return self.env.user.has_group('isd_profile_management.group_profile_admin')
+
+    def _check_payment_status_move(self, new_status):
+        """Refuse a step down the ladder for anyone but an admin."""
+        if self.env.context.get('isd_payment_recompute') or self._is_payment_admin():
+            return
+        rank = self._PAYMENT_STATUS_RANK
+        for record in self:
+            if rank.get(new_status, 0) >= rank.get(record.payment_status, 0):
+                continue
+            raise ValidationError(_(
+                "Order %(order)s is already %(current)s. Payment status cannot "
+                "be moved back - ask an administrator if the money really has "
+                "to be reopened."
+            ) % {
+                'order': record.name or '',
+                'current': dict(record._fields['payment_status'].selection).get(
+                    record.payment_status, record.payment_status),
+            })
+
+    def _check_price_editable(self):
+        """A price may still move while the money is not all in."""
+        if self._is_payment_admin():
+            return
+        for record in self:
+            if record.payment_status in ('paid', 'returned'):
+                raise ValidationError(_(
+                    "Order %s is already paid, so its price can no longer be "
+                    "adjusted. Ask an administrator if it really has to change."
+                ) % (record.name or ''))
+
     def write(self, vals):
+        new_status = vals.get('payment_status')
+        if new_status:
+            self._check_payment_status_move(new_status)
+        if 'locked_cost' in vals:
+            self._check_price_editable()
+
+        # Which orders this write actually moves to paid. Read before super(),
+        # because afterwards every one of them reads as paid and an order that
+        # was already paid would be handed a second payment for the difference.
+        becoming_paid = self.browse()
+        if new_status == 'paid' and not self.env.context.get('isd_skip_cash_confirm'):
+            becoming_paid = self.filtered(lambda r: r.payment_status != 'paid')
+
         # Read before super(), while total_cost still holds the old price: what is
         # waiting to be paid can only be adjusted against what it was asked for.
         remaining_before = {}
@@ -271,8 +345,8 @@ class UserProfile(models.Model):
 
         res = super().write(vals)
 
-        if vals.get('payment_status') == 'paid' and not self.env.context.get('isd_skip_cash_confirm'):
-            self._confirm_open_payments_on_paid()
+        if becoming_paid:
+            becoming_paid._confirm_open_payments_on_paid()
         if remaining_before:
             self._sync_open_payments_to_price(remaining_before)
         return res
@@ -866,6 +940,10 @@ class UserProfile(models.Model):
 
         if remaining <= 0:
             raise ValidationError(_("No remaining amount to pay."))
+
+        if half_payment and not self.profile_id.allow_half_payment:
+            raise ValidationError(_(
+                "This package is paid in full, not in halves."))
 
         total_amount = remaining / 2 if half_payment else remaining
 

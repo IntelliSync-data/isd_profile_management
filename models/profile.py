@@ -44,6 +44,11 @@ class ProfileManagement(models.Model):
         help="How an order of this package can be paid. Still narrowed by the "
              "package type: a Demo package only ever offers Test methods. "
              "Leave empty to fall back to the methods set in Settings")
+    allow_half_payment = fields.Boolean(
+        string='Allow 50% Payment', default=False,
+        help="Let a customer put down half the price now and the rest later. "
+             "Without it, an order of this package is only ever paid in full, "
+             "and Half Paid is not offered on the order")
 
     # Users
     assigned_user_ids = fields.Many2many(

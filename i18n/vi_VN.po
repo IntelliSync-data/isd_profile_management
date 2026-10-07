@@ -2620,3 +2620,42 @@ msgstr ""
 #: code:addons/isd_profile_management/models/user_profile.py:0
 msgid "Price adjusted: the payment still waiting now asks for %(amount)s."
 msgstr "Đã điều chỉnh giá: khoản thanh toán đang chờ nay là %(amount)s."
+
+#. module: isd_profile_management
+#: model:ir.model.fields,field_description:isd_profile_management.field_profile_management__allow_half_payment
+msgid "Allow 50% Payment"
+msgstr "Cho phép thanh toán 50%"
+
+#. module: isd_profile_management
+#: model:ir.model.fields,help:isd_profile_management.field_profile_management__allow_half_payment
+msgid ""
+"Let a customer put down half the price now and the rest later. Without it, "
+"an order of this package is only ever paid in full, and Half Paid is not "
+"offered on the order"
+msgstr ""
+"Cho phép khách đặt cọc một nửa và trả nốt phần còn lại sau. Không bật thì đơn "
+"của gói này chỉ thanh toán một lần đủ tiền, và trạng thái Đã trả một nửa "
+"không hiện trên đơn"
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+msgid "This package is paid in full, not in halves."
+msgstr "Gói này phải thanh toán đủ, không cho trả một nửa."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+msgid ""
+"Order %(order)s is already %(current)s. Payment status cannot be moved back "
+"- ask an administrator if the money really has to be reopened."
+msgstr ""
+"Đơn %(order)s đang ở trạng thái %(current)s. Không thể lùi trạng thái thanh "
+"toán - liên hệ quản trị viên nếu thật sự cần mở lại."
+
+#. module: isd_profile_management
+#: code:addons/isd_profile_management/models/user_profile.py:0
+msgid ""
+"Order %s is already paid, so its price can no longer be adjusted. Ask an "
+"administrator if it really has to change."
+msgstr ""
+"Đơn %s đã thanh toán xong nên không sửa giá được nữa. Liên hệ quản trị viên "
+"nếu thật sự cần đổi."

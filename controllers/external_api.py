@@ -73,6 +73,7 @@ class ExternalProfileAPIController(http.Controller):
                     'promotional_cost': package.promotional_cost,
                     'total_cost': package.total_cost,
                     'total_cost_display': package.total_cost_display,
+                    'allow_half_payment': package.allow_half_payment,
                     'services': [{
                         'id': step.id,
                         'name': step.name,
@@ -327,6 +328,12 @@ class ExternalProfileAPIController(http.Controller):
 
             # Half payment: pay 50%
             if half_payment:
+                if not package.allow_half_payment:
+                    return {
+                        'success': False,
+                        'error': 'This package is paid in full, not in halves',
+                        'error_code': 'HALF_PAYMENT_NOT_ALLOWED'
+                    }
                 total_amount = total_amount / 2
 
             # Create profile payment (link to user_step records that were just created)
@@ -708,6 +715,12 @@ class ExternalProfileAPIController(http.Controller):
 
             amount = user_profile.remaining_amount or user_profile.total_cost
             if kwargs.get('half_payment'):
+                if not user_profile.profile_id.allow_half_payment:
+                    return {
+                        'success': False,
+                        'error': 'This package is paid in full, not in halves',
+                        'error_code': 'HALF_PAYMENT_NOT_ALLOWED'
+                    }
                 # A deposit: the rest is collected with another call later
                 amount = amount / 2
             if amount <= 0:
