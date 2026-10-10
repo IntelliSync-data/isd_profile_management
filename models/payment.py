@@ -441,6 +441,16 @@ class ProfilePayment(models.Model):
         what it takes. Reading it from the method rather than assuming
         "PayPal means USD" lets a second USD gateway exist without a rewrite.
 
+        The exchange rate comes from the payment method
+        (``isd_payment.method.paypal_usd_exchange_rate``), which is the only
+        rate an admin can actually edit - it has a field on the Payment Method
+        form. Each gateway can therefore carry its own rate, which is what we
+        want: PayPal and a bank gateway rarely agree on one.
+
+        The old ``isd_profile_management.pm_exchange_rate`` config parameter is
+        kept only as a fallback for databases that already had it set; it has
+        no UI any more, so nothing new should rely on it.
+
         Returns:
             dict with 'charge_amount' (what to send the gateway),
                       'charge_currency' ('vnd' or 'usd'),
@@ -448,9 +458,15 @@ class ProfilePayment(models.Model):
         """
         ICP = self.env['ir.config_parameter'].sudo()
         package_currency = ICP.get_param('isd_profile_management.pm_currency', 'vnd')
-        exchange_rate = float(ICP.get_param('isd_profile_management.pm_exchange_rate', '25000'))
+
+        exchange_rate = 0.0
+        if 'paypal_usd_exchange_rate' in payment_method._fields:
+            exchange_rate = payment_method.paypal_usd_exchange_rate or 0.0
         if exchange_rate <= 0:
-            exchange_rate = 25000.0
+            exchange_rate = float(ICP.get_param('isd_profile_management.pm_exchange_rate', '0') or 0)
+        if exchange_rate <= 0:
+            # Same default as isd_payment.method so the two sides cannot drift.
+            exchange_rate = 26300.0
 
         # Older isd_payment has no currency field: fall back to the old assumption
         if 'currency' in payment_method._fields:

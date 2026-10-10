@@ -19,11 +19,18 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='isd_profile_management.pm_currency',
         default='vnd',
     )
+    # DEPRECATED - không còn hiển thị trong Settings.
+    # Tỉ giá quy đổi giờ lấy từ Payment Method:
+    #   isd_payment.method.paypal_usd_exchange_rate
+    # (xem profile.payment._convert_payment_amount). Field này chỉ còn để các
+    # database đã set tham số từ trước vẫn chạy đúng; KHÔNG dùng cho code mới.
     pm_exchange_rate = fields.Float(
-        string='Exchange Rate (1 USD = ? VND)',
+        string='Exchange Rate (1 USD = ? VND) [deprecated]',
         config_parameter='isd_profile_management.pm_exchange_rate',
-        default=25000.0,
-        help='Exchange rate used to convert between USD and VND when payment provider currency differs from package currency',
+        default=0.0,
+        help='Deprecated: tỉ giá nay được cấu hình trên từng Payment Method '
+             '(Payment Methods > PayPal Settings > USD Exchange Rate). '
+             'Chỉ còn tác dụng dự phòng nếu tham số này đã được set sẵn.',
     )
 
     # Email Template Configuration
