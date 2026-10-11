@@ -27,6 +27,9 @@
     </record>
     <record id="action_user_profile" model="ir.actions.act_window">
         <field name="name">Orders</field>
+        <!-- VFO opens on the current week rather than on New: this desk works
+             through whatever came in these few days, not through a backlog. -->
+        <field name="context">{'default_assigned_to': uid, 'search_default_created_this_week': 1}</field>
     </record>
     <record id="action_my_profiles" model="ir.actions.act_window">
         <field name="name">My Services</field>
