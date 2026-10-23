@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Deliberately empty.
+
+         __manifest__.py loads this file, and the bloompod and vfo workflows
+         copy their own version over it on deploy. Every other environment -
+         main, ehub, a fresh database - has no version of its own and would
+         otherwise install against a filename that is not there, which fails
+         the whole registry, not just this module.
+
+         So this is the one that says "no renaming here". Leave it empty:
+         anything added would apply everywhere that has no override, which is
+         the opposite of what the file is for. -->
+</odoo>
