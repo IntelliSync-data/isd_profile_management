@@ -565,7 +565,7 @@ curl -X POST '{wizard.base_url}/api/profile/create-payment' \\
 
     <h4>Endpoint:</h4>
     <div style="background-color: #34495e; color: #ecf0f1; padding: 10px; border-radius: 3px; margin-bottom: 10px;">
-        POST {webhook_base}/api/profile/payment-webhook
+        POST {wizard.base_url}/api/profile/payment-webhook
     </div>
 
     <h4>Setup</h4>
