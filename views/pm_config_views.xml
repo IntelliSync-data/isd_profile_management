@@ -82,7 +82,7 @@
                                         <code>user_email</code> - Customer email<br/>
                                         <code>package_name</code> - Package name<br/>
                                         <code>profile_name</code> - Profile assignment name<br/>
-                                        <code>total_cost</code> - Total cost (formatted, e.g. 4,000 VND)<br/>
+                                        <code>total_cost</code> - Total cost, formatted in the package currency (4,000 VND or $40.00)<br/>
                                         <code>paid_amount</code> - Amount already paid<br/>
                                         <code>remaining_amount</code> - Remaining amount<br/>
                                         <code>state</code> - Profile stage (new, in_progress, ...)<br/>
@@ -105,7 +105,7 @@
                                         <code>user_name</code> - Customer name<br/>
                                         <code>user_email</code> - Customer email<br/>
                                         <code>payment_name</code> - Payment reference (e.g. PAY00001)<br/>
-                                        <code>amount</code> - Payment amount (formatted, e.g. 2,000 VND)<br/>
+                                        <code>amount</code> - Payment amount, formatted in the package currency (2,000 VND or $20.00)<br/>
                                         <code>transaction_id</code> - Transaction ID<br/>
                                         <code>qr_url</code> - QR code URL<br/>
                                         <code>state</code> - Payment state (draft, pending, confirmed, ...)<br/>

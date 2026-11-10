@@ -1,2 +1,6 @@
-views/menu_items_override.xml
-__manifest__.py
+# Nothing here. Both __manifest__.py and views/menu_items_override.xml used to
+# be ignored, because the deploy copies a per-branch version over them on the
+# server. But ignoring them here meant the base version never reached the repo:
+# the manifest loads menu_items_override.xml, so any environment without a
+# version of its own - main, ehub, a fresh database - installed against a file
+# that was not there and brought the whole registry down with it.

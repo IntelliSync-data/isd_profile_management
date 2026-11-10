@@ -248,7 +248,7 @@ class ProfilePayment(models.Model):
             'payment_name': self.name or '',
             'user_name': contact_name,
             'user_email': contact_email,
-            'amount': f"{self.amount:,.0f} VND",
+            'amount': self.env['user.profile']._format_amount(self.amount),
             'transaction_id': self.transaction_id or '',
             'qr_url': self.qr_url or '',
             'state': self.state or '',
