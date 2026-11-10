@@ -351,6 +351,21 @@ class UserProfile(models.Model):
             self._sync_open_payments_to_price(remaining_before)
         return res
 
+    @api.model
+    def _format_amount(self, amount):
+        """An amount as a customer reads it in an email, in the package currency.
+
+        Not _format_currency: that one shortens for cards on screen (1.5Mđ),
+        and a receipt wants the whole figure. VND keeps exactly what these
+        emails have always printed; USD gets the cents a dollar price has.
+        """
+        currency = self.env['ir.config_parameter'].sudo().get_param(
+            'isd_profile_management.pm_currency', 'vnd')
+        amount = amount or 0.0
+        if currency == 'usd':
+            return f"${amount:,.2f}"
+        return f"{amount:,.0f} VND"
+
     def _remaining_to_charge(self):
         """What is still owed, counting only money actually confirmed.
 
@@ -1241,9 +1256,9 @@ class UserProfile(models.Model):
             'user_name': contact_name,
             'user_email': contact_email,
             'package_name': self.profile_id.name or '',
-            'total_cost': f"{self.total_cost:,.0f} VND",
-            'paid_amount': f"{self.paid_amount:,.0f} VND",
-            'remaining_amount': f"{self.remaining_amount:,.0f} VND",
+            'total_cost': self._format_amount(self.total_cost),
+            'paid_amount': self._format_amount(self.paid_amount),
+            'remaining_amount': self._format_amount(self.remaining_amount),
             'state': self.state or '',
             'payment_status': self.payment_status or '',
             'assigned_date': fields.Datetime.to_string(self.assigned_date) if self.assigned_date else '',
